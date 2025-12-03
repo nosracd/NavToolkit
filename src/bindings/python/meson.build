@@ -96,11 +96,9 @@ python_path =  python_bindings_lib_location + ':' + aspn_xtensor_python_lib_loca
 
 ### Stubgen
 
-python_with_mypy = import('python').find_installation('python3', modules: ['mypy'], required: false)
+pybind11_stubgen = find_program('pybind11-stubgen')
 
-if (python_with_mypy.found() and not is_disabler(aspn_xtensor_py_dep))
-
-    generate_stubs = meson.project_source_root() / 'util' / 'generate_stubs.py'
+if (pybind11_stubgen.found() and not is_disabler(aspn_xtensor_py_dep))
 
     env = environment()
     env.append('PYTHONPATH', python_path)
@@ -108,7 +106,7 @@ if (python_with_mypy.found() and not is_disabler(aspn_xtensor_py_dep))
     custom_target('stubs',
                   input : python_bindings_lib,
                   output : ['navtk' ],
-                  command : [python_with_mypy, generate_stubs, '-v', '-pnavtk', '-o' + meson.current_build_dir()],
+                  command : [pybind11_stubgen, '-o' + meson.current_build_dir(), 'navtk'],
                   env: env,
                   build_by_default : true,
                   install_tag: 'python-runtime',
@@ -140,13 +138,13 @@ if not is_disabler(python_bindings_lib)
             bool_yn: true)
     endif
 
-    if (python_with_mypy.found())
+    if (pybind11_stubgen.found())
         summary({'Python stub generation enabled': true},
             section: 'navtk Python bindings',
             bool_yn: true)
     else
         summary({'Python stub generation enabled': false,
-                 'Python stub generation problem(s)': 'mypy not found'},
+                 'Python stub generation problem(s)': 'pybind11-stubgen not found'},
             section: 'navtk Python bindings',
             bool_yn: true)
     endif
