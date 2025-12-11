@@ -96,10 +96,11 @@ def disambiguate_names(name: str, names: List[str]) -> str:
     return name
 
 
-def clean_docstring(docstring):
+def format_docstring(docstring):
     '''
     Removes doxygen-style prefixes and suffixes from extracted docstrings.
-    Also strips trailing whitespace.
+    Also strips trailing whitespace. Last, replaces doxygen-style directives a
+    sphinx-style directives.
     '''
     if docstring is None:
         return None
@@ -107,11 +108,20 @@ def clean_docstring(docstring):
     docstring = docstring.strip('/**')
     docstring = docstring.strip('///')
     docstring = docstring.strip('*/')
-    docstring = re.sub(r"\n\*", "\n", docstring, flags=re.DOTALL)
+    docstring = re.sub(r"\n\* ?", "\n", docstring, flags=re.DOTALL)
     # Remove leading and trailing whitespace
     docstring = docstring.strip()
     # Replace tabs with spaces for better output in the terminal
     docstring = docstring.replace('\t', '    ')
+
+    # Replace doxygen-style directives with sphinx-style directives.
+    docstring = re.sub(
+        r'@param (\S*)', r':param \1:', docstring, flags=re.DOTALL
+    )
+    docstring = re.sub(
+        r'@throw (\S*)', r':raises \1:', docstring, flags=re.DOTALL
+    )
+    docstring = re.sub(r'.*@return', '\nReturns\n-------\n', docstring)
     return docstring
 
 
@@ -119,12 +129,12 @@ def process_class(input: parser.ClassScope):
     '''
     Extract docstrings for a class, including any methods, fields, or enums.
     '''
-    docstring = clean_docstring(input.class_decl.doxygen)
+    docstring = format_docstring(input.class_decl.doxygen)
     name = input.class_decl.typename.segments[0].name
     if docstring is not None:
         DOCSTRINGS[name] = docstring
     for field in input.fields:
-        docstring = clean_docstring(field.doxygen)
+        docstring = format_docstring(field.doxygen)
         if docstring is not None:
             DOCSTRINGS[f'{name}_{field.name}'] = docstring
     for method in input.methods:
@@ -133,7 +143,7 @@ def process_class(input: parser.ClassScope):
             continue
         if method_name.startswith('~'):
             continue
-        docstring = clean_docstring(method.doxygen)
+        docstring = format_docstring(method.doxygen)
         if docstring is not None:
             combined_name = disambiguate_names(
                 f'{name}_{method_name}', DOCSTRINGS
@@ -159,14 +169,14 @@ def process_enum(input: parser.EnumDecl, class_scope=None) -> None:
     Extract docstrings from an enum, including any documentation of the enum
     values.
     '''
-    docstring = clean_docstring(input.doxygen)
+    docstring = format_docstring(input.doxygen)
     if docstring is not None:
         name = input.typename.segments[0].name
         if class_scope is not None:
             name = f'{class_scope}_{name}'
         DOCSTRINGS[name] = docstring
     for value in input.values:
-        docstring = clean_docstring(value.doxygen)
+        docstring = format_docstring(value.doxygen)
         if docstring is not None:
             DOCSTRINGS[f'{name}_{value.name}'] = docstring
 
@@ -175,7 +185,7 @@ def process_function(input: parser.Function):
     '''
     Extract the docstring of a function.
     '''
-    docstring = clean_docstring(input.doxygen)
+    docstring = format_docstring(input.doxygen)
     if docstring is not None:
         name = disambiguate_names(input.name.segments[0].name, DOCSTRINGS)
         if name.startswith('operator'):
@@ -187,7 +197,7 @@ def process_variables(input: parser.Variable):
     '''
     Extract the docstring for a variable.
     '''
-    docstring = clean_docstring(input.doxygen)
+    docstring = format_docstring(input.doxygen)
     if docstring is not None:
         name = input.name.segments[0].name
         DOCSTRINGS[name] = docstring
