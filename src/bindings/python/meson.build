@@ -96,7 +96,7 @@ python_path =  python_bindings_lib_location + ':' + aspn_xtensor_python_lib_loca
 
 ### Stubgen
 
-pybind11_stubgen = find_program('pybind11-stubgen')
+pybind11_stubgen = find_program('pybind11-stubgen', required : false)
 
 if (pybind11_stubgen.found() and not is_disabler(aspn_xtensor_py_dep))
 
