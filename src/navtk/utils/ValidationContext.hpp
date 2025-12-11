@@ -90,11 +90,8 @@ public:
 	 * multiple matrices to this context.  Specify the validations to occur on this matrix before
 	 * adding another.
 	 *
-	 * \pre
-	 * {@code
-	 * ValidationContext ctx {};
-	 * ctx.add_matrix(myMatrix, "myMatrix").dim(1, 4).validate() // validates myMatrix is 1 by 4.
-	 * }
+	 *		ValidationContext ctx {};
+	 *		ctx.add_matrix(myMatrix, "myMatrix").dim(1, 4).validate() // validates myMatrix is 1x4.
 	 *
 	 * @param matrix A matrix to validate.
 	 * @param name The name of the matrix (used in displayed errors).
@@ -124,11 +121,8 @@ public:
 	 * multiple matrices to this context.  Specify the validations to occur on this matrix before
 	 * adding another.
 	 *
-	 * \pre
-	 * {@code
-	 * ValidationContext ctx {};
-	 * ctx.add_matrix(myMatrix, "myMatrix").dim(1, 4).validate() // validates myMatrix is 1 by 4.
-	 * }
+	 *		ValidationContext ctx {};
+	 *		ctx.add_matrix(myMatrix, "myMatrix").dim(1, 4).validate() // validates myMatrix is 1x4.
 	 *
 	 * @param matrix A matrix to validate.
 	 * @param name The name of the matrix (used in displayed errors).
