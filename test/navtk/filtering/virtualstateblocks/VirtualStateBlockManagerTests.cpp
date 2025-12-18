@@ -389,3 +389,65 @@ TEST_F(VirtualStateBlockManagerTests, RemoveVirtualStateBlock2) {
 
 	test_manager_and_copies(test);
 }
+
+class MockVsb : public VirtualStateBlock {
+public:
+	bool received_aux_data = false;
+	// Simulate that aux data has been refreshed.
+	void receive_aux_data(const AspnBaseVector&) override { received_aux_data = true; }
+	MockVsb(std::string current, std::string target)
+	    : VirtualStateBlock(std::move(current), std::move(target)) {}
+
+	navtk::not_null<std::shared_ptr<VirtualStateBlock>> clone() override {
+		return std::make_shared<MockVsb>(*this);
+	}
+
+	Vector convert_estimate(const Vector&, const aspn_xtensor::TypeTimestamp&) override {
+		if (!received_aux_data)
+			// Indicate failure
+			return {0};
+		// Simulate that aux data has been used and is now stale.
+		received_aux_data = false;
+		// Indicate success
+		return {1};
+	}
+
+	Matrix jacobian(const Vector&, const aspn_xtensor::TypeTimestamp&) override {
+		return navtk::eye(3);
+	}
+};
+
+TEST_F(VirtualStateBlockManagerTests, DeepCopy) {
+	// Set up VSB manager with a chain
+	manager->add_virtual_state_block(std::make_shared<MockVsb>("1", "2"));
+	manager->add_virtual_state_block(std::make_shared<MockVsb>("2", "3"));
+
+	// Form a mapping in the chain
+	std::shared_ptr<MockVsb> vsb =
+	    std::dynamic_pointer_cast<MockVsb>(manager->get_virtual_state_block("2"));
+	vsb->receive_aux_data({});
+	manager->convert_estimate(navtk::zeros(1), "1", "3", {1});
+
+	// Create copies of the manager.
+	manager_copy_ctr    = VirtualStateBlockManager(*manager);
+	manager_copy_assign = *manager;
+
+	// Update aux data for all managers and all VSBs.
+	for (auto& target : {"2", "3"}) {
+		std::shared_ptr<MockVsb> og_vsb =
+		    std::dynamic_pointer_cast<MockVsb>(manager->get_virtual_state_block(target));
+		og_vsb->receive_aux_data({});
+		std::shared_ptr<MockVsb> copy_assign_vsb =
+		    std::dynamic_pointer_cast<MockVsb>(manager_copy_assign.get_virtual_state_block(target));
+		copy_assign_vsb->receive_aux_data({});
+		std::shared_ptr<MockVsb> copy_ctr_vsb =
+		    std::dynamic_pointer_cast<MockVsb>(manager_copy_ctr.get_virtual_state_block(target));
+		copy_ctr_vsb->receive_aux_data({});
+	}
+
+	// Now call convert_estimate again. If they all received aux data, they will return the expected
+	// value.
+	EXPECT_DOUBLE_EQ(manager->convert_estimate(navtk::zeros(1), "1", "3", {1})[0], 1);
+	EXPECT_DOUBLE_EQ(manager_copy_ctr.convert_estimate(navtk::zeros(1), "1", "3", {1})[0], 1);
+	EXPECT_DOUBLE_EQ(manager_copy_assign.convert_estimate(navtk::zeros(1), "1", "3", {1})[0], 1);
+}
