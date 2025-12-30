@@ -27,13 +27,16 @@ VirtualStateBlockManager::VirtualStateBlockManager(const VirtualStateBlockManage
 
 	for (auto map_element : other.gen_vsb_map) {
 		auto labels = map_element.first;
-		auto block  = map_element.second;
-		auto clone  = std::dynamic_pointer_cast<ChainedVirtualStateBlock>(block->clone());
-		auto it     = gen_vsb_map.find({labels.first, labels.second});
+		// Don't clone these blocks, they should have already been cloned in the previous loop when
+		// filling out vsb_map. Instead, use the old label to grab the newly-cloned block.
+		auto block = std::dynamic_pointer_cast<ChainedVirtualStateBlock>(
+		    get_virtual_state_block(map_element.second->get_target()));
+		if (block == nullptr) continue;
+		auto it = gen_vsb_map.find({labels.first, labels.second});
 		if (it != gen_vsb_map.end())
-			it->second = clone;
+			it->second = block;
 		else
-			gen_vsb_map.insert({{labels.first, labels.second}, clone});
+			gen_vsb_map.insert({{labels.first, labels.second}, block});
 	}
 }
 
@@ -55,13 +58,16 @@ VirtualStateBlockManager& VirtualStateBlockManager::operator=(
 
 	for (auto map_element : other.gen_vsb_map) {
 		auto labels = map_element.first;
-		auto block  = map_element.second;
-		auto clone  = std::dynamic_pointer_cast<ChainedVirtualStateBlock>(block->clone());
-		auto it     = gen_vsb_map.find({labels.first, labels.second});
+		// Don't clone these blocks, they should have already been cloned in the previous loop when
+		// filling out vsb_map. Instead, use the old label to grab the newly-cloned block.
+		auto block = std::dynamic_pointer_cast<ChainedVirtualStateBlock>(
+		    get_virtual_state_block(map_element.second->get_target()));
+		if (block == nullptr) continue;
+		auto it = gen_vsb_map.find({labels.first, labels.second});
 		if (it != gen_vsb_map.end())
-			it->second = clone;
+			it->second = block;
 		else
-			gen_vsb_map.insert({{labels.first, labels.second}, clone});
+			gen_vsb_map.insert({{labels.first, labels.second}, block});
 	}
 
 	return *this;
