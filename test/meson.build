@@ -105,7 +105,4 @@ endif
 # Running "ninja test" will execute all tests.  This target "ninja tests" will provide more output.
 run_target('tests', command: ['meson', 'test', '-C', meson.project_build_root(), '-v'])
 
-# Copy files needed for unit tests
-configure_file(input : 'data/hour1190.18n', output : 'hour1190.18n', copy : true)
-
 subdir('python')
