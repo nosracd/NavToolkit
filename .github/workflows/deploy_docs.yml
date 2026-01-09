@@ -1,0 +1,36 @@
+name: deploy_docs
+
+on:
+  push:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  docs:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up
+      uses: ./.github/actions/setup
+
+    - name: Build documentation
+      run: |
+        set -xe;
+        docker/docker_interface.py setup
+        docker/docker_interface.py debug ubuntu-noble "ninja -C docker/build/ubuntu_noble docs"
+
+    - name: Upload artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: docker/build/ubuntu_noble/docs
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4

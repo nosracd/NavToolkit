@@ -24,3 +24,18 @@ dependencies = ['numpy']
 name = 'navtk'
 dynamic = ['version']
 description = 'NavToolkit Python Bindings'
+
+[tool.cibuildwheel.linux]
+before-all = "yum install openblas-devel -y"
+
+[[tool.cibuildwheel.overrides]]
+select = "*armv7*"
+before-all = """
+  apt-get update &&
+  apt-get install -y libopenblas-dev gcc-10 g++-10 &&
+  update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 60 &&
+  update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-10 60
+"""
+
+[tool.pytest.ini_options]
+norecursedirs = ["subprojects"]

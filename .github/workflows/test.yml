@@ -1,0 +1,141 @@
+name: Test
+
+on: [push, pull_request]
+
+jobs:
+    linux:
+      name: ${{ matrix.platform }}
+      runs-on: ubuntu-24.04
+      strategy:
+        fail-fast: false
+        matrix:
+          platform: [ubuntu-noble, ubuntu-noble-debug, cross-armv7, fedora-gcc, fedora-clang, ubuntu-jammy]
+          include:
+            - platform: ubuntu-noble
+              dockerfile: Dockerfile.ubuntu
+              tag: ubuntu-noble
+            - platform: ubuntu-noble-debug
+              dockerfile: Dockerfile.ubuntu
+              tag: ubuntu-noble
+            - platform: ubuntu-jammy
+              dockerfile: Dockerfile.ubuntu
+              tag: ubuntu-jammy
+            - platform: cross-armv7
+              dockerfile: Dockerfile.ubuntu-cross
+              tag: ubuntu-cross
+            - platform: fedora-gcc
+              dockerfile: Dockerfile.fedora
+              tag: fedora
+            - platform: fedora-clang
+              dockerfile: Dockerfile.fedora
+              tag: fedora
+
+      steps:
+          - uses: actions/checkout@v4
+
+          # GitHub runners don't come with enough free space to build NavToolkit. Delete some stuff
+          # we don't need.
+          - name: Free up space
+            run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+
+          - name: Set up
+            uses: ./.github/actions/setup
+            with:
+              platform: ${{ matrix.platform }}
+              dockerfile: ${{ matrix.dockerfile }}
+              tag: ${{ matrix.tag }}
+
+          - name: Restore ccache cache before building
+            uses: actions/cache/restore@v4
+            with:
+              path: ~/.ccache
+              key: ccache--${{ matrix.platform }}--${{ github.run_id }}
+              restore-keys: ccache--${{ matrix.platform }}--
+
+          - name: Build
+            run: docker/docker_interface.py build ${{ matrix.platform }}
+
+          - name: Save ccache cache
+            uses: actions/cache/save@v4
+            with:
+              path: ~/.ccache
+              key: ccache--${{ matrix.platform }}--${{ github.run_id }}
+
+          - name: Test
+            run: docker/docker_interface.py test ${{ matrix.platform }}
+
+    arm64:
+      name: cross-arm64
+      runs-on: ubuntu-24.04-arm
+      steps:
+          - uses: actions/checkout@v4
+
+          # GitHub runners don't come with enough free space to build NavToolkit. Delete some stuff
+          # we don't need.
+          - name: Free up space
+            run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+
+          - name: Set up
+            uses: ./.github/actions/setup
+            with:
+              platform: ubuntu-noble
+              dockerfile: Dockerfile.ubuntu
+              tag: ubuntu-noble-arm64
+
+          - name: Restore ccache cache before building
+            uses: actions/cache/restore@v4
+            with:
+              path: ~/.ccache
+              key: ccache--arm64-ubuntu-noble--${{ github.run_id }}
+              restore-keys: ccache--arm64-ubuntu-noble--
+
+          - name: Build
+            run: docker/docker_interface.py build ubuntu-noble
+
+          - name: Save ccache cache
+            uses: actions/cache/save@v4
+            with:
+              path: ~/.ccache
+              key: ccache--arm64-ubuntu-noble--${{ github.run_id }}
+
+          - name: Test
+            run: docker/docker_interface.py test ubuntu-noble
+
+    macos:
+        runs-on: macos-15
+        steps:
+        - uses: actions/checkout@v4
+
+        - name: Install dependencies
+          run: brew install ccache gdal
+
+        - name: Set up ccache
+          run: |
+            set -xe
+            mkdir -p /Users/runner/.ccache
+            ccache --set-config=cache_dir=/Users/runner/.ccache
+
+        - name: Restore ccache cache before building
+          uses: actions/cache/restore@v4
+          with:
+            path: /Users/runner/.ccache
+            key: ccache--macos--${{ github.run_id }}
+            restore-keys: ccache--macos--
+
+        - name: Set up and build
+          run: |
+            set -xe
+            python3 -m venv .venv --system-site-packages
+            source .venv/bin/activate
+            pip install -r docker/requirements.txt
+            meson setup build -Db_lundef=false --warnlevel 3 -Dwerror=true -Dbuildtype=release
+            ninja -C build
+
+        - name: Save ccache cache
+          uses: actions/cache/save@v4
+          with:
+            path: /Users/runner/.ccache
+            key: ccache--macos--${{ github.run_id }}
+
+        - name: Test
+          run: ninja -C build test

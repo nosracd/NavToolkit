@@ -1,0 +1,104 @@
+name: Check
+
+on: [push, pull_request]
+
+jobs:
+    format:
+        runs-on: ubuntu-24.04
+        steps:
+        - uses: actions/checkout@v4
+
+        - name: Set up
+          uses: ./.github/actions/setup
+
+        - name: Run formatters
+          run: |
+              set -xe
+              docker/docker_interface.py format
+              git diff --exit-code
+
+    flake8:
+        runs-on: ubuntu-24.04
+        steps:
+        - uses: actions/checkout@v4
+
+        - name: Set up
+          uses: ./.github/actions/setup
+
+        - name: Run flake8
+          run: docker/docker_interface.py flake8
+
+    copyright-year:
+        runs-on: ubuntu-24.04
+        steps:
+        - uses: actions/checkout@v4
+
+        - name: Check copyright year
+          run: (! grep --color -i "copyright.*$(( $(date +%Y) - 1 ))" $(git ls-files))
+
+    documentation:
+        runs-on: ubuntu-24.04
+        env:
+          BUILD_DIR: docker/build/ubuntu_noble
+        steps:
+        - uses: actions/checkout@v4
+
+        - name: Set up
+          uses: ./.github/actions/setup
+
+        - name: Build documentation
+          run: |
+            set -xe;
+            docker/docker_interface.py check_documentation
+            docker/docker_interface.py setup
+            docker/docker_interface.py debug ubuntu-noble "ninja -C $BUILD_DIR docs"
+            docker/docker_interface.py debug ubuntu-noble "linkchecker -r 3 $BUILD_DIR/docs/index.html"
+
+        - name: Archive Docs
+          uses: actions/upload-artifact@v4
+          with:
+            name: archived-docs
+            path: ${{ env.BUILD_DIR }}/docs
+
+    external-link:
+        runs-on: ubuntu-24.04
+        needs: documentation
+        env:
+          BUILD_DIR: docker/build/ubuntu_noble
+        steps:
+        - uses: actions/checkout@v4
+
+        - name: Set up
+          uses: ./.github/actions/setup
+
+        - name: Download documentation artifacts
+          uses: actions/download-artifact@v4
+          with:
+            name: archived-docs
+            path: ${{ env.BUILD_DIR }}/docs
+
+        - name: Check external links
+          run: |
+            set -xe;
+            docker/docker_interface.py debug ubuntu-noble "\
+            linkchecker $BUILD_DIR/docs/index.html --check-extern -r 3 \
+                --ignore-url=RobotoSlab \
+                --ignore-url=py-modindex \
+                --ignore-url=sphinx-doc \
+                --ignore-url=http://schema.org/Article \
+                --ignore-url=https://about.readthedocs.com?ref=readthedocs.org \
+                --ignore-url=https://readthedocs.org"
+
+    naming-rules:
+        runs-on: ubuntu-24.04
+        steps:
+        - uses: actions/checkout@v4
+
+        - name: Set up
+          uses: ./.github/actions/setup
+
+        - name: Check Naming
+          run: |
+            set -xe;
+            docker/docker_interface.py setup ubuntu-noble
+            docker/docker_interface.py debug ubuntu-noble "./util/check_naming.py"
