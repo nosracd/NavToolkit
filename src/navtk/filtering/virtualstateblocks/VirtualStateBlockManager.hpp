@@ -278,6 +278,12 @@ private:
 	 * representation. `target` are the keys and 'start' the values.
 	 */
 	mutable std::map<std::string, std::string> relationships;
+
+	/**
+	 * Performs a deep copy of the vsb_map and gen_vsb_map fields from \p other to this instance,
+	 * closing the VSBs in the maps.
+	 */
+	void copy_maps_from(const VirtualStateBlockManager& other);
 };
 
 }  // namespace filtering

@@ -13,8 +13,7 @@
 namespace navtk {
 namespace filtering {
 
-VirtualStateBlockManager::VirtualStateBlockManager(const VirtualStateBlockManager& other)
-    : relationships(other.relationships) {
+void VirtualStateBlockManager::copy_maps_from(const VirtualStateBlockManager& other) {
 	vsb_map.clear();
 	gen_vsb_map.clear();
 	for (auto map_element : other.vsb_map) {
@@ -34,29 +33,19 @@ VirtualStateBlockManager::VirtualStateBlockManager(const VirtualStateBlockManage
 	}
 }
 
+VirtualStateBlockManager::VirtualStateBlockManager(const VirtualStateBlockManager& other)
+    : relationships(other.relationships) {
+	copy_maps_from(other);
+}
+
 VirtualStateBlockManager& VirtualStateBlockManager::operator=(
     VirtualStateBlockManager const& other) {
 	if (this == &other) return *this;
 
 	relationships = other.relationships;
 
-	vsb_map.clear();
-	gen_vsb_map.clear();
-	for (auto map_element : other.vsb_map) {
-		auto labels = map_element.first;
-		auto block  = map_element.second;
-		vsb_map.insert({{labels.first, labels.second}, block->clone()});
-	}
+	copy_maps_from(other);
 
-	for (auto map_element : other.gen_vsb_map) {
-		auto labels = map_element.first;
-		// Don't clone these blocks, they should have already been cloned in the previous loop when
-		// filling out vsb_map. Instead, use the old label to grab the newly-cloned block.
-		auto block = std::dynamic_pointer_cast<ChainedVirtualStateBlock>(
-		    get_virtual_state_block(map_element.second->get_target()));
-		if (block == nullptr) continue;
-		gen_vsb_map.insert({{labels.first, labels.second}, block});
-	}
 	return *this;
 }
 
