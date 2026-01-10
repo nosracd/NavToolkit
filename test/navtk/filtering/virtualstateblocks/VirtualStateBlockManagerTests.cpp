@@ -451,3 +451,17 @@ TEST_F(VirtualStateBlockManagerTests, DeepCopy) {
 	EXPECT_DOUBLE_EQ(manager_copy_ctr.convert_estimate(navtk::zeros(1), "1", "3", {1})[0], 1);
 	EXPECT_DOUBLE_EQ(manager_copy_assign.convert_estimate(navtk::zeros(1), "1", "3", {1})[0], 1);
 }
+
+TEST_F(VirtualStateBlockManagerTests, DeepCopyRemovesStartLabel) {
+	navtk::ErrorModeLock guard{navtk::ErrorMode::DIE};
+	auto start_label = manager->get_start_block_label("unscaled");
+	ASSERT_TRUE(start_label.first);
+	ASSERT_EQ(start_label.second, "base");
+
+	VirtualStateBlockManager to_copy_from;
+	to_copy_from.add_virtual_state_block(std::make_shared<MockVsb>("1", "2"));
+	*manager = to_copy_from;
+
+	EXPECT_TRUE(manager->get_start_block_label("2").first);
+	EXPECT_FALSE(manager->get_start_block_label("unscaled").first);
+}
