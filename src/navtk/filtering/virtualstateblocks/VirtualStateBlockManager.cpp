@@ -15,14 +15,12 @@ namespace filtering {
 
 VirtualStateBlockManager::VirtualStateBlockManager(const VirtualStateBlockManager& other)
     : relationships(other.relationships) {
+	vsb_map.clear();
+	gen_vsb_map.clear();
 	for (auto map_element : other.vsb_map) {
 		auto labels = map_element.first;
 		auto block  = map_element.second;
-		auto it     = vsb_map.find({labels.first, labels.second});
-		if (it != vsb_map.end())
-			it->second = block->clone();
-		else
-			vsb_map.insert({{labels.first, labels.second}, block->clone()});
+		vsb_map.insert({{labels.first, labels.second}, block->clone()});
 	}
 
 	for (auto map_element : other.gen_vsb_map) {
@@ -32,11 +30,7 @@ VirtualStateBlockManager::VirtualStateBlockManager(const VirtualStateBlockManage
 		auto block = std::dynamic_pointer_cast<ChainedVirtualStateBlock>(
 		    get_virtual_state_block(map_element.second->get_target()));
 		if (block == nullptr) continue;
-		auto it = gen_vsb_map.find({labels.first, labels.second});
-		if (it != gen_vsb_map.end())
-			it->second = block;
-		else
-			gen_vsb_map.insert({{labels.first, labels.second}, block});
+		gen_vsb_map.insert({{labels.first, labels.second}, block});
 	}
 }
 
@@ -46,14 +40,12 @@ VirtualStateBlockManager& VirtualStateBlockManager::operator=(
 
 	relationships = other.relationships;
 
+	vsb_map.clear();
+	gen_vsb_map.clear();
 	for (auto map_element : other.vsb_map) {
 		auto labels = map_element.first;
 		auto block  = map_element.second;
-		auto it     = vsb_map.find({labels.first, labels.second});
-		if (it != vsb_map.end())
-			it->second = block->clone();
-		else
-			vsb_map.insert({{labels.first, labels.second}, block->clone()});
+		vsb_map.insert({{labels.first, labels.second}, block->clone()});
 	}
 
 	for (auto map_element : other.gen_vsb_map) {
@@ -63,13 +55,8 @@ VirtualStateBlockManager& VirtualStateBlockManager::operator=(
 		auto block = std::dynamic_pointer_cast<ChainedVirtualStateBlock>(
 		    get_virtual_state_block(map_element.second->get_target()));
 		if (block == nullptr) continue;
-		auto it = gen_vsb_map.find({labels.first, labels.second});
-		if (it != gen_vsb_map.end())
-			it->second = block;
-		else
-			gen_vsb_map.insert({{labels.first, labels.second}, block});
+		gen_vsb_map.insert({{labels.first, labels.second}, block});
 	}
-
 	return *this;
 }
 
