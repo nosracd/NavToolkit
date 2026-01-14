@@ -93,7 +93,7 @@ class Platform(object):
     @property
     def iid_file(self):
         """Returns a relative location to the Docker Image ID file."""
-        return path.join(IIDFILE_PATH, self.platform_name.replace("-", "_"))
+        return path.join(IIDFILE_PATH, self.platform_name)
 
 
 # The name of the platform to be used when no platform name is supplied.
