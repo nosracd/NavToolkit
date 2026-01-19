@@ -11,7 +11,7 @@ namespace navtk {
 namespace geospatial {
 
 /**
- * Class used to read geoid undulation data from 'ww15mgh.grd', a standard undulation file available
+ * Class used to read geoid undulation data from 'WW15MGH.GRD', a standard undulation file available
  * from https://earth-info.gs.mil/
  *
  * Geoid height is the actual height above mean sea level (often abbreviated MSL).
@@ -40,7 +40,7 @@ public:
 	/**
 	 * Gets singleton object, constructing new instance if necessary.
 	 *
-	 * Upon construction, adds the path to the Geoid Undulation data file, 'ww15mgh.grd'. Opens the
+	 * Upon construction, adds the path to the Geoid Undulation data file, 'WW15MGH.GRD'. Opens the
 	 * file, reads past the 6 header values describing the range the file covers. Yields runtime
 	 * error if the file is not found or if the header values are invalid.
 	 *
@@ -52,7 +52,7 @@ public:
 	 * @return The singleton object.
 	 */
 	static std::shared_ptr<GeoidUndulationSource> get_shared(
-	    const std::string& path = "ww15mgh.grd");
+	    const std::string& path = "WW15MGH.GRD");
 
 	/**
 	 * Gets the geoid undulation at a given latitude and longitude.
@@ -134,7 +134,7 @@ private:
 
 	mutable std::shared_ptr<std::ifstream> infile;
 
-	/* 'ww15mgh.grd' file attributes */
+	/* 'WW15MGH.GRD' file attributes */
 	const double min_lat, max_lat, min_lon, max_lon, lat_step, lon_step;
 
 	/* Chunk attributes */

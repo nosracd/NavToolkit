@@ -53,7 +53,7 @@ public:
 	           AspnMeasurementAltitudeReference in_ref  = ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE,
 	           AspnMeasurementAltitudeReference out_ref = ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE,
 	           unsigned int num_tiles                   = 10,
-	           const std::string& undulation_path       = "ww15mgh.grd");
+	           const std::string& undulation_path       = "WW15MGH.GRD");
 
 	/**
 	 * Gets the elevation at a given latitude and longitude.

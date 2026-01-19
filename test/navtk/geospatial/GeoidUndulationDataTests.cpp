@@ -11,7 +11,7 @@ namespace navtk {
 namespace geospatial {
 
 // This test asserts that the geoid undulation data class returns the expected MSL minus HAE values
-// for a given set of latitude and longitude values using 'ww15mgh.grd,' a data file obtained from
+// for a given set of latitude and longitude values using 'WW15MGH.GRD,' a data file obtained from
 // https://earth-info.gs.mil/
 
 // If the latitude and longitude coordinates do not fall exactly on a point in the file,
@@ -48,9 +48,9 @@ public:
 };
 
 TEST_F(GeoidUndulationDataTest, without_interpolation) {
-	// 3 coordinates that fall right on a point in the ww15mgh.grd file
+	// 3 coordinates that fall right on a point in the WW15MGH.GRD file
 	// clang-format off
-	const Matrix query_coordinates = {{90   ,  35},  // line 17, index 3 in ww15mgh.grd
+	const Matrix query_coordinates = {{90   ,  35},  // line 17, index 3 in WW15MGH.GRD
 	                                  {-3.75, -79},  // line 71775, index 4
 	                                  {-3.5 , -79}}; // line 71584, index 4
 	// clang-format on
@@ -63,7 +63,7 @@ TEST_F(GeoidUndulationDataTest, without_interpolation) {
 TEST_F(GeoidUndulationDataTest, with_interpolation) {
 	// Series of arbitrary coordinates. Each row is {latitude, longitude} in degrees. The first 3
 	// coordinates were hand-picked, the rest were from a test file located at the same source from
-	// which 'ww15mgh.grd' was obtained (see above)
+	// which 'WW15MGH.GRD' was obtained (see above)
 	// clang-format off
     const Matrix query_coordinates = {{ -3.699006 , -78.90912  },
                                       { -3.612280 , -79.05017  },

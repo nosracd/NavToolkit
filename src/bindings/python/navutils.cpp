@@ -148,19 +148,19 @@ void add_navutils_functions(pybind11::module& m) {
 	                   nav,
 	                   "latitude"_a,
 	                   "longitude"_a,
-	                   "path"_a = std::string("ww15mgh.grd"))
+	                   "path"_a = std::string("WW15MGH.GRD"))
 	NAMESPACE_FUNCTION(hae_to_msl,
 	                   nav,
 	                   "hae"_a,
 	                   "latitude"_a,
 	                   "longitude"_a,
-	                   "path"_a = std::string("ww15mgh.grd"))
+	                   "path"_a = std::string("WW15MGH.GRD"))
 	NAMESPACE_FUNCTION(msl_to_hae,
 	                   nav,
 	                   "msl"_a,
 	                   "latitude"_a,
 	                   "longitude"_a,
-	                   "path"_a = std::string("ww15mgh.grd"))
+	                   "path"_a = std::string("WW15MGH.GRD"))
 
 	NAMESPACE_FUNCTION(quat_conj, nav, "q"_a)
 	NAMESPACE_FUNCTION(quat_norm, nav, "q"_a)

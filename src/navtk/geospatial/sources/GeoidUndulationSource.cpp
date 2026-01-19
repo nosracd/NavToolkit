@@ -39,12 +39,12 @@ GeoidUndulationSource::GeoidUndulationSource(const std::string& path)
       lat_step(read_value()),
       lon_step(read_value()),
       available_undulations(xt::zeros<Scalar>({chunk_size + 1, chunk_size + 1})) {
-	// ww15mgh.grd file should always start with these values, specifying the range the file covers.
+	// WW15MGH.GRD file should always start with these values, specifying the range the file covers.
 	// If these values aren't found, then the file could have been corrupted, so yield a runtime
 	// error.
 	if (min_lat != -90 || max_lat != 90 || min_lon != 0 || max_lon != 360 || lat_step != 0.25 ||
 	    lon_step != 0.25) {
-		log_or_throw("Error reading header of file 'ww15mgh.grd.' File may have been modified");
+		log_or_throw("Error reading header of file 'WW15MGH.GRD.' File may have been modified");
 	}
 }
 

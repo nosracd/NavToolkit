@@ -184,7 +184,7 @@ void add_geospatial_functions(pybind11::module &m) {
 	CLASS(GeoidUndulationSource, SpatialMapDataSource)
 	.def_static("get_shared",
 	     &GeoidUndulationSource::get_shared,
-	     PROCESS_DOC(GeoidUndulationSource_get_shared), "path"_a = std::string("ww15mgh.grd"))
+	     PROCESS_DOC(GeoidUndulationSource_get_shared), "path"_a = std::string("WW15MGH.GRD"))
 	METHOD(GeoidUndulationSource, set_chunk_size, "size"_a)
 	METHOD_VOID(GeoidUndulationSource, get_chunk_size)
 	CDOC(GeoidUndulationSource);
@@ -218,7 +218,7 @@ void add_geospatial_functions(pybind11::module &m) {
 	                 "in_ref"_a = ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE,
 	                 "out_ref"_a = ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE,
 	                 "num_tiles"_a = 10,
-					 "undulation_path"_a = "ww15mgh.grd"
+					 "undulation_path"_a = "WW15MGH.GRD"
 					 )
 	CDOC(GdalSource);
 	// clang-format on
@@ -251,7 +251,7 @@ void add_geospatial_functions(pybind11::module &m) {
 	CTOR(GdalRaster,
 	     PARAMS(const std::string &, const std::string &),
 	     "filename"_a,
-	     "undulation_path"_a = "ww15mgh.grd")
+	     "undulation_path"_a = "WW15MGH.GRD")
 	METHOD_VOID(GdalRaster, is_valid)
 	METHOD_VOID(GdalRaster, scan_tile)
 	CDOC(GdalRaster);

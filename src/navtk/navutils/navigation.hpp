@@ -930,7 +930,7 @@ Matrix3 rot_vec_to_dcm(const Vector3 &phi);
  */
 std::pair<bool, double> geoid_minus_ellipsoid(double latitude,
                                               double longitude,
-                                              const std::string &path = "ww15mgh.grd");
+                                              const std::string &path = "WW15MGH.GRD");
 
 /**
  * Convert from Height Above Ellipsoid (HAE) to Mean Sea Level (MSL) elevation, using the difference
@@ -951,7 +951,7 @@ std::pair<bool, double> geoid_minus_ellipsoid(double latitude,
 std::pair<bool, double> hae_to_msl(double hae,
                                    double latitude,
                                    double longitude,
-                                   const std::string &path = "ww15mgh.grd");
+                                   const std::string &path = "WW15MGH.GRD");
 
 /**
  * Convert from Mean Sea Level (MSL) to Height Above Ellipsoid (HAE) elevation, using the difference
@@ -969,7 +969,7 @@ std::pair<bool, double> hae_to_msl(double hae,
 std::pair<bool, double> msl_to_hae(double msl,
                                    double latitude,
                                    double longitude,
-                                   const std::string &path = "ww15mgh.grd");
+                                   const std::string &path = "WW15MGH.GRD");
 
 }  // namespace navutils
 }  // namespace navtk

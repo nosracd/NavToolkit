@@ -26,7 +26,7 @@ public:
 	 * MSL. The default path of this variable requires setting the NAVTK_DATA_DIR environment
 	 * variable to the folder containing the undulation file.
 	 */
-	GdalRaster(const std::string& filename, const std::string& undulation_path = "ww15mgh.grd");
+	GdalRaster(const std::string& filename, const std::string& undulation_path = "WW15MGH.GRD");
 
 	/**
 	 * Destructor
