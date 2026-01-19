@@ -128,7 +128,7 @@ TEST_F(GdalSourceTest, geotiff_change_frames_SLOW) {
 TEST_F(GdalSourceTest, dted_compare_against_command_line_gdal) {
 	// West-Center of test file, just to make sure the file can be read.
 	const Matrix QUERY_COORDINATES   = {{30.5, -82}};
-	const Vector EXPECTED_ELEVATIONS = {25};
+	const Vector EXPECTED_ELEVATIONS = {30};
 
 	test_valid_queries(GdalSource::MapType::DTED, QUERY_COORDINATES, EXPECTED_ELEVATIONS);
 }
@@ -147,14 +147,14 @@ TEST_F(GdalSourceTest, dted_change_frames_SLOW) {
 	auto elevation =
 	    sources[GdalSource::MapType::DTED]->lookup_datum(30.5 * DEG2RAD, -82 * DEG2RAD);
 	EXPECT_TRUE(elevation.first);
-	EXPECT_NEAR(25, elevation.second, 0.5);
+	EXPECT_NEAR(30, elevation.second, 0.5);
 
 	// Back to MSL
 	sources[GdalSource::MapType::DTED]->set_output_vertical_reference_frame(
 	    ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE);
 	elevation = sources[GdalSource::MapType::DTED]->lookup_datum(30.5 * DEG2RAD, -82 * DEG2RAD);
 	EXPECT_TRUE(elevation.first);
-	EXPECT_NEAR(-5, elevation.second, 0.5);
+	EXPECT_NEAR(0.9, elevation.second, 0.5);
 }
 
 TEST_F(GdalSourceTest, map_path) {

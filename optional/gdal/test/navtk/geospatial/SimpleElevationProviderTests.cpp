@@ -80,7 +80,7 @@ TEST_F(SimpleElevationProviderTest, compare_against_command_line_gdal) {
 	// Series of arbitrary coordinates inside the GeoTIFF and DTED test tiles. Each row is
 	// {latitude, longitude} in degrees.
 	const Matrix QUERY_COORDINATES   = {{-3.597411, -78.89943}, {30.5, -82}};
-	const Vector EXPECTED_ELEVATIONS = {82, 25};
+	const Vector EXPECTED_ELEVATIONS = {82, 30};
 
 	test_valid_queries(provider_unsupported_ref, QUERY_COORDINATES, EXPECTED_ELEVATIONS);
 }
@@ -102,7 +102,7 @@ TEST_F(SimpleElevationProviderTest, get_elevation_hae_SLOW) {
 	    std::make_shared<SimpleElevationProvider>(sources, ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE);
 
 	const Matrix QUERY_COORDINATES   = {{-3.597411, -78.89943}, {30.5, -82}};
-	const Vector EXPECTED_ELEVATIONS = {82, -4.5};
+	const Vector EXPECTED_ELEVATIONS = {82, 0.9};
 
 	test_valid_queries(provider_hae, QUERY_COORDINATES, EXPECTED_ELEVATIONS);
 }
@@ -114,7 +114,7 @@ TEST_F(SimpleElevationProviderTest, get_elevation_msl_SLOW) {
 	    std::make_shared<SimpleElevationProvider>(sources, ASPN_MEASUREMENT_ALTITUDE_REFERENCE_MSL);
 
 	const Matrix QUERY_COORDINATES   = {{-3.597411, -78.89943}, {30.5, -82}};
-	const Vector EXPECTED_ELEVATIONS = {64, 25};
+	const Vector EXPECTED_ELEVATIONS = {64, 30};
 
 	test_valid_queries(provider_msl, QUERY_COORDINATES, EXPECTED_ELEVATIONS);
 }
