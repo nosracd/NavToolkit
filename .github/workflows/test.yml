@@ -49,8 +49,8 @@ jobs:
             uses: actions/cache/restore@v4
             with:
               path: ~/.ccache
-              key: ccache-${{ matrix.platform }}-${{ github.run_id }}
-              restore-keys: ccache-${{ matrix.platform }}-
+              key: ccache--${{ matrix.platform }}--${{ github.run_id }}
+              restore-keys: ccache--${{ matrix.platform }}--
 
           - name: Build
             run: docker/docker_interface.py build ${{ matrix.platform }}
@@ -59,7 +59,7 @@ jobs:
             uses: actions/cache/save@v4
             with:
               path: ~/.ccache
-              key: ccache-${{ matrix.platform }}-${{ github.run_id }}
+              key: ccache--${{ matrix.platform }}--${{ github.run_id }}
 
           - name: Test
             run: docker/docker_interface.py test ${{ matrix.platform }}
@@ -86,8 +86,8 @@ jobs:
             uses: actions/cache/restore@v4
             with:
               path: ~/.ccache
-              key: ccache-arm64-ubuntu-noble-${{ github.run_id }}
-              restore-keys: ccache-arm64-ubuntu-noble-
+              key: ccache--arm64-ubuntu-noble--${{ github.run_id }}
+              restore-keys: ccache--arm64-ubuntu-noble--
 
           - name: Build
             run: docker/docker_interface.py build ubuntu-noble
@@ -96,7 +96,7 @@ jobs:
             uses: actions/cache/save@v4
             with:
               path: ~/.ccache
-              key: ccache-arm64-ubuntu-noble-${{ github.run_id }}
+              key: ccache--arm64-ubuntu-noble--${{ github.run_id }}
 
           - name: Test
             run: docker/docker_interface.py test ubuntu-noble
@@ -119,8 +119,8 @@ jobs:
           uses: actions/cache/restore@v4
           with:
             path: /Users/runner/.ccache
-            key: ccache-macos-${{ github.run_id }}
-            restore-keys: ccache-macos-
+            key: ccache--macos--${{ github.run_id }}
+            restore-keys: ccache--macos--
 
         - name: Set up and build
           run: |
@@ -135,7 +135,7 @@ jobs:
           uses: actions/cache/save@v4
           with:
             path: /Users/runner/.ccache
-            key: ccache-macos-${{ github.run_id }}
+            key: ccache--macos--${{ github.run_id }}
 
         - name: Test
           run: ninja -C build test
