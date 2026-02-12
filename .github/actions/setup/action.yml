@@ -32,10 +32,6 @@ runs:
         set -xe
         docker pull ghcr.io/${{ steps.repo.outputs.owner }}/navtoolkit:${{ inputs.tag }}-${{ steps.dockerfile-hash.outputs.hash }}
 
-    - name: Retag image
-      shell: bash
-      run: docker tag ghcr.io/${{ steps.repo.outputs.owner }}/navtoolkit:${{ inputs.tag }}-${{ steps.dockerfile-hash.outputs.hash }} navtoolkit-${{ inputs.tag }}
-
     - name: Set up Docker Buildx
       if: steps.pull.outcome == 'failure'
       uses: docker/setup-buildx-action@v3
@@ -51,6 +47,10 @@ runs:
           tags: ghcr.io/${{ steps.repo.outputs.owner }}/navtoolkit:${{ inputs.tag }}-${{ steps.dockerfile-hash.outputs.hash }}
       env:
         SOURCE_DATE_EPOCH: 0
+
+    - name: Retag image
+      shell: bash
+      run: docker tag ghcr.io/${{ steps.repo.outputs.owner }}/navtoolkit:${{ inputs.tag }}-${{ steps.dockerfile-hash.outputs.hash }} navtoolkit-${{ inputs.tag }}
 
     - name: Create iidfile
       shell: bash
