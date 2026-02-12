@@ -9,7 +9,7 @@ jobs:
       strategy:
         fail-fast: false
         matrix:
-          platform: [ubuntu-noble, ubuntu-noble-debug, cross-armv7, cross-arm64, fedora-gcc, fedora-clang, ubuntu-jammy]
+          platform: [ubuntu-noble, ubuntu-noble-debug, cross-armv7, fedora-gcc, fedora-clang, ubuntu-jammy]
           include:
             - platform: ubuntu-noble
               dockerfile: Dockerfile.ubuntu
@@ -21,9 +21,6 @@ jobs:
               dockerfile: Dockerfile.ubuntu
               tag: ubuntu-jammy
             - platform: cross-armv7
-              dockerfile: Dockerfile.ubuntu-cross
-              tag: ubuntu-cross
-            - platform: cross-arm64
               dockerfile: Dockerfile.ubuntu-cross
               tag: ubuntu-cross
             - platform: fedora-gcc
@@ -66,6 +63,43 @@ jobs:
 
           - name: Test
             run: docker/docker_interface.py test ${{ matrix.platform }}
+
+    arm64:
+      name: cross-arm64
+      runs-on: ubuntu-24.04-arm
+      steps:
+          - uses: actions/checkout@v4
+
+          # GitHub runners don't come with enough free space to build NavToolkit. Delete some stuff
+          # we don't need.
+          - name: Free up space
+            run: sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+
+          - name: Set up
+            uses: ./.github/actions/setup
+            with:
+              platform: ubuntu-noble
+              dockerfile: Dockerfile.ubuntu
+              tag: ubuntu-noble-arm64
+
+          - name: Restore ccache cache before building
+            uses: actions/cache/restore@v4
+            with:
+              path: ~/.ccache
+              key: ccache-arm64-ubuntu-noble-${{ github.run_id }}
+              restore-keys: ccache-arm64-ubuntu-noble-
+
+          - name: Build
+            run: docker/docker_interface.py build ubuntu-noble
+
+          - name: Save ccache cache
+            uses: actions/cache/save@v4
+            with:
+              path: ~/.ccache
+              key: ccache-arm64-ubuntu-noble-${{ github.run_id }}
+
+          - name: Test
+            run: docker/docker_interface.py test ubuntu-noble
 
     macos:
         runs-on: macos-15
