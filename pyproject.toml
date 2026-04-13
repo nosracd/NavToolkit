@@ -16,9 +16,9 @@ setup = [
     '-Dpython_bindings=true',
     '-Dgdal_extensions=disabled',
     '-Dget_navtk_data=true',
-    '-Dfirehose-outputs:aspn-cpp-xtensor=disabled',
-    '-Dfirehose-outputs:aspn-cpp-xtensor-py=enabled',
-    '-Dfirehose-outputs:aspn-c-main-library=false',
+    '-Daspn-generated:aspn-cpp-xtensor=disabled',
+    '-Daspn-generated:aspn-cpp-xtensor-py=enabled',
+    '-Daspn-generated:aspn-c-main-library=false',
 ]
 install = ['--tags=runtime,python-runtime']
 

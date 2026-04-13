@@ -1,7 +1,7 @@
 [wrap-git]
-directory = firehose-outputs
+directory = aspn-generated
 
-url = https://github.com/Open-PNT/firehose-outputs.git
+url = https://github.com/is4s/aspn-generated.git
 # main branch - committed 21 April 2026
 revision = 7e1f35bc84b90c6d361e690601448f8087e1a626
 depth = 1

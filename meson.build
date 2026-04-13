@@ -187,7 +187,7 @@ if not aspn_xtensor_dep.found() or aspn_xtensor_dep.type_name() == 'internal'
     else
         aspn_cpp_bindings = 'aspn-cpp-xtensor-py=disabled'
     endif
-    firehose_outputs = subproject('firehose-outputs',
+    aspn_generated = subproject('aspn-generated',
                                 required: true,
                                 default_options: ['aspn-cpp-stl=disabled',
                                                   'aspn-cpp-eigen=disabled',
@@ -195,11 +195,11 @@ if not aspn_xtensor_dep.found() or aspn_xtensor_dep.type_name() == 'internal'
                                                   aspn_cpp_bindings,
                                                   'dds-generated=disabled',
                                                   'lcm-generated=disabled'])
-    aspn_xtensor_dep = firehose_outputs.get_variable('aspn_xtensor_dep')
-    aspn_xtensor_py_dep = firehose_outputs.get_variable('aspn_xtensor_py_dep')
+    aspn_xtensor_dep = aspn_generated.get_variable('aspn_xtensor_dep')
+    aspn_xtensor_py_dep = aspn_generated.get_variable('aspn_xtensor_py_dep')
     if not is_disabler(aspn_xtensor_py_dep)
-        aspn_xtensor_lib = firehose_outputs.get_variable('python_bindings_lib')
-        aspn_xtensor_python_lib_location = firehose_outputs.get_variable('aspn_xtensor_python_lib_location', '')
+        aspn_xtensor_lib = aspn_generated.get_variable('python_bindings_lib')
+        aspn_xtensor_python_lib_location = aspn_generated.get_variable('aspn_xtensor_python_lib_location', '')
     endif
 else
     aspn_xtensor_py_dep = dependency('aspn23-xtensor-py', required: false, disabler: true)

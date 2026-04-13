@@ -31,8 +31,8 @@ def build_extract_args():
         f'-I{np.get_include()}',
         '-isystem/usr/lib/python3/dist-packages/numpy/core/include',
         f'-I/usr/include/python3.{x}',
-        '-Isubprojects/firehose-outputs/aspn-cpp/src',
-        '-Isubprojects/firehose-outputs/aspn-c/src',
+        '-Isubprojects/aspn-generated/aspn-cpp/src',
+        '-Isubprojects/aspn-generated/aspn-c/src',
         '-D_NAVTK_UNIT_TESTS',
         '-DLCM_PYTHON',  # Workaround for a header that won't be generated
         '-I.',
