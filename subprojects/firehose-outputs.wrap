@@ -2,6 +2,6 @@
 directory = firehose-outputs
 
 url = https://github.com/Open-PNT/firehose-outputs.git
-# main branch - committed 30 January 2026
-revision = 56f06136cdc82002f444a6b895488dce50cb167a
+# main branch - committed 21 April 2026
+revision = 7e1f35bc84b90c6d361e690601448f8087e1a626
 depth = 1

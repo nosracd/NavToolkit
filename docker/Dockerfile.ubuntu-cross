@@ -45,7 +45,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # meson: Build system
 # cxxheaderparser: Supports extracting docstrings from headers for reuse in Python docstrings.
-RUN pip3 install meson==1.8.4 cxxheaderparser==1.6.0
+# pybind11-stubgen: Supports generating stub files (Python typing) from the Python module.
+RUN pip3 install meson==1.8.4 cxxheaderparser==1.6.0 pybind11-stubgen==2.5.5
 
 # Add ARM architectures to dpkg and apt sources.list
 RUN . /etc/os-release \
