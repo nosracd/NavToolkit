@@ -182,12 +182,17 @@ aspn_xtensor_dep = dependency('aspn23-xtensor', required: false)
 # If dependency type is 'internal', then it came from a subproject. So do the normal subproject
 # setup to get access to additional variables.
 if not aspn_xtensor_dep.found() or aspn_xtensor_dep.type_name() == 'internal'
+    if get_option('python_bindings')
+        aspn_cpp_bindings = 'aspn-cpp-xtensor-py=enabled'
+    else
+        aspn_cpp_bindings = 'aspn-cpp-xtensor-py=disabled'
+    endif
     firehose_outputs = subproject('firehose-outputs',
                                 required: true,
                                 default_options: ['aspn-cpp-stl=disabled',
                                                   'aspn-cpp-eigen=disabled',
                                                   'aspn-cpp-xtensor=enabled',
-                                                  'aspn-cpp-xtensor-py=enabled',
+                                                  aspn_cpp_bindings,
                                                   'dds-generated=disabled',
                                                   'lcm-generated=disabled'])
     aspn_xtensor_dep = firehose_outputs.get_variable('aspn_xtensor_dep')
