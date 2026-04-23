@@ -91,10 +91,9 @@ using navtk::inertial::StaticWahbaAlignment;
 using navtk::inertial::WanderPosVelAtt;
 using navtk::navutils::GravModels;
 
-using mat_double_pair = std::pair<Matrix3, double>;
-using prnav           = std::pair<bool, NavSolution>;
-using prmat           = std::pair<bool, navtk::Matrix>;
-using primuerr        = std::pair<bool, ImuErrors>;
+using prnav    = std::pair<bool, NavSolution>;
+using prmat    = std::pair<bool, navtk::Matrix>;
+using primuerr = std::pair<bool, ImuErrors>;
 
 void add_inertial_functions(pybind11::module &m) {
 
@@ -116,11 +115,11 @@ void add_inertial_functions(pybind11::module &m) {
 
 	CLASS(ImuErrors, aspn_xtensor::AspnBase)
 	CTOR(ImuErrors,
-	     PARAMS(const Vector3&,
-	            const Vector3&,
-	            const Vector3&,
-	            const Vector3&,
-	            const aspn_xtensor::TypeTimestamp&,
+	     PARAMS(const Vector3 &,
+	            const Vector3 &,
+	            const Vector3 &,
+	            const Vector3 &,
+	            const aspn_xtensor::TypeTimestamp &,
 	            AspnMessageType),
 	     "accel_bias"_a          = navtk::zeros(3),
 	     "gyro_biases"_a         = navtk::zeros(3),
@@ -287,63 +286,20 @@ void add_inertial_functions(pybind11::module &m) {
 	FIELD(AidingAltData, integrated_alt_error)
 	FIELD(AidingAltData, time_constant) CDOC(AidingAltData);
 
-	class PyPosVelAtt : public InertialPosVelAtt, public py::trampoline_self_life_support {
-	public:
-		bool is_wander_capable() const override {
-			PYBIND11_OVERRIDE_PURE(bool, InertialPosVelAtt, is_wander_capable, );
-		}
-		Vector3 get_llh() const override {
-			PYBIND11_OVERRIDE_PURE(Vector3, InertialPosVelAtt, get_llh, );
-		}
-		Vector3 get_vned() const override {
-			PYBIND11_OVERRIDE_PURE(Vector3, InertialPosVelAtt, get_vned, );
-		}
-		Matrix3 get_C_s_to_ned() const override {
-			PYBIND11_OVERRIDE_PURE(Matrix3, InertialPosVelAtt, get_C_s_to_ned, );
-		}
-		mat_double_pair get_C_n_to_e_h() const override {
-			PYBIND11_OVERRIDE_PURE(mat_double_pair, InertialPosVelAtt, get_C_n_to_e_h, );
-		}
-		Vector3 get_vn() const override {
-			PYBIND11_OVERRIDE_PURE(Vector3, InertialPosVelAtt, get_vn, );
-		}
-		Matrix3 get_C_s_to_l() const override {
-			PYBIND11_OVERRIDE_PURE(Matrix3, InertialPosVelAtt, get_C_s_to_l, );
-		}
-		std::shared_ptr<InertialPosVelAtt> clone() const override {
-			PYBIND11_OVERRIDE_PURE(std::shared_ptr<InertialPosVelAtt>, InertialPosVelAtt, clone, );
-		}
-		PyPosVelAtt(const aspn_xtensor::TypeTimestamp &time,
-		            AspnMessageType message_type = ASPN_EXTENDED_BEGIN)
-		    : InertialPosVelAtt::InertialPosVelAtt(time, message_type) {}
-	};
-
-	CLASS(InertialPosVelAtt, PyPosVelAtt, aspn_xtensor::AspnBase)
-	CTOR(InertialPosVelAtt,
-	     const aspn_xtensor::TypeTimestamp &,
-	     py::arg_v("t", aspn_xtensor::TypeTimestamp((int64_t)0), "0"))
-	METHOD_VOID(InertialPosVelAtt, is_wander_capable)
-	METHOD_VOID(InertialPosVelAtt, get_llh)
-	METHOD_VOID(InertialPosVelAtt, get_vned)
-	METHOD_VOID(InertialPosVelAtt, get_C_s_to_ned)
-	METHOD_VOID(InertialPosVelAtt, get_C_n_to_e_h)
-	METHOD_VOID(InertialPosVelAtt, get_vn)
-	METHOD_VOID(InertialPosVelAtt, get_C_s_to_l)
-	FIELD(InertialPosVelAtt, time_validity)
-	METHOD_VOID(InertialPosVelAtt, clone)
-	CDOC(InertialPosVelAtt);
-
 	CLASS(WanderPosVelAtt, InertialPosVelAtt)
-	CTOR(
-	    WanderPosVelAtt,
-	    PARAMS(
-	        const aspn_xtensor::TypeTimestamp &, Matrix3, double, Vector3, Matrix3, AspnMessageType),
-	    py::arg_v("time", aspn_xtensor::TypeTimestamp((int64_t)0), "0"),
-	    "C_n_to_e"_a = navtk::eye(3),
-	    "alt"_a      = 0.0,
-	    "v_n"_a      = navtk::zeros(3),
-	    "C_s_to_l"_a = navtk::eye(3),
-	    py::arg_v("message_type", ASPN_EXTENDED_BEGIN, "AspnMessageType.ASPN_EXTENDED_BEGIN"))
+	CTOR(WanderPosVelAtt,
+	     PARAMS(const aspn_xtensor::TypeTimestamp &,
+	            Matrix3,
+	            double,
+	            Vector3,
+	            Matrix3,
+	            AspnMessageType),
+	     py::arg_v("time", aspn_xtensor::TypeTimestamp((int64_t)0), "0"),
+	     "C_n_to_e"_a = navtk::eye(3),
+	     "alt"_a      = 0.0,
+	     "v_n"_a      = navtk::zeros(3),
+	     "C_s_to_l"_a = navtk::eye(3),
+	     py::arg_v("message_type", ASPN_EXTENDED_BEGIN, "AspnMessageType.ASPN_EXTENDED_BEGIN"))
 	CTOR_OVERLOAD(
 	    WanderPosVelAtt,
 	    PARAMS(const aspn_xtensor::TypeTimestamp &,
