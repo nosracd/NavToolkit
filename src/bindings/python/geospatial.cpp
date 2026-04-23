@@ -191,10 +191,6 @@ void add_geospatial_functions(pybind11::module &m) {
 
 #ifdef NAVTK_GDAL_ENABLED
 
-	NAMESPACE_FUNCTION(import_frame_from_dataset, geo::detail, "dataset"_a)
-	NAMESPACE_FUNCTION_VOID(import_frame_from_wgs84, geo::detail)
-	NAMESPACE_FUNCTION(create_wgs84_to_map_transformation, geo::detail, "dataset"_a)
-
 	// clang-format off
 	CLASS(TransformDelete)
 	.def("__call__", &TransformDelete::operator())
