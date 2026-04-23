@@ -77,6 +77,7 @@ using navtk::inertial::mechanization_wander;
 using navtk::inertial::MechanizationFunction;
 using navtk::inertial::MechanizationOptions;
 using navtk::inertial::MechanizationStandard;
+using navtk::inertial::MotionNeeded;
 using navtk::inertial::MovementDetector;
 using navtk::inertial::MovementDetectorImu;
 using navtk::inertial::MovementDetectorPlugin;
@@ -112,6 +113,32 @@ void add_inertial_functions(pybind11::module &m) {
 	ENUM(EarthModels)
 	CHOICE(EarthModels, ELLIPTICAL)
 	CHOICE(EarthModels, SPHERICAL).finalize();
+
+	CLASS(ImuErrors, aspn_xtensor::AspnBase)
+	CTOR(ImuErrors,
+	     PARAMS(const Vector3&,
+	            const Vector3&,
+	            const Vector3&,
+	            const Vector3&,
+	            const aspn_xtensor::TypeTimestamp&,
+	            AspnMessageType),
+	     "accel_bias"_a          = navtk::zeros(3),
+	     "gyro_biases"_a         = navtk::zeros(3),
+	     "accel_scale_factors"_a = navtk::zeros(3),
+	     "gyro_scale_factors"_a  = navtk::zeros(3),
+	     py::arg_v("time", aspn_xtensor::TypeTimestamp((int64_t)0), "0"),
+	     py::arg_v("message_type", ASPN_EXTENDED_BEGIN, "AspnMessageType.ASPN_EXTENDED_BEGIN"))
+	FIELD(ImuErrors, accel_biases)
+	FIELD(ImuErrors, gyro_biases)
+	FIELD(ImuErrors, accel_scale_factors)
+	FIELD(ImuErrors, gyro_scale_factors)
+	FIELD(ImuErrors, time_validity)
+	CDOC(ImuErrors);
+
+	ENUM(MotionNeeded)
+	CHOICE(MotionNeeded, NO_MOTION)
+	CHOICE(MotionNeeded, MOTION_NEEDED)
+	CHOICE(MotionNeeded, ANY_MOTION).finalize();
 
 	NAMESPACE_FUNCTION(quaternion_static_alignment, navtk::inertial, "dv_avg"_a, "dth_avg"_a)
 
@@ -517,27 +544,6 @@ void add_inertial_functions(pybind11::module &m) {
 	      "old_pva"_a,
 	      "mech_options"_a    = MechanizationOptions{},
 	      "aiding_alt_data"_a = nullptr);
-
-	CLASS(ImuErrors, aspn_xtensor::AspnBase)
-	CTOR(ImuErrors,
-	     PARAMS(const Vector3 &,
-	            const Vector3 &,
-	            const Vector3 &,
-	            const Vector3 &,
-	            const aspn_xtensor::TypeTimestamp &,
-	            AspnMessageType),
-	     "accel_bias"_a          = navtk::zeros(3),
-	     "gyro_biases"_a         = navtk::zeros(3),
-	     "accel_scale_factors"_a = navtk::zeros(3),
-	     "gyro_scale_factors"_a  = navtk::zeros(3),
-	     "time"_a                = aspn_xtensor::TypeTimestamp((int64_t)0),
-	     "message_type"_a        = ASPN_EXTENDED_BEGIN)
-	FIELD(ImuErrors, accel_biases)
-	FIELD(ImuErrors, gyro_biases)
-	FIELD(ImuErrors, accel_scale_factors)
-	FIELD(ImuErrors, gyro_scale_factors)
-	FIELD(ImuErrors, time_validity)
-	CDOC(ImuErrors);
 
 	CLASS(BufferedPva)
 	METHOD_OVERLOAD_CONST_VOID(BufferedPva, calc_pva, )

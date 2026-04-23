@@ -127,16 +127,6 @@ PYBIND11_MODULE(navtk, m) {
 
 	py::module_::import("aspn23_xtensor");
 
-	ADD_NAMESPACE(m, filtering);
-	ADD_NAMESPACE(m, navutils);
-	ADD_NAMESPACE(m, geospatial);
-	ADD_NAMESPACE(m, exampleutils);
-	ADD_NAMESPACE(m, inertial);
-	ADD_NAMESPACE(m, magnetic);
-	ADD_NAMESPACE(m, utils);
-	ADD_NAMESPACE(m, experimental);
-	m.doc() = "NavToolkit";
-
 	NAMESPACE_FUNCTION_OVERLOAD(
 	    to_seconds, navtk, PARAMS(const std::vector<TypeTimestamp> &), , "times"_a)
 
@@ -217,4 +207,15 @@ PYBIND11_MODULE(navtk, m) {
 	// random.hpp, tensors.hpp, transform.hpp, as these functions all have numpy alternatives.
 	// Furthermore, RandomNumberGenerator classes are expected to be replaced with librandom, so not
 	// worth binding these at this time.
+
+
+	ADD_NAMESPACE(m, filtering);
+	ADD_NAMESPACE(m, navutils);
+	ADD_NAMESPACE(m, geospatial);
+	ADD_NAMESPACE(m, exampleutils);
+	ADD_NAMESPACE(m, inertial);
+	ADD_NAMESPACE(m, magnetic);
+	ADD_NAMESPACE(m, utils);
+	ADD_NAMESPACE(m, experimental);
+	m.doc() = "NavToolkit";
 }

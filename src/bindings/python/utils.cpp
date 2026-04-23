@@ -308,6 +308,11 @@ void add_utils_functions(pybind11::module &m) {
 	// really worth it. If we want to bind these later, we could pass a type name to a function that
 	// implements the class for that type.
 
+	ENUM(ValidationResult)
+	CHOICE(ValidationResult, NOT_CHECKED)
+	CHOICE(ValidationResult, GOOD)
+	CHOICE(ValidationResult, BAD).finalize();
+
 	CLASS(DimensionValidator)
 	CTOR_NODOC_DEFAULT
 	METHOD_OVERLOAD(DimensionValidator,
@@ -379,11 +384,6 @@ void add_utils_functions(pybind11::module &m) {
 	METHOD_VOID(ValidationContext, get_mode)
 	METHOD_VOID(ValidationContext, is_enabled)
 	CDOC(ValidationContext);
-
-	ENUM(ValidationResult)
-	CHOICE(ValidationResult, NOT_CHECKED)
-	CHOICE(ValidationResult, GOOD)
-	CHOICE(ValidationResult, BAD).finalize();
 
 	// Because istream isn't useful from Python, rather than a straight binding for
 	// open_data_file, we provide a version that behaves like Python's `open()` builtin,

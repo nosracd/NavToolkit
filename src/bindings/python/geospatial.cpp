@@ -140,6 +140,25 @@ void add_geospatial_functions(pybind11::module &m) {
 	     "bottom_right"_a)
 	METHOD(ElevationInterpolator, interpolate, "fractions"_a) CDOC(ElevationInterpolator);
 
+	CLASS(SpatialMapDataSource, PySpatialMapDataSource<>)
+	CTOR_NODOC_DEFAULT
+	METHOD(SpatialMapDataSource, lookup_datum, "latitude"_a, "longitude"_a)
+	CDOC(SpatialMapDataSource);
+
+	CLASS(ElevationSource, SpatialMapDataSource, PyElevationSource<>)
+	METHOD_VOID(ElevationSource, get_output_vertical_reference_frame)
+	METHOD(ElevationSource, set_output_vertical_reference_frame, "new_ref"_a)
+	CDOC(ElevationSource);
+
+	// clang-format off
+	CLASS(GeoidUndulationSource, SpatialMapDataSource)
+	.def_static("get_shared",
+	     &GeoidUndulationSource::get_shared,
+	     PROCESS_DOC(GeoidUndulationSource_get_shared), "path"_a = std::string("WW15MGH.GRD"))
+	METHOD(GeoidUndulationSource, set_chunk_size, "size"_a)
+	METHOD_VOID(GeoidUndulationSource, get_chunk_size)
+	CDOC(GeoidUndulationSource);
+
 	CLASS(SpatialMapDataProvider, PySpatialMapDataProvider<>)
 	CTOR(SpatialMapDataProvider, std::shared_ptr<SpatialMapDataSource>, "src"_a)
 	CTOR_OVERLOAD(SpatialMapDataProvider,
@@ -170,25 +189,6 @@ void add_geospatial_functions(pybind11::module &m) {
 	              "out_ref"_a = ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE)
 	CDOC(SimpleElevationProvider);
 
-	CLASS(SpatialMapDataSource, PySpatialMapDataSource<>)
-	CTOR_NODOC_DEFAULT
-	METHOD(SpatialMapDataSource, lookup_datum, "latitude"_a, "longitude"_a)
-	CDOC(SpatialMapDataSource);
-
-	CLASS(ElevationSource, SpatialMapDataSource, PyElevationSource<>)
-	METHOD_VOID(ElevationSource, get_output_vertical_reference_frame)
-	METHOD(ElevationSource, set_output_vertical_reference_frame, "new_ref"_a)
-	CDOC(ElevationSource);
-
-	// clang-format off
-	CLASS(GeoidUndulationSource, SpatialMapDataSource)
-	.def_static("get_shared",
-	     &GeoidUndulationSource::get_shared,
-	     PROCESS_DOC(GeoidUndulationSource_get_shared), "path"_a = std::string("WW15MGH.GRD"))
-	METHOD(GeoidUndulationSource, set_chunk_size, "size"_a)
-	METHOD_VOID(GeoidUndulationSource, get_chunk_size)
-	CDOC(GeoidUndulationSource);
-
 #ifdef NAVTK_GDAL_ENABLED
 
 	NAMESPACE_FUNCTION(import_frame_from_dataset, geo::detail, "dataset"_a)
@@ -205,6 +205,10 @@ void add_geospatial_functions(pybind11::module &m) {
 	CDOC(DatasetDelete);
 
 	auto gdal_source = CLASS(GdalSource, ElevationSource);
+	ENUM_SCOPED(MapType, GdalSource, gdal_source)
+	CHOICE_SCOPED(MapType, GdalSource, GEOTIFF)
+	CHOICE_SCOPED(MapType, GdalSource, DTED).finalize();
+
 	gdal_source CTOR(GdalSource,
 	                 PARAMS(const std::string &,
 	                        GdalSource::MapType,
@@ -223,19 +227,6 @@ void add_geospatial_functions(pybind11::module &m) {
 	CDOC(GdalSource);
 	// clang-format on
 
-	CLASS(Tile)
-	CTOR(Tile, std::shared_ptr<Raster>, "raster"_a)
-	METHOD(Tile, lookup_datum, "latitude"_a, "longitude"_a)
-	METHOD_VOID(Tile, get_filename)
-	METHOD(Tile, contains, "latitude"_a, "longitude"_a)
-	METHOD_VOID(Tile, unload)
-	REPR(Tile)
-	CDOC(Tile);
-
-	ENUM_SCOPED(MapType, GdalSource, gdal_source)
-	CHOICE_SCOPED(MapType, GdalSource, GEOTIFF)
-	CHOICE_SCOPED(MapType, GdalSource, DTED).finalize();
-
 	CLASS(Raster, PyRaster<>)
 	CTOR_NODOC_DEFAULT
 	METHOD_VOID(Raster, get_width)
@@ -246,6 +237,15 @@ void add_geospatial_functions(pybind11::module &m) {
 	METHOD(Raster, read_pixel, "idx_x"_a, "idx_y"_a)
 	METHOD_VOID(Raster, unload)
 	CDOC(Raster);
+
+	CLASS(Tile)
+	CTOR(Tile, std::shared_ptr<Raster>, "raster"_a)
+	METHOD(Tile, lookup_datum, "latitude"_a, "longitude"_a)
+	METHOD_VOID(Tile, get_filename)
+	METHOD(Tile, contains, "latitude"_a, "longitude"_a)
+	METHOD_VOID(Tile, unload)
+	REPR(Tile)
+	CDOC(Tile);
 
 	CLASS(GdalRaster, Raster)
 	CTOR(GdalRaster,

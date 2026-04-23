@@ -395,6 +395,12 @@ void add_filtering_experimental_functions(pybind11::module &m) {
 
 	m.doc() = "Bindings to the NavToolkit Experimental Filtering Work.";
 
+	CLASS(ResamplingResult)
+	CTOR_NODOC_DEFAULT
+	FIELD(ResamplingResult, index)
+	FIELD(ResamplingResult, index_count)
+	CDOC(ResamplingResult);
+
 	CLASS(RbpfModel, FusionStrategy)
 	CTOR(RbpfModel, PARAMS(Size, bool), "particle_count"_a = 100, "calc_single_jacobian"_a = true)
 	METHOD_VOID(RbpfModel, count_particles)
@@ -428,12 +434,6 @@ void add_filtering_experimental_functions(pybind11::module &m) {
 	PROPERTY(RbpfStrategy, particle_count_target)
 	FIELD(RbpfStrategy, resampling_threshold)
 	CDOC(RbpfStrategy);
-
-	CLASS(ResamplingResult)
-	CTOR_NODOC_DEFAULT
-	FIELD(ResamplingResult, index)
-	FIELD(ResamplingResult, index_count)
-	CDOC(ResamplingResult);
 
 	FUNCTION(systematic_resampling, "weights"_a, "M"_a)
 	FUNCTION(residual_resample_with_replacement, "weights"_a, "m_arg"_a)
@@ -723,6 +723,59 @@ void add_filtering_functions(pybind11::module &m) {
 	     "message_type"_a = ASPN_EXTENDED_BEGIN)
 	CDOC(GaussianVectorData);
 
+	CLASS(ImuModel, aspn_xtensor::AspnBase)
+	CTOR_NODOC(PARAMS(Vector3,
+	                  Vector3,
+	                  Vector3,
+	                  Vector3,
+	                  Vector3,
+	                  Vector3,
+	                  Vector3,
+	                  Vector3,
+	                  Vector3,
+	                  Vector3),
+	           "accel_random_walk_sigma"_a,
+	           "gyro_random_walk_sigma"_a,
+	           "accel_bias_sigma"_a,
+	           "accel_bias_tau"_a,
+	           "gyro_bias_sigma"_a,
+	           "gyro_bias_tau"_a,
+	           "accel_scale_factor"_a       = navtk::zeros(3),
+	           "gyro_scale_factor"_a        = navtk::zeros(3),
+	           "accel_bias_initial_sigma"_a = navtk::zeros(3),
+	           "gyro_bias_initial_sigma"_a  = navtk::zeros(3))
+	FIELD(ImuModel, accel_random_walk_sigma)
+	FIELD(ImuModel, gyro_random_walk_sigma)
+	FIELD(ImuModel, accel_bias_sigma)
+	FIELD(ImuModel, accel_bias_tau)
+	FIELD(ImuModel, gyro_bias_sigma)
+	FIELD(ImuModel, gyro_bias_tau)
+	FIELD(ImuModel, accel_scale_factor)
+	FIELD(ImuModel, gyro_scale_factor)
+	FIELD(ImuModel, accel_bias_initial_sigma)
+	FIELD(ImuModel, gyro_bias_initial_sigma)
+	CDOC(ImuModel);
+
+	CLASS(Pose)
+	CTOR(
+	    Pose, PARAMS(Vector3, Matrix3, aspn_xtensor::TypeTimestamp), "pos"_a, "rot_mat"_a, "time"_a)
+	FIELD(Pose, pos)
+	FIELD(Pose, rot_mat)
+	FIELD(Pose, time)
+	CDOC(Pose);
+
+	CLASS(NavSolution, Pose)
+	CTOR(NavSolution, PARAMS(Pose, Vector3), "pose"_a, "vel"_a)
+	CTOR_OVERLOAD(NavSolution,
+	              PARAMS(Vector3, Vector3, Matrix3, aspn_xtensor::TypeTimestamp),
+	              _2,
+	              "pos"_a,
+	              "vel"_a,
+	              "rot_mat"_a,
+	              "time"_a)
+	FIELD(NavSolution, vel)
+	CDOC(NavSolution);
+
 	CLASS(PairedPva, aspn_xtensor::AspnBase)
 	CTOR(PairedPva,
 	     PARAMS(std::shared_ptr<aspn_xtensor::AspnBase>, NavSolution, AspnMessageType),
@@ -852,26 +905,6 @@ void add_filtering_functions(pybind11::module &m) {
 		}
 	};
 
-	CLASS(Pose)
-	CTOR(
-	    Pose, PARAMS(Vector3, Matrix3, aspn_xtensor::TypeTimestamp), "pos"_a, "rot_mat"_a, "time"_a)
-	FIELD(Pose, pos)
-	FIELD(Pose, rot_mat)
-	FIELD(Pose, time)
-	CDOC(Pose);
-
-	CLASS(NavSolution, Pose)
-	CTOR(NavSolution, PARAMS(Pose, Vector3), "pose"_a, "vel"_a)
-	CTOR_OVERLOAD(NavSolution,
-	              PARAMS(Vector3, Vector3, Matrix3, aspn_xtensor::TypeTimestamp),
-	              _2,
-	              "pos"_a,
-	              "vel"_a,
-	              "rot_mat"_a,
-	              "time"_a)
-	FIELD(NavSolution, vel)
-	CDOC(NavSolution);
-
 	CLASST(MeasurementProcessor, PyMeasurementProcessor)
 	CTOR_NODOC(PARAMS(std::string, std::string), "label"_a, "state_block_label"_a)
 	CTOR_NODOC(PARAMS(std::string, std::vector<std::string>), "label"_a, "state_block_labels"_a)
@@ -929,6 +962,36 @@ void add_filtering_functions(pybind11::module &m) {
 	NAMESPACE_FUNCTION(
 	    full_order_discretization_strategy, navtk::filtering, "F"_a, "G"_a, "Q"_a, "dt"_a);
 
+	class PyVirtualStateBlock : public VirtualStateBlock, public py::trampoline_self_life_support {
+	public:
+		using VirtualStateBlock::VirtualStateBlock;
+
+		not_null<std::shared_ptr<VirtualStateBlock>> clone() override {
+			PYBIND11_OVERRIDE_PURE(
+			    not_null<std::shared_ptr<VirtualStateBlock>>, VirtualStateBlock, clone, );
+		}
+		EstimateWithCovariance convert(EstimateWithCovariance const& ec,
+		                               aspn_xtensor::TypeTimestamp const& time) override {
+			PYBIND11_OVERRIDE(EstimateWithCovariance, VirtualStateBlock, convert, ec, time);
+		}
+		Vector convert_estimate(Vector const& x, aspn_xtensor::TypeTimestamp const& time) override {
+			PYBIND11_OVERRIDE_PURE(Vector, VirtualStateBlock, convert_estimate, x, time);
+		}
+		Matrix jacobian(Vector const& x, aspn_xtensor::TypeTimestamp const& time) override {
+			PYBIND11_OVERRIDE_PURE(Matrix, VirtualStateBlock, jacobian, x, time);
+		}
+	};
+
+	CLASS(VirtualStateBlock, PyVirtualStateBlock)
+	CTOR(VirtualStateBlock, PARAMS(std::string, std::string), "current"_a, "target"_a)
+	METHOD_VOID(VirtualStateBlock, clone)
+	METHOD_VOID(VirtualStateBlock, get_current)
+	METHOD_VOID(VirtualStateBlock, get_target)
+	METHOD(VirtualStateBlock, convert, "ec"_a, "time"_a)
+	METHOD(VirtualStateBlock, convert_estimate, "x"_a, "time"_a)
+	METHOD(VirtualStateBlock, jacobian, "x"_a, "time"_a)
+	CDOC(VirtualStateBlock);
+
 	CLASS(StandardFusionEngine)
 	CTOR(StandardFusionEngine,
 	     PARAMS(const aspn_xtensor::TypeTimestamp &,
@@ -982,6 +1045,8 @@ void add_filtering_functions(pybind11::module &m) {
 	METHOD_VOID(StandardFusionEngine, get_num_states)
 	CDOC(StandardFusionEngine);
 
+	auto earth_model = CLASS(EarthModel);
+
 	CLASS(GravityModel)
 	METHOD(GravityModel, calculate_gravity, "earth_model"_a, "alt_msl"_a)
 	CDOC(GravityModel);
@@ -1022,7 +1087,8 @@ void add_filtering_functions(pybind11::module &m) {
 	METHOD(Pinson15NedBlock, scale_phi, "phi"_a)
 	CDOC(Pinson15NedBlock);
 
-	CLASS(EarthModel)
+	// clang-format off
+	earth_model
 	CTOR(EarthModel,
 	     PARAMS(Vector3, Vector3, const GravityModel &),
 	     "pos"_a,
@@ -1047,6 +1113,7 @@ void add_filtering_functions(pybind11::module &m) {
 	FIELD(EarthModel, omega_in_n)
 	FIELD(EarthModel, g_n)
 	    .def_readonly("ecc", &EarthModel::ecc, PROCESS_DOC(EarthModel_ecc)) CDOC(EarthModel);
+	// clang-format on
 
 	CLASS(Pinson21NedBlock, StateBlock<>)
 	CTOR(
@@ -1444,39 +1511,6 @@ void add_filtering_functions(pybind11::module &m) {
 	     "cov"_a)
 	CDOC(ZuptMeasurementProcessor);
 
-	CLASS(ImuModel, aspn_xtensor::AspnBase)
-	CTOR_NODOC(PARAMS(Vector3,
-	                  Vector3,
-	                  Vector3,
-	                  Vector3,
-	                  Vector3,
-	                  Vector3,
-	                  Vector3,
-	                  Vector3,
-	                  Vector3,
-	                  Vector3),
-	           "accel_random_walk_sigma"_a,
-	           "gyro_random_walk_sigma"_a,
-	           "accel_bias_sigma"_a,
-	           "accel_bias_tau"_a,
-	           "gyro_bias_sigma"_a,
-	           "gyro_bias_tau"_a,
-	           "accel_scale_factor"_a       = navtk::zeros(3),
-	           "gyro_scale_factor"_a        = navtk::zeros(3),
-	           "accel_bias_initial_sigma"_a = navtk::zeros(3),
-	           "gyro_bias_initial_sigma"_a  = navtk::zeros(3))
-	FIELD(ImuModel, accel_random_walk_sigma)
-	FIELD(ImuModel, gyro_random_walk_sigma)
-	FIELD(ImuModel, accel_bias_sigma)
-	FIELD(ImuModel, accel_bias_tau)
-	FIELD(ImuModel, gyro_bias_sigma)
-	FIELD(ImuModel, gyro_bias_tau)
-	FIELD(ImuModel, accel_scale_factor)
-	FIELD(ImuModel, gyro_scale_factor)
-	FIELD(ImuModel, accel_bias_initial_sigma)
-	FIELD(ImuModel, gyro_bias_initial_sigma)
-	CDOC(ImuModel);
-
 	FUNCTION_VOID(hg9900_model);
 	FUNCTION_VOID(hg1700_model);
 	FUNCTION_VOID(sagem_primus200_model);
@@ -1513,36 +1547,6 @@ void add_filtering_functions(pybind11::module &m) {
 	                      "target"_a,
 	                      "time"_a)
 	CDOC(VirtualStateBlockManager);
-
-	class PyVirtualStateBlock : public VirtualStateBlock, public py::trampoline_self_life_support {
-	public:
-		using VirtualStateBlock::VirtualStateBlock;
-
-		not_null<std::shared_ptr<VirtualStateBlock>> clone() override {
-			PYBIND11_OVERRIDE_PURE(
-			    not_null<std::shared_ptr<VirtualStateBlock>>, VirtualStateBlock, clone, );
-		}
-		EstimateWithCovariance convert(EstimateWithCovariance const &ec,
-		                               aspn_xtensor::TypeTimestamp const &time) override {
-			PYBIND11_OVERRIDE(EstimateWithCovariance, VirtualStateBlock, convert, ec, time);
-		}
-		Vector convert_estimate(Vector const &x, aspn_xtensor::TypeTimestamp const &time) override {
-			PYBIND11_OVERRIDE_PURE(Vector, VirtualStateBlock, convert_estimate, x, time);
-		}
-		Matrix jacobian(Vector const &x, aspn_xtensor::TypeTimestamp const &time) override {
-			PYBIND11_OVERRIDE_PURE(Matrix, VirtualStateBlock, jacobian, x, time);
-		}
-	};
-
-	CLASS(VirtualStateBlock, PyVirtualStateBlock)
-	CTOR(VirtualStateBlock, PARAMS(std::string, std::string), "current"_a, "target"_a)
-	METHOD_VOID(VirtualStateBlock, clone)
-	METHOD_VOID(VirtualStateBlock, get_current)
-	METHOD_VOID(VirtualStateBlock, get_target)
-	METHOD(VirtualStateBlock, convert, "ec"_a, "time"_a)
-	METHOD(VirtualStateBlock, convert_estimate, "x"_a, "time"_a)
-	METHOD(VirtualStateBlock, jacobian, "x"_a, "time"_a)
-	CDOC(VirtualStateBlock);
 
 	class PyNumericalVirtualStateBlock : public NumericalVirtualStateBlock,
 	                                     public py::trampoline_self_life_support {
