@@ -17,6 +17,7 @@
 #include <navtk/get_time.hpp>
 #include <navtk/linear_algebra.hpp>
 #include <navtk/tensors.hpp>
+#include <navtk/utils/ValidationResult.hpp>
 #include <navtk/utils/version.hpp>
 
 #include "binding_helpers.hpp"
@@ -29,6 +30,7 @@ using navtk::set_global_error_mode;
 using navtk::solve_wahba_davenport;
 using navtk::solve_wahba_svd;
 using navtk::experimental::s_rand;
+using navtk::utils::ValidationResult;
 using spdlog::level::level_enum;
 using std::function;
 using std::string;
@@ -208,14 +210,25 @@ PYBIND11_MODULE(navtk, m) {
 	// Furthermore, RandomNumberGenerator classes are expected to be replaced with librandom, so not
 	// worth binding these at this time.
 
+	void add_utils_functions(pybind11::module & m);
 
-	ADD_NAMESPACE(m, filtering);
 	ADD_NAMESPACE(m, navutils);
 	ADD_NAMESPACE(m, geospatial);
-	ADD_NAMESPACE(m, exampleutils);
-	ADD_NAMESPACE(m, inertial);
-	ADD_NAMESPACE(m, magnetic);
-	ADD_NAMESPACE(m, utils);
 	ADD_NAMESPACE(m, experimental);
+	ADD_NAMESPACE(m, magnetic);
+	// ValidationResult needs to be defined before filtering submodule, but other things in utils
+	// submodule require that filtering submodule be defined first
+	auto utils_submod = m.def_submodule("utils");
+	py ::native_enum<ValidationResult>(
+	    utils_submod, "ValidationResult", "enum.Enum", __doc_ValidationResult)
+	    .value("NOT_CHECKED", ValidationResult ::NOT_CHECKED, __doc_ValidationResult_NOT_CHECKED)
+	    .value("GOOD", ValidationResult ::GOOD, __doc_ValidationResult_GOOD)
+	    .value("BAD", ValidationResult ::BAD, __doc_ValidationResult_BAD)
+	    .finalize();
+
+	ADD_NAMESPACE(m, filtering);
+	ADD_NAMESPACE(m, inertial);
+	add_utils_functions(utils_submod);
+	ADD_NAMESPACE(m, exampleutils);
 	m.doc() = "NavToolkit";
 }
