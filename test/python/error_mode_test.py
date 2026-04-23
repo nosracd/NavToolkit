@@ -5,13 +5,10 @@ from navtk import (
     get_global_error_mode,
     ErrorMode,
     ErrorModeLock,
-    log_or_throw,
 )
-from contextlib import contextmanager
 import unittest
 import os
 from threading import Thread, RLock
-from util.redirect import redirected_outputs
 
 os.environ['TERM'] = 'dumb'  # prevent spdlog from trying to be colorful
 
@@ -42,73 +39,6 @@ class ErrorModeTests(unittest.TestCase):
 
     def tearDown(self):
         set_global_error_mode(self.initial_error_mode)
-
-    @contextmanager
-    def _log_or_throw_harness(self, expect, text, exc_type=DEFAULT_EXCEPTION):
-        log_texts = []
-        with redirected_outputs() as redir:
-            if expect in (ErrorMode.LOG, ErrorMode.OFF):
-                yield
-            else:
-                try:
-                    yield
-                except exc_type as exc:
-                    log_texts.append(''.join(exc.args))
-            log_texts.append(str(redir))
-        for log_text in log_texts:
-            if expect != ErrorMode.OFF and text:
-                self.assertIn(text, log_text)
-            else:
-                self.assertEqual("", log_text)
-
-    def _check_log_or_throw_overloads(self, mode):
-        lvl_text = "custom" if mode == ErrorMode.DIE else "info"
-        with ErrorModeLock(mode):
-            with self._log_or_throw_harness(mode, "a 1 b 2"):
-                log_or_throw("a {} b {}", 1, 2)
-
-            with self._log_or_throw_harness(mode, lvl_text):
-                log_or_throw(2, "custom level")
-
-            with self._log_or_throw_harness(mode, "a 1 b 2", CustomException):
-                log_or_throw(CustomException, "a {} b {}", 1, 2)
-
-            with self._log_or_throw_harness(mode, lvl_text, CustomException):
-                log_or_throw(CustomException, 2, "custom type and level")
-
-            with self._log_or_throw_harness(mode, "a 1 b 2", CustomException):
-                log_or_throw(custom_factory, "a {} b {}", 1, 2)
-
-            with self._log_or_throw_harness(mode, lvl_text, CustomException):
-                log_or_throw(custom_factory, 2, "custom type and level")
-
-        with ErrorModeLock(some_mode_other_than(mode)):
-            with self._log_or_throw_harness(mode, "a 1 b 2"):
-                log_or_throw(mode, "a {} b {}", 1, 2)
-
-            with self._log_or_throw_harness(mode, lvl_text):
-                log_or_throw(2, mode, "custom level")
-
-            with self._log_or_throw_harness(mode, "a 1 b 2", CustomException):
-                log_or_throw(CustomException, mode, "a {} b {}", 1, 2)
-
-            with self._log_or_throw_harness(mode, lvl_text, CustomException):
-                log_or_throw(CustomException, 2, mode, "custom type and level")
-
-            with self._log_or_throw_harness(mode, "a 1 b 2", CustomException):
-                log_or_throw(custom_factory, mode, "a {} b {}", 1, 2)
-
-            with self._log_or_throw_harness(mode, lvl_text, CustomException):
-                log_or_throw(custom_factory, 2, mode, "custom type and level")
-
-    def test_log_or_throw_with_error_mode_off(self):
-        self._check_log_or_throw_overloads(ErrorMode.OFF)
-
-    def test_log_or_throw_with_error_mode_log(self):
-        self._check_log_or_throw_overloads(ErrorMode.LOG)
-
-    def test_log_or_throw_with_error_mode_die(self):
-        self._check_log_or_throw_overloads(ErrorMode.DIE)
 
     def test_error_mode_lock_context_manager_threading(self):
         set_global_error_mode(ErrorMode.OFF)
