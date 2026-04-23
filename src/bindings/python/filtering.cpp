@@ -441,30 +441,39 @@ void add_filtering_experimental_functions(pybind11::module &m) {
 	FUNCTION(residual_resample_with_replacement, "weights"_a, "m_arg"_a)
 
 	CLASS(SampledFogmBlock, StateBlock<>)
-	CTOR(SampledFogmBlock,
-	     PARAMS(const std::string &,
-	            Vector,
-	            Vector,
-	            size_t,
-	            not_null<std::shared_ptr<RandomNumberGenerator>>),
-	     "label"_a,
-	     "time_constants"_a,
-	     "state_sigmas"_a,
-	     "num_states"_a,
-	     "rng"_a)
-	CTOR_OVERLOAD(SampledFogmBlock,
-	              PARAMS(const std::string &,
-	                     double,
-	                     double,
-	                     size_t,
-	                     not_null<std::shared_ptr<RandomNumberGenerator>>),
-	              _2,
-	              "label"_a,
-	              "time_constant"_a,
-	              "state_sigma"_a,
-	              "num_states"_a,
-	              "rng"_a)
-	CDOC(SampledFogmBlock);
+	    .def(py::init([](const std::string &label,
+	                     Vector time_constants,
+	                     Vector state_sigmas,
+	                     size_t num_states) {
+		         // Manually create rng since RandomNumberGenerator has no python bindings and thus
+		         // can't be passed to constructor from python
+		         auto rng = navtk::experimental::get_global_rng();
+
+		         return std::make_unique<SampledFogmBlock>(
+		             label, time_constants, state_sigmas, num_states, rng);
+	         }),
+	         __doc_SampledFogmBlock_SampledFogmBlock,
+	         "label"_a,
+	         "time_constants"_a,
+	         "state_sigmas"_a,
+	         "num_states"_a)
+	    .def(py::init([](const std::string &label,
+	                     double time_constants,
+	                     double state_sigmas,
+	                     size_t num_states) {
+		         // Manually create rng since RandomNumberGenerator has no python bindings and thus
+		         // can't be passed to constructor from python
+		         auto rng = navtk::experimental::get_global_rng();
+
+		         return std::make_unique<SampledFogmBlock>(
+		             label, time_constants, state_sigmas, num_states, rng);
+	         }),
+	         __doc_SampledFogmBlock_SampledFogmBlock_2,
+	         "label"_a,
+	         "time_constants"_a,
+	         "state_sigmas"_a,
+	         "num_states"_a)
+	    .doc() = __doc_SampledFogmBlock;
 
 	CLASS(NonlinearAltitudeProcessor, MeasurementProcessor<>)
 	CTOR(NonlinearAltitudeProcessor,
@@ -974,14 +983,14 @@ void add_filtering_functions(pybind11::module &m) {
 			PYBIND11_OVERRIDE_PURE(
 			    not_null<std::shared_ptr<VirtualStateBlock>>, VirtualStateBlock, clone, );
 		}
-		EstimateWithCovariance convert(EstimateWithCovariance const& ec,
-		                               aspn_xtensor::TypeTimestamp const& time) override {
+		EstimateWithCovariance convert(EstimateWithCovariance const &ec,
+		                               aspn_xtensor::TypeTimestamp const &time) override {
 			PYBIND11_OVERRIDE(EstimateWithCovariance, VirtualStateBlock, convert, ec, time);
 		}
-		Vector convert_estimate(Vector const& x, aspn_xtensor::TypeTimestamp const& time) override {
+		Vector convert_estimate(Vector const &x, aspn_xtensor::TypeTimestamp const &time) override {
 			PYBIND11_OVERRIDE_PURE(Vector, VirtualStateBlock, convert_estimate, x, time);
 		}
-		Matrix jacobian(Vector const& x, aspn_xtensor::TypeTimestamp const& time) override {
+		Matrix jacobian(Vector const &x, aspn_xtensor::TypeTimestamp const &time) override {
 			PYBIND11_OVERRIDE_PURE(Matrix, VirtualStateBlock, jacobian, x, time);
 		}
 	};
