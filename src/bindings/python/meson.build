@@ -106,7 +106,7 @@ if (pybind11_stubgen.found() and not is_disabler(aspn_xtensor_py_dep))
     custom_target('stubs',
                   input : python_bindings_lib,
                   output : ['navtk' ],
-                  command : [pybind11_stubgen, '-o' + meson.current_build_dir(), 'navtk'],
+                  command : [pybind11_stubgen, '-o' + meson.current_build_dir(), 'navtk', '--exit-code'],
                   env: env,
                   build_by_default : true,
                   install_tag: 'python-runtime',
