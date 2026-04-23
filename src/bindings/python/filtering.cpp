@@ -426,7 +426,9 @@ void add_filtering_experimental_functions(pybind11::module &m) {
 	     "num_particles"_a        = 100,
 	     "resampling_threshold"_a = 0.75,
 	     "calc_single_jacobian"_a = true,
-	     "_resampling_fun"_a      = ResamplingFunction{&residual_resample_with_replacement})
+	     py::arg_v("_resampling_fun",
+	               ResamplingFunction{&residual_resample_with_replacement},
+	               "ResamplingFunction(residual_resample_with_replacement)"))
 	METHOD_VOID(RbpfStrategy, get_particle_state_marks)
 	METHOD_VOID(RbpfStrategy, get_state_particles)
 	METHOD_VOID(RbpfStrategy, get_state_particles_cov)
@@ -720,7 +722,7 @@ void add_filtering_functions(pybind11::module &m) {
 	     "time_of_validity"_a,
 	     "estimate"_a,
 	     "covariance"_a,
-	     "message_type"_a = ASPN_EXTENDED_BEGIN)
+	     py::arg_v("message_type", ASPN_EXTENDED_BEGIN, "AspnMessageType.ASPN_EXTENDED_BEGIN"))
 	CDOC(GaussianVectorData);
 
 	CLASS(ImuModel, aspn_xtensor::AspnBase)
@@ -781,7 +783,7 @@ void add_filtering_functions(pybind11::module &m) {
 	     PARAMS(std::shared_ptr<aspn_xtensor::AspnBase>, NavSolution, AspnMessageType),
 	     "md"_a,
 	     "pva"_a,
-	     "message_type"_a = ASPN_EXTENDED_BEGIN)
+	     py::arg_v("message_type", ASPN_EXTENDED_BEGIN, "AspnMessageType.ASPN_EXTENDED_BEGIN"))
 	FIELD(PairedPva, meas_data)
 	FIELD(PairedPva, ref_pva)
 	CDOC(PairedPva);
@@ -861,7 +863,9 @@ void add_filtering_functions(pybind11::module &m) {
 	    _2,
 	    "num_states"_a,
 	    "label"_a,
-	    "discretization_strategy"_a = DiscretizationStrategy{&full_order_discretization_strategy},
+	    py::arg_v("discretization_strategy",
+	               DiscretizationStrategy{&full_order_discretization_strategy},
+	               "DiscretizationStrategy(full_order_discretization_strategy)"),
 	    "Q"_a                       = navtk::zeros(1, 1))
 	METHODT(StateBlock, generate_dynamics, "xhat"_a, "time_from"_a, "time_to"_a)
 	METHODT(StateBlock, receive_aux_data, "aux_data"_a)
@@ -1001,7 +1005,7 @@ void add_filtering_functions(pybind11::module &m) {
 	CTOR_OVERLOAD(StandardFusionEngine,
 	              PARAMS(const aspn_xtensor::TypeTimestamp &),
 	              _2,
-	              "cur_time"_a = aspn_xtensor::TypeTimestamp((int64_t)0))
+	              py::arg_v("cur_time", aspn_xtensor::TypeTimestamp((int64_t)0), "0"))
 	CTOR_OVERLOAD(StandardFusionEngine, PARAMS(const StandardFusionEngine &), _3, "other"_a)
 	METHOD_VOID(StandardFusionEngine, get_time)
 	METHOD(StandardFusionEngine, set_time, "time"_a)
@@ -1062,18 +1066,20 @@ void add_filtering_functions(pybind11::module &m) {
 	CDOC(GravityModelTittertonAndWeston);
 
 	CLASS(Pinson15NedBlock, StateBlock<>)
-	CTOR(
-	    Pinson15NedBlock,
-	    PARAMS(const std::string &,
-	           ImuModel,
-	           Pinson15NedBlock::LinearizationPointFunction,
-	           DiscretizationStrategy,
-	           not_null<std::shared_ptr<GravityModel>>),
-	    "label"_a,
-	    "imu_model"_a,
-	    "lin_function"_a            = nullptr,
-	    "discretization_strategy"_a = DiscretizationStrategy{&second_order_discretization_strategy},
-	    NOT_NONE("gravity_model")   = std::make_shared<GravityModelSchwartz>())
+	CTOR(Pinson15NedBlock,
+	     PARAMS(const std::string &,
+	            ImuModel,
+	            Pinson15NedBlock::LinearizationPointFunction,
+	            DiscretizationStrategy,
+	            not_null<std::shared_ptr<GravityModel>>),
+	     "label"_a,
+	     "imu_model"_a,
+	     "lin_function"_a = nullptr,
+	     py::arg_v("discretization_strategy",
+	               DiscretizationStrategy{&second_order_discretization_strategy},
+	               "DiscretizationStrategy(second_order_discretization_strategy)"),
+	     py::arg_v(
+	         "gravity_model", std::make_shared<GravityModelSchwartz>(), "GravityModelSchwartz()"))
 	CTOR_OVERLOAD(Pinson15NedBlock, const Pinson15NedBlock &, _2, "block"_a)
 	METHOD_VOID(Pinson15NedBlock, generate_f_pinson15)
 	METHOD_VOID(Pinson15NedBlock, generate_q_pinson15)
@@ -1093,7 +1099,7 @@ void add_filtering_functions(pybind11::module &m) {
 	     PARAMS(Vector3, Vector3, const GravityModel &),
 	     "pos"_a,
 	     "vel"_a,
-	     "gravity"_a = GravityModelSchwartz())
+	     py::arg_v("gravity", GravityModelSchwartz(), "GravityModelSchwartz"))
 	FIELD(EarthModel, lat)
 	FIELD(EarthModel, alt_msl)
 	FIELD(EarthModel, v_n)
@@ -1116,18 +1122,20 @@ void add_filtering_functions(pybind11::module &m) {
 	// clang-format on
 
 	CLASS(Pinson21NedBlock, StateBlock<>)
-	CTOR(
-	    Pinson21NedBlock,
-	    PARAMS(const std::string &,
-	           ImuModel,
-	           Pinson15NedBlock::LinearizationPointFunction,
-	           DiscretizationStrategy,
-	           not_null<std::shared_ptr<GravityModel>>),
-	    "label"_a,
-	    "imu_model"_a,
-	    "lin_function"_a            = nullptr,
-	    "discretization_strategy"_a = DiscretizationStrategy{&second_order_discretization_strategy},
-	    NOT_NONE("gravity_model")   = std::make_shared<GravityModelSchwartz>())
+	CTOR(Pinson21NedBlock,
+	     PARAMS(const std::string &,
+	            ImuModel,
+	            Pinson15NedBlock::LinearizationPointFunction,
+	            DiscretizationStrategy,
+	            not_null<std::shared_ptr<GravityModel>>),
+	     "label"_a,
+	     "imu_model"_a,
+	     "lin_function"_a = nullptr,
+	     py::arg_v("discretization_strategy",
+	               DiscretizationStrategy{&second_order_discretization_strategy},
+	               "DiscretizationStrategy(second_order_discretization_strategy)"),
+	     py::arg_v(
+	         "gravity_model", std::make_shared<GravityModelSchwartz>(), "GravityModelSchwartz"))
 	CTOR_OVERLOAD(Pinson21NedBlock, const Pinson21NedBlock &, _2, "block"_a)
 	METHOD_VOID(Pinson21NedBlock, generate_f_pinson)
 	CDOC(Pinson21NedBlock);
@@ -1155,7 +1163,7 @@ void add_filtering_functions(pybind11::module &m) {
 	     PARAMS(const std::string &, ClockModel, ClockChoice, bool),
 	     "label"_a,
 	     "clock_model"_a,
-	     "clock_choice"_a        = navtk::filtering::ClockChoice::QD,
+	     py::arg_v("clock_choice", navtk::filtering::ClockChoice::QD, "ClockChoice.QD"),
 	     "model_frequency_dot"_a = false)
 	CDOC(ClockBiasesStateBlock);
 
@@ -1166,16 +1174,19 @@ void add_filtering_functions(pybind11::module &m) {
 	     "time_constants"_a,
 	     "state_sigmas"_a,
 	     "num_states"_a,
-	     "discretization_strategy"_a = DiscretizationStrategy{&full_order_discretization_strategy})
-	CTOR_OVERLOAD(
-	    FogmBlock,
-	    PARAMS(const std::string &, double, double, size_t, DiscretizationStrategy),
-	    _2,
-	    "label"_a,
-	    "time_constant"_a,
-	    "state_sigma"_a,
-	    "num_states"_a,
-	    "discretization_strategy"_a = DiscretizationStrategy{&full_order_discretization_strategy})
+	     py::arg_v("discretization_strategy",
+	               DiscretizationStrategy{&full_order_discretization_strategy},
+	               "DiscretizationStrategy(full_order_discretization_strategy)"))
+	CTOR_OVERLOAD(FogmBlock,
+	              PARAMS(const std::string &, double, double, size_t, DiscretizationStrategy),
+	              _2,
+	              "label"_a,
+	              "time_constant"_a,
+	              "state_sigma"_a,
+	              "num_states"_a,
+	              py::arg_v("discretization_strategy",
+	                        DiscretizationStrategy{&full_order_discretization_strategy},
+	                        "DiscretizationStrategy(full_order_discretization_strategy)"))
 	CTOR_OVERLOAD(FogmBlock, PARAMS(const FogmBlock &), _3, "block"_a)
 	CDOC(FogmBlock);
 
@@ -1186,16 +1197,19 @@ void add_filtering_functions(pybind11::module &m) {
 	     "time_constants"_a,
 	     "state_sigmas"_a,
 	     "num_dimensions"_a,
-	     "discretization_strategy"_a = DiscretizationStrategy{&full_order_discretization_strategy})
-	CTOR_OVERLOAD(
-	    FogmAccel,
-	    PARAMS(const std::string &, double, double, size_t, DiscretizationStrategy),
-	    _2,
-	    "label"_a,
-	    "time_constant"_a,
-	    "state_sigma"_a,
-	    "num_dimensions"_a,
-	    "discretization_strategy"_a = DiscretizationStrategy{&full_order_discretization_strategy})
+	     py::arg_v("discretization_strategy",
+	               DiscretizationStrategy{&full_order_discretization_strategy},
+	               "DiscretizationStrategy(full_order_discretization_strategy)"))
+	CTOR_OVERLOAD(FogmAccel,
+	              PARAMS(const std::string &, double, double, size_t, DiscretizationStrategy),
+	              _2,
+	              "label"_a,
+	              "time_constant"_a,
+	              "state_sigma"_a,
+	              "num_dimensions"_a,
+	              py::arg_v("discretization_strategy",
+	                        DiscretizationStrategy{&full_order_discretization_strategy},
+	                        "DiscretizationStrategy(full_order_discretization_strategy)"))
 	CDOC(FogmAccel);
 
 	CLASS(FogmVelocity, FogmBlock)
@@ -1205,16 +1219,19 @@ void add_filtering_functions(pybind11::module &m) {
 	     "time_constants"_a,
 	     "state_sigmas"_a,
 	     "num_dimensions"_a,
-	     "discretization_strategy"_a = DiscretizationStrategy{&full_order_discretization_strategy})
-	CTOR_OVERLOAD(
-	    FogmVelocity,
-	    PARAMS(const std::string &, double, double, size_t, DiscretizationStrategy),
-	    _2,
-	    "label"_a,
-	    "time_constant"_a,
-	    "state_sigma"_a,
-	    "num_dimensions"_a,
-	    "discretization_strategy"_a = DiscretizationStrategy{&full_order_discretization_strategy})
+	     py::arg_v("discretization_strategy",
+	               DiscretizationStrategy{&full_order_discretization_strategy},
+	               "DiscretizationStrategy(full_order_discretization_strategy)"))
+	CTOR_OVERLOAD(FogmVelocity,
+	              PARAMS(const std::string &, double, double, size_t, DiscretizationStrategy),
+	              _2,
+	              "label"_a,
+	              "time_constant"_a,
+	              "state_sigma"_a,
+	              "num_dimensions"_a,
+	              py::arg_v("discretization_strategy",
+	                        DiscretizationStrategy{&full_order_discretization_strategy},
+	                        "DiscretizationStrategy(full_order_discretization_strategy)"))
 	CDOC(FogmVelocity);
 
 	CLASS(DirectMeasurementProcessor, MeasurementProcessor<>)
@@ -1304,7 +1321,10 @@ void add_filtering_functions(pybind11::module &m) {
 	     "use_term1"_a,
 	     "use_term2"_a,
 	     "use_term3"_a,
-	     "expected_frame"_a = ASPN_MEASUREMENT_DELTA_POSITION_REFERENCE_FRAME_NED)
+	     py::arg_v("expected_frame",
+	               ASPN_MEASUREMENT_DELTA_POSITION_REFERENCE_FRAME_NED,
+	               "AspnMeasurementDeltaPositionReferenceFrame.ASPN_MEASUREMENT_DELTA_POSITION_"
+	               "REFERENCE_FRAME_NED"))
 	CTOR_OVERLOAD(DeltaPositionMeasurementProcessor,
 	              PARAMS(std::string,
 	                     vector<std::string>,

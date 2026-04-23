@@ -178,7 +178,7 @@ void add_inertial_functions(pybind11::module &m) {
 	    METHOD_VOID(AlignBase, requires_dynamic)
 		METHOD_VOID(AlignBase, check_alignment_status)
 		METHOD_VOID(AlignBase, get_computed_alignment)
-		METHOD(AlignBase, get_computed_covariance, "format"_a=AlignBase::CovarianceFormat::PINSON15NEDBLOCK)
+		METHOD(AlignBase, get_computed_covariance, py::arg_v("format", AlignBase::CovarianceFormat::PINSON15NEDBLOCK, "AlignBase.CovarianceFormat.PINSON15NEDBLOCK"))
 		METHOD_VOID(AlignBase, get_imu_errors)
 		METHOD_VOID(AlignBase, motion_needed)
 		CDOC(AlignBase);
@@ -187,7 +187,7 @@ void add_inertial_functions(pybind11::module &m) {
 	CLASS(StaticAlignment, AlignBase)
 	CTOR(StaticAlignment,
 	     PARAMS(const ImuModel &, const double, const Matrix3 &),
-	     "model"_a      = navtk::filtering::stim300_model(),
+	     py::arg_v("model", navtk::filtering::stim300_model(), "navtk.filtering.stim300_model()"),
 	     "align_time"_a = 120.0,
 	     "vel_cov"_a    = Matrix3{{1e-4, 0, 0}, {0, 1e-4, 0}, {0, 0, 1e-4}})
 	CDOC(StaticAlignment);
@@ -195,7 +195,7 @@ void add_inertial_functions(pybind11::module &m) {
 	CLASS(StaticWahbaAlignment, StaticAlignment)
 	CTOR(StaticWahbaAlignment,
 	     PARAMS(const ImuModel &, const double, const Matrix3 &),
-	     "model"_a      = navtk::filtering::stim300_model(),
+	     py::arg_v("model", navtk::filtering::stim300_model(), "navtk.filtering.stim300_model()"),
 	     "align_time"_a = 120.0,
 	     "vel_cov"_a    = Matrix3{{1e-4, 0, 0}, {0, 1e-4, 0}, {0, 0, 1e-4}})
 	CDOC(StaticWahbaAlignment);
@@ -213,7 +213,7 @@ void add_inertial_functions(pybind11::module &m) {
 	     "wait_for_pos"_a  = false,
 	     "wait_for_vel"_a  = false,
 	     "wait_for_att"_a  = false,
-	     "model"_a         = navtk::filtering::stim300_model())
+	     py::arg_v("model", navtk::filtering::stim300_model(), "navtk.filtering.stim300_model()"))
 	CDOC(ManualAlignment);
 
 	CLASS(ManualHeadingAlignment, StaticAlignment)
@@ -221,18 +221,20 @@ void add_inertial_functions(pybind11::module &m) {
 	     PARAMS(const double, const double, const ImuModel &, const double, const Matrix3 &),
 	     "heading"_a,
 	     "heading_sigma"_a = 0.017453292519943295,
-	     "model"_a         = navtk::filtering::stim300_model(),
-	     "align_time"_a    = 120.0,
-	     "vel_cov"_a       = Matrix3{{1e-4, 0, 0}, {0, 1e-4, 0}, {0, 0, 1e-4}})
+	     py::arg_v("model", navtk::filtering::stim300_model(), "navtk.filtering.stim300_model()"),
+	     "align_time"_a = 120.0,
+	     "vel_cov"_a    = Matrix3{{1e-4, 0, 0}, {0, 1e-4, 0}, {0, 0, 1e-4}})
 	CDOC(ManualHeadingAlignment);
 
 	CLASS(CoarseDynamicAlignment, AlignBase)
 	CTOR(CoarseDynamicAlignment,
 	     PARAMS(const ImuModel &, const double, const double, DcmIntegrationMethods),
-	     "model"_a                  = navtk::filtering::stim300_model(),
-	     "static_time"_a            = 30.0,
-	     "reset_time"_a             = 300.0,
-	     "dcm_integration_method"_a = DcmIntegrationMethods::FIRST_ORDER)
+	     py::arg_v("model", navtk::filtering::stim300_model(), "navtk.filtering.stim300_model()"),
+	     "static_time"_a = 30.0,
+	     "reset_time"_a  = 300.0,
+	     py::arg_v("dcm_integration_method",
+	               DcmIntegrationMethods::FIRST_ORDER,
+	               "DcmIntegrationMethods.FIRST_ORDER"))
 	CDOC(CoarseDynamicAlignment);
 
 	// clang-format off
@@ -263,11 +265,13 @@ void add_inertial_functions(pybind11::module &m) {
 
 
 	CLASS(MechanizationOptions)
-	CTOR_NODOC(PARAMS(GravModels, EarthModels, DcmIntegrationMethods, IntegrationMethods),
-	           "grav_model"_a  = GravModels::SCHWARTZ,
-	           "earth_model"_a = EarthModels::ELLIPTICAL,
-	           "dcm_method"_a  = DcmIntegrationMethods::SIXTH_ORDER,
-	           "int_method"_a  = IntegrationMethods::TRAPEZOIDAL)
+	CTOR_NODOC(
+	    PARAMS(GravModels, EarthModels, DcmIntegrationMethods, IntegrationMethods),
+	    py::arg_v("grav_model", GravModels::SCHWARTZ, "GravModels.SCHWARTZ"),
+	    py::arg_v("earth_model", EarthModels::ELLIPTICAL, "EarthModels.ELLIPTICAL"),
+	    py::arg_v(
+	        "dcm_method", DcmIntegrationMethods::SIXTH_ORDER, "DcmIntegrationMethods.SIXTH_ORDER"),
+	    py::arg_v("int_method", IntegrationMethods::TRAPEZOIDAL, "IntegrationMethods.TRAPEZOIDAL"))
 	FIELD(MechanizationOptions, grav_model)
 	FIELD(MechanizationOptions, earth_model)
 	FIELD(MechanizationOptions, dcm_method)
@@ -317,7 +321,7 @@ void add_inertial_functions(pybind11::module &m) {
 	CLASS(InertialPosVelAtt, PyPosVelAtt, aspn_xtensor::AspnBase)
 	CTOR(InertialPosVelAtt,
 	     const aspn_xtensor::TypeTimestamp &,
-	     "t"_a = aspn_xtensor::TypeTimestamp((int64_t)0))
+	     py::arg_v("t", aspn_xtensor::TypeTimestamp((int64_t)0), "0"))
 	METHOD_VOID(InertialPosVelAtt, is_wander_capable)
 	METHOD_VOID(InertialPosVelAtt, get_llh)
 	METHOD_VOID(InertialPosVelAtt, get_vned)
@@ -330,45 +334,44 @@ void add_inertial_functions(pybind11::module &m) {
 	CDOC(InertialPosVelAtt);
 
 	CLASS(WanderPosVelAtt, InertialPosVelAtt)
-	CTOR(WanderPosVelAtt,
-	     PARAMS(const aspn_xtensor::TypeTimestamp &,
-	            Matrix3,
-	            double,
-	            Vector3,
-	            Matrix3,
-	            AspnMessageType),
-	     "time"_a         = aspn_xtensor::TypeTimestamp((int64_t)0),
-	     "C_n_to_e"_a     = navtk::eye(3),
-	     "alt"_a          = 0.0,
-	     "v_n"_a          = navtk::zeros(3),
-	     "C_s_to_l"_a     = navtk::eye(3),
-	     "message_type"_a = ASPN_EXTENDED_BEGIN)
-	CTOR_OVERLOAD(WanderPosVelAtt,
-	              PARAMS(const aspn_xtensor::TypeTimestamp &,
-	                     const std::tuple<Matrix3, double, Vector3, Matrix3> &,
-	                     AspnMessageType),
-	              _2,
-	              "time"_a,
-	              "tup"_a,
-	              "message_type"_a = ASPN_EXTENDED_BEGIN)
+	CTOR(
+	    WanderPosVelAtt,
+	    PARAMS(
+	        const aspn_xtensor::TypeTimestamp &, Matrix3, double, Vector3, Matrix3, AspnMessageType),
+	    py::arg_v("time", aspn_xtensor::TypeTimestamp((int64_t)0), "0"),
+	    "C_n_to_e"_a = navtk::eye(3),
+	    "alt"_a      = 0.0,
+	    "v_n"_a      = navtk::zeros(3),
+	    "C_s_to_l"_a = navtk::eye(3),
+	    py::arg_v("message_type", ASPN_EXTENDED_BEGIN, "AspnMessageType.ASPN_EXTENDED_BEGIN"))
+	CTOR_OVERLOAD(
+	    WanderPosVelAtt,
+	    PARAMS(const aspn_xtensor::TypeTimestamp &,
+	           const std::tuple<Matrix3, double, Vector3, Matrix3> &,
+	           AspnMessageType),
+	    _2,
+	    "time"_a,
+	    "tup"_a,
+	    py::arg_v("message_type", ASPN_EXTENDED_BEGIN, "AspnMessageType.ASPN_EXTENDED_BEGIN"))
 	CDOC(WanderPosVelAtt);
 
 	CLASS(StandardPosVelAtt, InertialPosVelAtt)
 	CTOR(StandardPosVelAtt,
 	     PARAMS(const aspn_xtensor::TypeTimestamp &, Vector3, Vector3, Matrix3, AspnMessageType),
-	     "time"_a         = aspn_xtensor::TypeTimestamp((int64_t)0),
-	     "lla"_a          = navtk::zeros(3),
-	     "v_ned"_a        = navtk::zeros(3),
-	     "C_s_to_ned"_a   = navtk::eye(3),
-	     "message_type"_a = ASPN_EXTENDED_BEGIN)
-	CTOR_OVERLOAD(StandardPosVelAtt,
-	              PARAMS(const aspn_xtensor::TypeTimestamp &,
-	                     const std::tuple<Vector3, Vector3, Matrix3> &,
-	                     AspnMessageType),
-	              _2,
-	              "time"_a,
-	              "tup"_a,
-	              "message_type"_a = ASPN_EXTENDED_BEGIN)
+	     py::arg_v("time", aspn_xtensor::TypeTimestamp((int64_t)0), "0"),
+	     "lla"_a        = navtk::zeros(3),
+	     "v_ned"_a      = navtk::zeros(3),
+	     "C_s_to_ned"_a = navtk::eye(3),
+	     py::arg_v("message_type", ASPN_EXTENDED_BEGIN, "AspnMessageType.ASPN_EXTENDED_BEGIN"))
+	CTOR_OVERLOAD(
+	    StandardPosVelAtt,
+	    PARAMS(const aspn_xtensor::TypeTimestamp &,
+	           const std::tuple<Vector3, Vector3, Matrix3> &,
+	           AspnMessageType),
+	    _2,
+	    "time"_a,
+	    "tup"_a,
+	    py::arg_v("message_type", ASPN_EXTENDED_BEGIN, "AspnMessageType.ASPN_EXTENDED_BEGIN"))
 	METHOD_OVERLOAD_CONST(StandardPosVelAtt, get_C_n_to_e_h, double, _2, "wander"_a)
 	METHOD_OVERLOAD_CONST(StandardPosVelAtt, get_vn, double, _2, "wander"_a)
 	METHOD_OVERLOAD_CONST(StandardPosVelAtt, get_C_s_to_l, double, _2, "wander"_a)
@@ -436,17 +439,17 @@ void add_inertial_functions(pybind11::module &m) {
 	     PARAMS(const not_null<std::shared_ptr<InertialPosVelAtt>>,
 	            const MechanizationOptions &,
 	            MechanizationFunction),
-	     "start_pva"_a    = StandardPosVelAtt(),
-	     "mech_options"_a = MechanizationOptions{},
-	     "mech_fun"_a     = mech_default)
+	     py::arg_v("start_pva", StandardPosVelAtt(), "StandardPosVelAtt()"),
+	     py::arg_v("mech_options", MechanizationOptions{}, "MechanizationOptions()"),
+	     py::arg_v("mech_fun", mech_default, "mechanization_standard"))
 	CTOR_OVERLOAD(Inertial,
 	              PARAMS(not_null<std::shared_ptr<Mechanization>>,
 	                     const not_null<std::shared_ptr<InertialPosVelAtt>>,
 	                     const MechanizationOptions &),
 	              _2,
 	              "mech_class"_a,
-	              "start_pva"_a    = StandardPosVelAtt(),
-	              "mech_options"_a = MechanizationOptions{})
+	              py::arg_v("start_pva", StandardPosVelAtt(), "StandardPosVelAtt()"),
+	              py::arg_v("mech_options", MechanizationOptions{}, "MechanizationOptions()"))
 	CTOR_OVERLOAD(Inertial, PARAMS(const Inertial &), _3, "ins"_a)
 	METHOD_OVERLOAD(Inertial,
 	                reset,
@@ -489,7 +492,7 @@ void add_inertial_functions(pybind11::module &m) {
 	      "h0"_a,
 	      "v_n_0"_a,
 	      "C_s_to_l_0"_a,
-	      "mech_options"_a    = MechanizationOptions{},
+	      py::arg_v("mech_options", MechanizationOptions{}, "MechanizationOptions()"),
 	      "aiding_alt_data"_a = nullptr);
 	m.def("mechanization_wander",
 	      py::overload_cast<const Vector3 &,
@@ -505,7 +508,7 @@ void add_inertial_functions(pybind11::module &m) {
 	      "dt"_a,
 	      "pva"_a,
 	      "old_pva"_a,
-	      "mech_options"_a    = MechanizationOptions{},
+	      py::arg_v("mech_options", MechanizationOptions{}, "MechanizationOptions()"),
 	      "aiding_alt_data"_a = nullptr);
 
 	m.def("mechanization_standard",
@@ -526,7 +529,7 @@ void add_inertial_functions(pybind11::module &m) {
 	      "C_s_to_n0"_a,
 	      "v_ned0"_a,
 	      "v_ned_prev"_a,
-	      "mech_options"_a    = MechanizationOptions{},
+	      py::arg_v("mech_options", MechanizationOptions{}, "MechanizationOptions()"),
 	      "aiding_alt_data"_a = nullptr);
 	m.def("mechanization_standard",
 	      py::overload_cast<const Vector3 &,
@@ -542,7 +545,7 @@ void add_inertial_functions(pybind11::module &m) {
 	      "dt"_a,
 	      "pva"_a,
 	      "old_pva"_a,
-	      "mech_options"_a    = MechanizationOptions{},
+	      py::arg_v("mech_options", MechanizationOptions{}, "MechanizationOptions()"),
 	      "aiding_alt_data"_a = nullptr);
 
 	CLASS(BufferedPva)
@@ -572,10 +575,10 @@ void add_inertial_functions(pybind11::module &m) {
 	            const MechanizationOptions &,
 	            double),
 	     "pva"_a,
-	     "initial_imu"_a   = nullptr,
-	     "expected_dt"_a   = 0.01,
-	     "imu_errs"_a      = ImuErrors{},
-	     "mech_options"_a  = MechanizationOptions{},
+	     "initial_imu"_a = nullptr,
+	     "expected_dt"_a = 0.01,
+	     py::arg_v("imu_errs", ImuErrors{}, "ImuErrors()"),
+	     py::arg_v("mech_options", MechanizationOptions{}, "MechanizationOptions()"),
 	     "buffer_length"_a = 60.0)
 	METHOD(BufferedImu, reset, "pva"_a = nullptr, "imu_errs"_a = nullptr, "previous"_a = nullptr)
 	METHOD(BufferedImu, calc_pva_no_reset_since, "time"_a, "since"_a)
@@ -681,11 +684,11 @@ void add_inertial_functions(pybind11::module &m) {
 	            double,
 	            const MechanizationOptions &),
 	     "pva"_a,
-	     "model"_a        = navtk::filtering::stim300_model(),
-	     "initial_imu"_a  = nullptr,
-	     "imu_errs"_a     = ImuErrors{},
-	     "expected_dt"_a  = 0.01,
-	     "mech_options"_a = MechanizationOptions{})
+	     py::arg_v("model", navtk::filtering::stim300_model(), "navtk.filtering.stim300_model()"),
+	     "initial_imu"_a = nullptr,
+	     py::arg_v("imu_errs", ImuErrors{}, "ImuErrors()"),
+	     "expected_dt"_a = 0.01,
+	     py::arg_v("mech_options", MechanizationOptions{}, "MechanizationOptions()"))
 	METHOD(BasicInsAndFilter, mechanize, "imu"_a)
 	METHOD(BasicInsAndFilter, update, "gp3d"_a)
 	METHOD_OVERLOAD_CONST(BasicInsAndFilter, calc_pva, const aspn_xtensor::TypeTimestamp &, , "t"_a)

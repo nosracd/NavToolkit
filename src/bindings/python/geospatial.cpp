@@ -180,13 +180,13 @@ void add_geospatial_functions(pybind11::module &m) {
 	CTOR(SimpleElevationProvider,
 	     PARAMS(std::shared_ptr<ElevationSource>, AspnMeasurementAltitudeReference),
 	     "src"_a,
-	     "out_ref"_a = ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE)
+		 py::arg_v("out_ref", ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE, "AspnMeasurementAltitudeReference.ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE"))
 	CTOR_OVERLOAD(SimpleElevationProvider,
 	              PARAMS(std::vector<not_null<std::shared_ptr<ElevationSource>>>,
 	                     AspnMeasurementAltitudeReference),
 	              _2,
 	              "srcs"_a    = std::vector<not_null<std::shared_ptr<ElevationSource>>>{},
-	              "out_ref"_a = ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE)
+		 		  py::arg_v("out_ref", ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE, "AspnMeasurementAltitudeReference.ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE"))
 	CDOC(SimpleElevationProvider);
 
 #ifdef NAVTK_GDAL_ENABLED
@@ -215,8 +215,8 @@ void add_geospatial_functions(pybind11::module &m) {
 							),
 	                 "map_path"_a,
 	                 "type"_a,
-	                 "in_ref"_a = ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE,
-	                 "out_ref"_a = ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE,
+					 py::arg_v("in_ref", ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE, "AspnMeasurementAltitudeReference.ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE"),
+					 py::arg_v("out_ref",ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE, "AspnMeasurementAltitudeReference.ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE"),
 	                 "num_tiles"_a = 10,
 					 "undulation_path"_a = "WW15MGH.GRD"
 					 )
