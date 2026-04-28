@@ -101,4 +101,5 @@ jobs:
           run: |
             set -xe;
             docker/docker_interface.py setup ubuntu-noble
+            docker/docker_interface.py debug ubuntu-noble "meson subprojects download"
             docker/docker_interface.py debug ubuntu-noble "./util/check_naming.py"
