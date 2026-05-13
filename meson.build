@@ -182,10 +182,12 @@ aspn_xtensor_dep = dependency('aspn23-xtensor', required: false)
 # If dependency type is 'internal', then it came from a subproject. So do the normal subproject
 # setup to get access to additional variables.
 if not aspn_xtensor_dep.found() or aspn_xtensor_dep.type_name() == 'internal'
+    aspn_cpp_bindings = 'aspn-cpp-xtensor-py=disabled'
     if get_option('python_bindings')
-        aspn_cpp_bindings = 'aspn-cpp-xtensor-py=enabled'
-    else
-        aspn_cpp_bindings = 'aspn-cpp-xtensor-py=disabled'
+        python_with_aspn_cpp = import('python').find_installation('python3', modules: ['aspn23_xtensor'], required: false)
+        if not python_with_aspn_cpp.found()
+            aspn_cpp_bindings = 'aspn-cpp-xtensor-py=enabled'
+        endif
     endif
     aspn_generated = subproject('aspn-generated',
                                 required: true,

@@ -1,6 +1,7 @@
 [build-system]
 # Build dependencies
 requires = [
+    'aspn23_xtensor==0.1.0',
     'meson-python',
     'meson==1.8.4',
     'numpy',
@@ -32,15 +33,14 @@ setup = [
     '-Dpython_bindings=true',
     '-Dgdal_extensions=disabled',
     '-Dget_navtk_data=true',
-    '-Daspn-generated:aspn-cpp-xtensor=disabled',
-    '-Daspn-generated:aspn-cpp-xtensor-py=enabled',
-    '-Daspn-generated:aspn-c-main-library=false',
+    '-Daspn-generated:aspn-cpp=disabled',
+    '-Daspn-generated:aspn-c=disabled',
 ]
 install = ['--tags=runtime,python-runtime']
 
 [project]
 # Runtime dependencies
-dependencies = ['numpy']
+dependencies = ['aspn23_xtensor==0.1.0', 'numpy']
 name = 'navtk'
 dynamic = ['version']
 description = 'NavToolkit Python Bindings'

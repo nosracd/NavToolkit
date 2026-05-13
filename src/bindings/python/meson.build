@@ -33,8 +33,23 @@ else
         python_bindings_errors += ['pybind11 not found']
     endif
 
-    if not aspn_xtensor_py_dep.found()
-        python_bindings_errors += ['aspn_xtensor_py_dep not found']
+    python_with_aspn_cpp = import('python').find_installation('python3', modules: ['aspn23_xtensor'], required: false)
+
+    if python_with_aspn_cpp.found()
+        aspn_xtensor_python_lib_location = ''
+
+        aspn_install_dir = run_command(
+            [python_with_aspn_cpp, '-c', 'import aspn23_xtensor; import os; print(os.path.relpath(os.path.dirname(aspn23_xtensor.__file__)))'],
+            check: true).stdout().strip() / 'aspn23_xtensor'
+
+        aspn_install_dir_abs = meson.project_source_root() / aspn_install_dir
+
+        # Get path to ASPN-C headers vendored by ASPN-C++ Python module
+        aspn_include_dir = aspn_install_dir.replace('lib', 'include/site').replace('site-packages/', '')
+
+        aspn_xtensor_py_dep = declare_dependency(
+            include_directories: include_directories(aspn_install_dir, aspn_include_dir),
+            link_args: ['-L' + aspn_install_dir_abs, '-laspn_xtensor_py'])
     endif
 endif
 
@@ -109,8 +124,7 @@ if (pybind11_stubgen.found() and not is_disabler(aspn_xtensor_py_dep))
                   command : [pybind11_stubgen, '-o' + meson.current_build_dir(), 'navtk', '--exit-code'],
                   env: env,
                   build_by_default : true,
-                  install_tag: 'python-runtime',
-                  depends: aspn_xtensor_lib)
+                  install_tag: 'python-runtime')
     install_data('py.typed',
                  install_tag: 'python-runtime',
                  install_dir: python.get_install_dir() / 'navtk')
