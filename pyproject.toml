@@ -30,6 +30,7 @@ dynamic = ['version']
 description = 'NavToolkit Python Bindings'
 license = 'Apache-2.0'
 license-files = ['LICENSE']
+readme = 'README_PYTHON_PACKAGE.md'
 
 [tool.cibuildwheel.linux]
 before-all = "yum install openblas-devel -y"
