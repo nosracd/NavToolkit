@@ -28,6 +28,8 @@ dependencies = ['numpy']
 name = 'navtk'
 dynamic = ['version']
 description = 'NavToolkit Python Bindings'
+license = 'Apache-2.0'
+license-files = ['LICENSE']
 
 [tool.cibuildwheel.linux]
 before-all = "yum install openblas-devel -y"
