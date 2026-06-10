@@ -2,7 +2,8 @@ ARG BASE=ubuntu:24.04
 
 # -------------------------------------------------------------------------------
 FROM ${BASE}
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
+ENV OPENSSL_FORCE_FIPS_MODE=0
 
 # build-essential: For compiling code
 # ccache: For CI machines to decrease compile times
