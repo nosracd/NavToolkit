@@ -90,7 +90,12 @@ jobs:
               restore-keys: ccache--arm64-ubuntu-noble--
 
           - name: Build
-            run: docker/docker_interface.py build ubuntu-noble
+            run: |
+              set -xe
+              # Manually reconfigure to set a higher test timeout
+              rm -rf docker/build/ubuntu_noble
+              docker/docker_interface.py debug ubuntu-noble "meson setup docker/build/ubuntu_noble --warnlevel=3 -Dwerror=true -Db_sanitize=address,undefined --buildtype=release -Dtest_timeout=360"
+              docker/docker_interface.py build ubuntu-noble
 
           - name: Save ccache cache
             uses: actions/cache/save@v4
