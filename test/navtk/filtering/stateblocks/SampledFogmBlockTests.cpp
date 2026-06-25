@@ -31,7 +31,7 @@ TEST(SampledFogmBlockTests, testMultiState) {
 	auto block = SampledFogmBlock("block", tau, sigma, 1, rng);
 	Vector x   = {1.0};
 	auto dyn   = block.generate_dynamics(
-        NULL_GEN_XHAT_AND_P_FUNCTION, to_type_timestamp(), to_type_timestamp(dt));
+	    NULL_GEN_XHAT_AND_P_FUNCTION, to_type_timestamp(), to_type_timestamp(dt));
 
 	auto expected_g_of_x = Vector{-0.7129604714470631};
 	auto actual_g_of_x   = dyn.g(x);
@@ -43,7 +43,7 @@ TEST(SampledFogmBlockTests, testMultiState) {
 	x     = ones(3);
 	block = SampledFogmBlock("block", tau, sigma, 3, rng);
 	dyn   = block.generate_dynamics(
-        NULL_GEN_XHAT_AND_P_FUNCTION, to_type_timestamp(), to_type_timestamp(dt));
+	    NULL_GEN_XHAT_AND_P_FUNCTION, to_type_timestamp(), to_type_timestamp(dt));
 	expected_g_of_x = Vector{0.23909401865345348, 1.2838859230072144, 1.3712177546096282};
 	actual_g_of_x   = dyn.g(x);
 
@@ -59,7 +59,7 @@ TEST(SampledFogmBlockTests, testDifferentFOGMParameters) {
 	Vector x   = ones(4);
 	auto block = SampledFogmBlock("block", tau, sigma, 4, rng);
 	auto dyn   = block.generate_dynamics(
-        NULL_GEN_XHAT_AND_P_FUNCTION, to_type_timestamp(), to_type_timestamp(dt));
+	    NULL_GEN_XHAT_AND_P_FUNCTION, to_type_timestamp(), to_type_timestamp(dt));
 	auto expected_g_of_x =
 	    Vector{-0.342198029831123, 0.395529128802927, 1.3561587824085248, 1.483288057381439};
 	auto actual_g_of_x      = dyn.g(x);

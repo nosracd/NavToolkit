@@ -16,8 +16,8 @@ namespace navtk {
 namespace filtering {
 
 BiasedRangeProcessor::BiasedRangeProcessor(std::string label,
-                                           const std::string &position_label,
-                                           const std::string &bias_label)
+                                           const std::string& position_label,
+                                           const std::string& bias_label)
     : MeasurementProcessor(std::move(label), std::vector<std::string>{position_label, bias_label}) {
 }
 
@@ -43,7 +43,7 @@ std::shared_ptr<StandardMeasurementModel> BiasedRangeProcessor::generate_model(
 		return nullptr;
 	}
 
-	auto h = [data = data](const Vector &x) {
+	auto h = [data = data](const Vector& x) {
 		auto remote_point = data->get_remote_point();
 		auto latitude     = remote_point.get_position1();
 		auto longitude    = remote_point.get_position2();

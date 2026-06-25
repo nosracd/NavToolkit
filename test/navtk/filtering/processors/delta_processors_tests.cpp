@@ -35,7 +35,7 @@ using navtk::filtering::Pose;
 using navtk::filtering::StandardMeasurementModel;
 using navtk::filtering::StandardMeasurementProcessor;
 using GenXhatPFunction =
-    std::function<std::shared_ptr<EstimateWithCovariance>(const std::vector<std::string> &)>;
+    std::function<std::shared_ptr<EstimateWithCovariance>(const std::vector<std::string>&)>;
 
 using aspn_xtensor::MeasurementAltitude;
 using aspn_xtensor::MeasurementDeltaPosition;
@@ -102,7 +102,7 @@ struct DeltaTests : public ::testing::Test {
 	    Matrix cov,
 	    int num_states = 15) {
 
-		GenXhatPFunction dummy_xhat_p = [=](const std::vector<std::string> &) {
+		GenXhatPFunction dummy_xhat_p = [=](const std::vector<std::string>&) {
 			return std::make_shared<EstimateWithCovariance>(navtk::ones(num_states),
 			                                                navtk::zeros(num_states, num_states));
 		};
@@ -120,7 +120,7 @@ struct DeltaTests : public ::testing::Test {
 
 			auto measurement =
 			    std::make_shared<aspn_xtensor::TypeHeader>(ASPN_UNDEFINED, 0, 0, 0, 0);
-			auto genxp = [&](const std::vector<std::string> &) {
+			auto genxp = [&](const std::vector<std::string>&) {
 				return std::make_shared<navtk::filtering::EstimateWithCovariance>(navtk::zeros(1),
 				                                                                  navtk::eye(1));
 			};
@@ -140,9 +140,9 @@ struct DeltaTests : public ::testing::Test {
 
 			auto bad_data = std::make_shared<aspn_xtensor::TypeHeader>(ASPN_UNDEFINED, 0, 0, 0, 0);
 			auto bad_paired_pva = std::make_shared<PairedPva>(bad_data, nav_sol);
-			auto genxp          = [&](const std::vector<std::string> &) {
-                return std::make_shared<navtk::filtering::EstimateWithCovariance>(navtk::zeros(1),
-                                                                                  navtk::eye(1));
+			auto genxp          = [&](const std::vector<std::string>&) {
+				return std::make_shared<navtk::filtering::EstimateWithCovariance>(navtk::zeros(1),
+				                                                                  navtk::eye(1));
 			};
 			decltype(proc->generate_model(bad_paired_pva, genxp)) model = nullptr;
 			EXPECT_HONORS_MODE_EX(model = proc->generate_model(bad_paired_pva, genxp),
@@ -180,17 +180,17 @@ TEST_F(DeltaTests, VelocityMeasurementProcessor3D) {
 	xt::view(H, xt::all(), xt::range(3, 6)) = navtk::eye(3);
 	auto proc =
 	    std::make_shared<VelocityMeasurementProcessor>(label, state_label, H, true, true, true);
-	Matrix cov       = xt::diag(Vector{1, 2, 3});
-	auto data        = std::make_shared<MeasurementVelocity>(header,
-                                                      timestamp,
-                                                      ASPN_MEASUREMENT_VELOCITY_REFERENCE_FRAME_NED,
-                                                      vn,
-                                                      ve,
-                                                      vd,
-                                                      cov,
-                                                      ASPN_MEASUREMENT_VELOCITY_ERROR_MODEL_NONE,
-                                                      Vector{},
-                                                      std::vector<aspn_xtensor::TypeIntegrity>{});
+	Matrix cov = xt::diag(Vector{1, 2, 3});
+	auto data = std::make_shared<MeasurementVelocity>(header,
+	                                                  timestamp,
+	                                                  ASPN_MEASUREMENT_VELOCITY_REFERENCE_FRAME_NED,
+	                                                  vn,
+	                                                  ve,
+	                                                  vd,
+	                                                  cov,
+	                                                  ASPN_MEASUREMENT_VELOCITY_ERROR_MODEL_NONE,
+	                                                  Vector{},
+	                                                  std::vector<aspn_xtensor::TypeIntegrity>{});
 	auto paired_data = std::make_shared<PairedPva>(data, nav_sol);
 	test_get_correct_linear_meas_model(proc, paired_data, navtk::zeros(3), H, cov);
 	test_invalid_data(proc);
@@ -207,11 +207,11 @@ TEST_F(DeltaTests, VelocityMeasurementProcessor2D) {
 	    std::make_tuple(true, false, true, vn, 0, vd, Matrix{{0, 0, 1}, {1, 0, 0}}),
 	    std::make_tuple(false, true, true, 0, ve, vd, Matrix{{0, 0, 1}, {0, 1, 0}})};
 
-	for (const auto &perm : permutations) {
+	for (const auto& perm : permutations) {
 		Matrix H                                = navtk::zeros(2, default_num_states);
 		xt::view(H, xt::all(), xt::range(3, 6)) = std::get<6>(perm);
 		auto proc                               = std::make_shared<VelocityMeasurementProcessor>(
-            label, state_label, H, std::get<0>(perm), std::get<1>(perm), std::get<2>(perm));
+		    label, state_label, H, std::get<0>(perm), std::get<1>(perm), std::get<2>(perm));
 		auto data =
 		    std::make_shared<MeasurementVelocity>(header,
 		                                          timestamp,
@@ -237,11 +237,11 @@ TEST_F(DeltaTests, VelocityMeasurementProcessor1D) {
 	    std::make_tuple(false, false, true, 0, 0, vd, Matrix{{0, 0, 1}})};
 	Matrix cov = {{1.0}};
 
-	for (const auto &perm : permutations) {
+	for (const auto& perm : permutations) {
 		Matrix H                                = navtk::zeros(1, default_num_states);
 		xt::view(H, xt::all(), xt::range(3, 6)) = std::get<2>(perm);
 		auto proc                               = std::make_shared<VelocityMeasurementProcessor>(
-            label, state_label, H, std::get<0>(perm), std::get<1>(perm), std::get<2>(perm));
+		    label, state_label, H, std::get<0>(perm), std::get<1>(perm), std::get<2>(perm));
 		auto data =
 		    std::make_shared<MeasurementVelocity>(header,
 		                                          timestamp,
@@ -261,18 +261,18 @@ TEST_F(DeltaTests, VelocityMeasurementProcessor1D) {
 }
 
 TEST_F(DeltaTests, AltitudeMeasurementProcessor) {
-	auto proc        = std::make_shared<AltitudeMeasurementProcessor>(label, state_label);
-	auto cov         = 1.0;
-	Matrix H         = navtk::zeros(1, default_num_states);
-	H(0, 2)          = -1.0;
-	auto data        = std::make_shared<MeasurementAltitude>(header,
-                                                      timestamp,
-                                                      ASPN_MEASUREMENT_ALTITUDE_REFERENCE_MSL,
-                                                      alt,
-                                                      cov,
-                                                      ASPN_MEASUREMENT_ALTITUDE_ERROR_MODEL_NONE,
-                                                      Vector{},
-                                                      std::vector<aspn_xtensor::TypeIntegrity>{});
+	auto proc = std::make_shared<AltitudeMeasurementProcessor>(label, state_label);
+	auto cov  = 1.0;
+	Matrix H  = navtk::zeros(1, default_num_states);
+	H(0, 2)   = -1.0;
+	auto data = std::make_shared<MeasurementAltitude>(header,
+	                                                  timestamp,
+	                                                  ASPN_MEASUREMENT_ALTITUDE_REFERENCE_MSL,
+	                                                  alt,
+	                                                  cov,
+	                                                  ASPN_MEASUREMENT_ALTITUDE_ERROR_MODEL_NONE,
+	                                                  Vector{},
+	                                                  std::vector<aspn_xtensor::TypeIntegrity>{});
 	auto paired_data = std::make_shared<PairedPva>(data, nav_sol);
 	test_get_correct_linear_meas_model(proc, paired_data, navtk::zeros(1), H, Matrix{{cov}});
 	test_invalid_data(proc);
@@ -282,18 +282,18 @@ TEST_F(DeltaTests, AltitudeMeasurementProcessor) {
 TEST_F(DeltaTests, AltitudeMeasurementProcessorWithBias) {
 	auto proc =
 	    std::make_shared<AltitudeMeasurementProcessorWithBias>(label, state_label, "bias_label");
-	auto cov         = 1.0;
-	Matrix H         = navtk::zeros(1, default_num_states + 1);
-	H(0, 2)          = -1.0;
-	H(0, 15)         = 1.0;
-	auto data        = std::make_shared<MeasurementAltitude>(header,
-                                                      timestamp,
-                                                      ASPN_MEASUREMENT_ALTITUDE_REFERENCE_MSL,
-                                                      alt,
-                                                      cov,
-                                                      ASPN_MEASUREMENT_ALTITUDE_ERROR_MODEL_NONE,
-                                                      Vector{},
-                                                      std::vector<aspn_xtensor::TypeIntegrity>{});
+	auto cov  = 1.0;
+	Matrix H  = navtk::zeros(1, default_num_states + 1);
+	H(0, 2)   = -1.0;
+	H(0, 15)  = 1.0;
+	auto data = std::make_shared<MeasurementAltitude>(header,
+	                                                  timestamp,
+	                                                  ASPN_MEASUREMENT_ALTITUDE_REFERENCE_MSL,
+	                                                  alt,
+	                                                  cov,
+	                                                  ASPN_MEASUREMENT_ALTITUDE_ERROR_MODEL_NONE,
+	                                                  Vector{},
+	                                                  std::vector<aspn_xtensor::TypeIntegrity>{});
 	auto paired_data = std::make_shared<PairedPva>(data, nav_sol);
 	test_get_correct_linear_meas_model(
 	    proc, paired_data, navtk::zeros(1), H, Matrix{{cov}}, default_num_states + 1);
@@ -308,20 +308,20 @@ TEST_F(DeltaTests, PositionVelocityAttitudeMeasurementProcessorPV) {
 	    label, state_label, H, true, true, true, true, true, true, false);
 	Matrix cov = xt::diag(Vector{1, 2, 3, 4, 5, 6});
 	auto data  = std::make_shared<MeasurementPositionVelocityAttitude>(
-        header,
-        timestamp,
-        ASPN_MEASUREMENT_POSITION_VELOCITY_ATTITUDE_REFERENCE_FRAME_GEODETIC,
-        lat,
-        lon,
-        alt,
-        vn,
-        ve,
-        vd,
-        navtk::Vector4(),
-        cov,
-        ASPN_MEASUREMENT_POSITION_VELOCITY_ATTITUDE_ERROR_MODEL_NONE,
-        Vector{},
-        std::vector<aspn_xtensor::TypeIntegrity>{});
+	    header,
+	    timestamp,
+	    ASPN_MEASUREMENT_POSITION_VELOCITY_ATTITUDE_REFERENCE_FRAME_GEODETIC,
+	    lat,
+	    lon,
+	    alt,
+	    vn,
+	    ve,
+	    vd,
+	    navtk::Vector4(),
+	    cov,
+	    ASPN_MEASUREMENT_POSITION_VELOCITY_ATTITUDE_ERROR_MODEL_NONE,
+	    Vector{},
+	    std::vector<aspn_xtensor::TypeIntegrity>{});
 	auto paired_data = std::make_shared<PairedPva>(data, nav_sol);
 	test_get_correct_linear_meas_model(proc, paired_data, navtk::zeros(6), H, cov);
 	test_invalid_data(proc);
@@ -341,7 +341,7 @@ TEST_F(DeltaTests, DeltaPositionMeasurementProcessor1D) {
 	    std::make_tuple(false, true, false, 0, delta_e, 0, Vector3{0, 1, 0}),
 	    std::make_tuple(false, false, true, 0, 0, delta_d, Vector3{0, 0, 1})};
 
-	for (const auto &perm : permutations) {
+	for (const auto& perm : permutations) {
 		Matrix H                                = navtk::zeros(1, default_num_states);
 		xt::view(H, xt::all(), xt::range(3, 6)) = std::get<6>(perm);
 		auto proc = std::make_shared<DeltaPositionMeasurementProcessor>(
@@ -418,7 +418,7 @@ TEST_F(DeltaTests, BiasedRangeMeasurementProcessor) {
 	                                              std::vector<aspn_xtensor::TypeIntegrity>{});
 
 	auto proc = std::make_shared<BiasedRangeProcessor>(label, "position_label", "bias_label");
-	GenXhatPFunction dummy_xhat_p = [=](const std::vector<std::string> &) {
+	GenXhatPFunction dummy_xhat_p = [=](const std::vector<std::string>&) {
 		int num_states = 15;
 		return std::make_shared<EstimateWithCovariance>(navtk::ones(num_states),
 		                                                navtk::zeros(num_states, num_states));
@@ -476,7 +476,7 @@ TEST_F(DeltaTests, DirectionToPoints3dMeasurementProcessor) {
 	auto paired_data = std::make_shared<PairedPva>(data, nav_sol);
 
 	auto proc = std::make_shared<DirectionToPoints3dMeasurementProcessor>(label, state_label);
-	GenXhatPFunction dummy_xhat_p = [=](const std::vector<std::string> &) {
+	GenXhatPFunction dummy_xhat_p = [=](const std::vector<std::string>&) {
 		int num_states = 15;
 		return std::make_shared<EstimateWithCovariance>(navtk::ones(num_states),
 		                                                navtk::zeros(num_states, num_states));
@@ -531,18 +531,18 @@ TEST_F(DeltaTests, MagneticFieldMagnitudeMeasurementProcessor) {
 	double magnitude = 0.5;
 	double variance  = 0.01;
 	auto data        = std::make_shared<MeasurementMagneticFieldMagnitude>(
-        header,
-        timestamp,
-        magnitude,
-        variance,
-        ASPN_MEASUREMENT_MAGNETIC_FIELD_MAGNITUDE_ERROR_MODEL_NONE,
-        Vector{},
-        std::vector<aspn_xtensor::TypeIntegrity>{});
+	    header,
+	    timestamp,
+	    magnitude,
+	    variance,
+	    ASPN_MEASUREMENT_MAGNETIC_FIELD_MAGNITUDE_ERROR_MODEL_NONE,
+	    Vector{},
+	    std::vector<aspn_xtensor::TypeIntegrity>{});
 	auto paired_data = std::make_shared<PairedPva>(data, nav_sol);
 
 	auto proc =
 	    std::make_shared<MagneticFieldMagnitudeMeasurementProcessor>(label, state_label, x, y, q);
-	GenXhatPFunction dummy_xhat_p = [=](const std::vector<std::string> &) {
+	GenXhatPFunction dummy_xhat_p = [=](const std::vector<std::string>&) {
 		int num_states = 15;
 		return std::make_shared<EstimateWithCovariance>(navtk::ones(num_states),
 		                                                navtk::zeros(num_states, num_states));

@@ -95,8 +95,8 @@ TEST_F(DirectTests, badMeasInput) {
 ERROR_MODE_SENSITIVE_TEST(TEST_F, DirectTests, invalid_data) {
 	auto measurement = std::make_shared<aspn_xtensor::TypeHeader>(ASPN_UNDEFINED, 0, 0, 0, 0);
 	auto genxp       = [&](const std::vector<std::string>&) {
-        return std::make_shared<navtk::filtering::EstimateWithCovariance>(navtk::zeros(1),
-                                                                          navtk::eye(1));
+		return std::make_shared<navtk::filtering::EstimateWithCovariance>(navtk::zeros(1),
+		                                                                  navtk::eye(1));
 	};
 	decltype(test.dmp.generate_model(measurement, genxp)) model = nullptr;
 	EXPECT_HONORS_MODE_EX(model = test.dmp.generate_model(measurement, genxp),

@@ -27,7 +27,7 @@ using navtk::magnetic::MagnetometerCalibrationCaruso2d;
 using navtk::magnetic::MagnetometerCalibrationEllipse2d;
 
 using GenXhatPFunction =
-    std::function<std::shared_ptr<EstimateWithCovariance>(const std::vector<std::string> &)>;
+    std::function<std::shared_ptr<EstimateWithCovariance>(const std::vector<std::string>&)>;
 
 struct MagnetometerToHeadingMeasurementProcessorTests : public ::testing::Test {
 	double epsilon = 0.000001;
@@ -82,7 +82,7 @@ struct MagnetometerToHeadingMeasurementProcessorTests : public ::testing::Test {
 		mag_mp_heading = std::make_shared<MagnetometerToHeadingMeasurementProcessor>(
 		    "a", state_block_label, caruso_calib, r_provided);
 
-		dummy_xhat_p = [=, this](const std::vector<std::string> &) {
+		dummy_xhat_p = [=, this](const std::vector<std::string>&) {
 			return std::make_shared<EstimateWithCovariance>(navtk::ones(num_states),
 			                                                navtk::eye(num_states) * 0.5);
 		};

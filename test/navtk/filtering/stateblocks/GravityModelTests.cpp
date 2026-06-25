@@ -16,8 +16,8 @@ using navtk::navutils::PI;
 using std::abs;
 
 TEST(GravityModelTests, garbage) {
-	const GravityModel &gm  = GravityModelTittertonAndWeston();
-	const GravityModel &gm2 = GravityModelSchwartz();
+	const GravityModel& gm  = GravityModelTittertonAndWeston();
+	const GravityModel& gm2 = GravityModelSchwartz();
 
 	EarthModel point1(Vector3{6.5 * PI / 180.0, 0.0, 1000.0}, Vector3{0.0, 0.0, 0.0}, gm);
 	EarthModel point2(Vector3{50.0 * PI / 180.0, 0.0, 1000.0}, Vector3{0.0, 0.0, 0.0}, gm);
@@ -43,7 +43,7 @@ TEST(GravityModelTests, garbage) {
 // more complicated, though in practice it doesn't matter much for the spaces
 // we operate in.
 TEST(GravityModelTests, belowSeaLevel) {
-	const GravityModel &gm = GravityModelTittertonAndWeston();
+	const GravityModel& gm = GravityModelTittertonAndWeston();
 	EarthModel point1(Vector3{6.5 * PI / 180.0, 0.0, 0.0}, Vector3{0.0, 0.0, 0.0}, gm);
 	ASSERT_TRUE(gm.calculate_gravity(point1, -0.5 * point1.r_zero) ==
 	            0.5 * gm.calculate_gravity(point1, 0.0));

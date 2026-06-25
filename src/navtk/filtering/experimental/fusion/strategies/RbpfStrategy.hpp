@@ -27,7 +27,7 @@ namespace experimental {
  * A function pointer that takes a Vector and pointer to number of desired samples (or `nullptr` for
  * all) by constant reference and returns a ResamplingResult
  */
-using ResamplingFunction = std::function<ResamplingResult(const Vector &, const size_t *)>;
+using ResamplingFunction = std::function<ResamplingResult(const Vector&, const size_t*)>;
 
 /**
  * An implementation of Bayesian innovation using the Rao-Blackwellized Particle Filter (RBPF)
@@ -61,7 +61,7 @@ public:
 	 *
 	 * @param dynamics_model A description of the dynamics of the state vector.
 	 */
-	void propagate(const StandardDynamicsModel &dynamics_model) override;
+	void propagate(const StandardDynamicsModel& dynamics_model) override;
 
 	/**
 	 * Updates the estimate estimate and covariance with the given measurement.
@@ -70,7 +70,7 @@ public:
 	 *
 	 * @param measurement_model The measurement model to use during innovation.
 	 */
-	void update(const StandardMeasurementModel &measurement_model) override;
+	void update(const StandardMeasurementModel& measurement_model) override;
 
 	/**
 	 * Return which states are represented as particles.
@@ -115,7 +115,7 @@ protected:
 	 * @param chol_qd Cholesky decomposition of the process noise matrix.
 	 *
 	 */
-	void propagate_rbpf(const StandardDynamicsModel &dynamics_model, const Matrix &chol_qd);
+	void propagate_rbpf(const StandardDynamicsModel& dynamics_model, const Matrix& chol_qd);
 
 	/**
 	 * Predicts future values of the estimate and full Jacobian covariance at the time given in
@@ -124,7 +124,7 @@ protected:
 	 * @param dynamics_model A description of the dynamics of the state vector.
 	 *
 	 */
-	void propagate_single_ekf(const StandardDynamicsModel &dynamics_model);
+	void propagate_single_ekf(const StandardDynamicsModel& dynamics_model);
 
 	/**
 	 * Predicts future values of the estimate and full Jacobian covariance at the time given in
@@ -133,7 +133,7 @@ protected:
 	 * @param dynamics_model A description of the dynamics of the state vector.
 	 *
 	 */
-	void propagate_bank_ekf(const StandardDynamicsModel &dynamics_model);
+	void propagate_bank_ekf(const StandardDynamicsModel& dynamics_model);
 
 	/**
 	 * Predicts future values of the estimate and Jacobian covariance at the time given in
@@ -142,8 +142,8 @@ protected:
 	 * @param dynamics_model A description of the dynamics of the state vector.
 	 * @param chol_qd Cholesky decomposition of the process noise matrix.
 	 */
-	void propagate_particle_filter(const StandardDynamicsModel &dynamics_model,
-	                               const Matrix &chol_qd);
+	void propagate_particle_filter(const StandardDynamicsModel& dynamics_model,
+	                               const Matrix& chol_qd);
 
 	/**
 	 * Updates the estimate and Jacobian covariance using a single state EKF algorithm.
@@ -151,7 +151,7 @@ protected:
 	 * @param measurement_model The filter measurement model.
 	 *
 	 */
-	void update_as_single_ekf(const StandardMeasurementModel &measurement_model);
+	void update_as_single_ekf(const StandardMeasurementModel& measurement_model);
 
 	/**
 	 * Updates the estimate and Jacobian covariance using an EKF for each particle state.
@@ -159,7 +159,7 @@ protected:
 	 * @param measurement_model The filter measurement model.
 	 *
 	 */
-	void update_as_bank_ekf(const StandardMeasurementModel &measurement_model);
+	void update_as_bank_ekf(const StandardMeasurementModel& measurement_model);
 
 	/**
 	 * Compute the weighted sum of particle states for a state estimate.
@@ -173,7 +173,7 @@ protected:
 	 *
 	 * @param recovery_states The recovery state vector to apply to the particle states.
 	 */
-	void reset_particles(Vector const &recovery_states);
+	void reset_particles(Vector const& recovery_states);
 
 	/**
 	 * @param estimate_filtered The estimated state vector.
@@ -182,9 +182,9 @@ protected:
 	 *
 	 * @return The covariance estimate.
 	 */
-	Matrix compute_covariance(const Vector &estimate_filtered,
-	                          const Vector &weights,
-	                          const std::vector<int> &index);
+	Matrix compute_covariance(const Vector& estimate_filtered,
+	                          const Vector& weights,
+	                          const std::vector<int>& index);
 
 	/**
 	 * Updates the estimate and Jacobian covariance using a particle-filtering algorithm.
@@ -192,7 +192,7 @@ protected:
 	 * @param measurement_model The filter measurement model.
 	 *
 	 */
-	void update_with_particle_method(const StandardMeasurementModel &measurement_model);
+	void update_with_particle_method(const StandardMeasurementModel& measurement_model);
 
 	/**
 	 * @param x The prior state estimate.
@@ -201,9 +201,9 @@ protected:
 	 *
 	 * @return The propagated covariance and state estimate.
 	 */
-	EstimateWithCovariance ekf_propagate(const Vector &x,
-	                                     const StandardDynamicsModel &dynamics_model,
-	                                     const Matrix &cov_mat);
+	EstimateWithCovariance ekf_propagate(const Vector& x,
+	                                     const StandardDynamicsModel& dynamics_model,
+	                                     const Matrix& cov_mat);
 
 	/**
 	 * @param x The state estimate.
@@ -212,9 +212,9 @@ protected:
 	 *
 	 * @return The covariance and state estimate.
 	 */
-	EstimateWithCovariance ekf_update(const Vector &x,
-	                                  const StandardMeasurementModel &measurement_model,
-	                                  const Matrix &cov_mat);
+	EstimateWithCovariance ekf_update(const Vector& x,
+	                                  const StandardMeasurementModel& measurement_model,
+	                                  const Matrix& cov_mat);
 
 	/**
 	 * Determine the weighted covariance values for the jitter states if applicable.
@@ -228,7 +228,7 @@ protected:
 	 *
 	 * @param index The indexes to the weights after resampling.
 	 */
-	void copy_particles_by(const std::vector<size_t> &index);
+	void copy_particles_by(const std::vector<size_t>& index);
 
 private:
 	/**

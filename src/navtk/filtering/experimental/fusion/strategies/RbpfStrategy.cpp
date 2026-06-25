@@ -42,7 +42,7 @@ RbpfStrategy::RbpfStrategy(Size num_particles,
       _resampling_fun(std::move(resamp_fun)) {}
 
 
-void RbpfStrategy::propagate(const StandardDynamicsModel &dynamics_model) {
+void RbpfStrategy::propagate(const StandardDynamicsModel& dynamics_model) {
 	if (ValidationResult::BAD ==
 	    this->validate_linearized_propagate(dynamics_model.Phi, dynamics_model.Qd))
 		return;
@@ -66,7 +66,7 @@ void RbpfStrategy::propagate(const StandardDynamicsModel &dynamics_model) {
 	this->covariance_stale = true;
 }  // end propagate
 
-void RbpfStrategy::update(const StandardMeasurementModel &measurement_model) {
+void RbpfStrategy::update(const StandardMeasurementModel& measurement_model) {
 	if (ValidationResult::BAD == this->check_update_args(measurement_model)) return;
 
 	this->symmetricize_covariance();
@@ -84,7 +84,7 @@ void RbpfStrategy::update(const StandardMeasurementModel &measurement_model) {
 
 }  // end update
 
-void RbpfStrategy::update_as_single_ekf(const StandardMeasurementModel &measurement_model) {
+void RbpfStrategy::update_as_single_ekf(const StandardMeasurementModel& measurement_model) {
 
 	// All linear states so treat as EKF
 	Matrix cov_mat = view(this->covariance_particles, 0, all(), all());
@@ -100,7 +100,7 @@ void RbpfStrategy::update_as_single_ekf(const StandardMeasurementModel &measurem
 	this->symmetricize_covariance();
 }
 
-void RbpfStrategy::update_as_bank_ekf(const StandardMeasurementModel &measurement_model) {
+void RbpfStrategy::update_as_bank_ekf(const StandardMeasurementModel& measurement_model) {
 
 	// process each particle state as an EKF
 	auto particle_count = count_particles();
@@ -139,7 +139,7 @@ void RbpfStrategy::update_as_bank_ekf(const StandardMeasurementModel &measuremen
 	}
 }
 
-void RbpfStrategy::update_with_particle_method(const StandardMeasurementModel &measurement_model) {
+void RbpfStrategy::update_with_particle_method(const StandardMeasurementModel& measurement_model) {
 	auto particle_count       = count_particles();
 	double residual_threshold = 1e15;
 	double min_res = residual_threshold;  // holds the minimum residual value - a metric for how far
@@ -241,8 +241,8 @@ void RbpfStrategy::update_with_particle_method(const StandardMeasurementModel &m
 			if (!this->calc_single_jacobian) {
 				Matrix covariance_particle = view(this->covariance_particles, i, all(), all());
 
-				Matrix M = dot(dot(C_linear, covariance_particle), C_linear_transpose) +
-				           measurement_model.R;
+				Matrix M     = dot(dot(C_linear, covariance_particle), C_linear_transpose) +
+				               measurement_model.R;
 				Matrix m_inv = inverse(M);
 
 				gain = dot(dot(covariance_particle, C_linear_transpose), m_inv);
@@ -271,8 +271,8 @@ void RbpfStrategy::update_with_particle_method(const StandardMeasurementModel &m
 
 }  // end update_with_particle_method
 
-void RbpfStrategy::propagate_particle_filter(const StandardDynamicsModel &dynamics_model,
-                                             const Matrix &chol_qd) {
+void RbpfStrategy::propagate_particle_filter(const StandardDynamicsModel& dynamics_model,
+                                             const Matrix& chol_qd) {
 
 	auto particle_count = count_particles();
 
@@ -288,7 +288,7 @@ void RbpfStrategy::propagate_particle_filter(const StandardDynamicsModel &dynami
 	this->covariance_stale = true;
 }  // end propagate_particle_filter
 
-void RbpfStrategy::propagate_bank_ekf(const StandardDynamicsModel &dynamics_model) {
+void RbpfStrategy::propagate_bank_ekf(const StandardDynamicsModel& dynamics_model) {
 	// process each particle state as an EKF
 	auto particle_count = count_particles();
 
@@ -321,8 +321,8 @@ void RbpfStrategy::propagate_bank_ekf(const StandardDynamicsModel &dynamics_mode
 	}
 }  // end propagate_bank_ekf
 
-void RbpfStrategy::propagate_rbpf(const StandardDynamicsModel &dynamics_model,
-                                  const Matrix &chol_qd) {
+void RbpfStrategy::propagate_rbpf(const StandardDynamicsModel& dynamics_model,
+                                  const Matrix& chol_qd) {
 
 	auto particle_count = count_particles();
 
@@ -387,7 +387,7 @@ void RbpfStrategy::propagate_rbpf(const StandardDynamicsModel &dynamics_model,
 	this->estimate = calc_weighted_estimate();
 }  // end propagate_rbpf
 
-void RbpfStrategy::propagate_single_ekf(const StandardDynamicsModel &dynamics_model) {
+void RbpfStrategy::propagate_single_ekf(const StandardDynamicsModel& dynamics_model) {
 	// EKF propagate
 	Matrix p_part   = view(this->covariance_particles, 0, all(), all());
 	Vector estimate = view(this->state_particles, all(), 0);
@@ -400,9 +400,9 @@ void RbpfStrategy::propagate_single_ekf(const StandardDynamicsModel &dynamics_mo
 	this->covariance = std::move(e_cov.covariance);
 }
 
-EstimateWithCovariance RbpfStrategy::ekf_propagate(const Vector &x,
-                                                   const StandardDynamicsModel &dynamics_model,
-                                                   const Matrix &cov_mat) {
+EstimateWithCovariance RbpfStrategy::ekf_propagate(const Vector& x,
+                                                   const StandardDynamicsModel& dynamics_model,
+                                                   const Matrix& cov_mat) {
 
 	Vector estimate = dynamics_model.g(x);
 
@@ -411,9 +411,9 @@ EstimateWithCovariance RbpfStrategy::ekf_propagate(const Vector &x,
 	return EstimateWithCovariance{estimate, cov};
 }
 
-EstimateWithCovariance RbpfStrategy::ekf_update(const Vector &x,
-                                                const StandardMeasurementModel &measurement_model,
-                                                const Matrix &cov_mat) {
+EstimateWithCovariance RbpfStrategy::ekf_update(const Vector& x,
+                                                const StandardMeasurementModel& measurement_model,
+                                                const Matrix& cov_mat) {
 	auto num_states    = num_rows(x);
 	Matrix h_transpose = transpose(measurement_model.H);
 
@@ -447,7 +447,7 @@ Vector RbpfStrategy::calc_weighted_estimate() {
 	return new_estimate;
 }
 
-void RbpfStrategy::reset_particles(Vector const &recovery_states) {
+void RbpfStrategy::reset_particles(Vector const& recovery_states) {
 	auto particle_count = count_particles();
 
 	this->estimate = recovery_states;
@@ -479,7 +479,7 @@ std::pair<bool, Vector> RbpfStrategy::jitter_contribution() {
 	return {jitter, scale};
 }
 
-void RbpfStrategy::copy_particles_by(const std::vector<size_t> &index) {
+void RbpfStrategy::copy_particles_by(const std::vector<size_t>& index) {
 
 	Matrix state_particles_copy                  = this->state_particles;
 	xtensor<double, 3> covariance_particles_copy = this->covariance_particles;

@@ -214,9 +214,9 @@ TEST_F(LeverArmTests, InertialEx) {
 TEST_F(LeverArmTests, TestSamePointInNewFrame) {
 	auto e_in_home = swap_frame(home_in_e);
 	auto res1      = obs_in_platform_to_sensor(
-        obs_in_sensor_to_platform(point_in_s2, s2_in_h.first, s2_in_h.second),
-        s1_in_h.first,
-        s1_in_h.second);
+	    obs_in_sensor_to_platform(point_in_s2, s2_in_h.first, s2_in_h.second),
+	    s1_in_h.first,
+	    s1_in_h.second);
 	ASSERT_ALLCLOSE(res1.first, point_in_s1.first);
 	ASSERT_ALLCLOSE(res1.second, point_in_s1.second);
 

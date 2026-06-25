@@ -10,7 +10,7 @@ using namespace pybind11::literals;
 namespace ex = navtk::exampleutils;
 
 
-void add_exampleutils_functions(pybind11::module &m) {
+void add_exampleutils_functions(pybind11::module& m) {
 	m.doc() = "Bindings to the Example Utilities";
 
 	NAMESPACE_FUNCTION(constant_vel_pva, ex, "start_pva"_a, "dt"_a, "stop_time"_a);

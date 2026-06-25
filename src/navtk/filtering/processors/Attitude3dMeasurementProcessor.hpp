@@ -29,7 +29,7 @@ public:
 	 * \p expected_frame
 	 */
 	Attitude3dMeasurementProcessor(std::string label,
-	                               const std::string &state_block_label,
+	                               const std::string& state_block_label,
 	                               AspnMeasurementAttitude3DReferenceFrame expected_frame =
 	                                   ASPN_MEASUREMENT_ATTITUDE_3D_REFERENCE_FRAME_NED);
 

@@ -124,10 +124,10 @@ struct Pinson21NonlinearTests : public ::testing::Test {
  * is an abuse; result is not actually a valid NavSolution).
  */
 NavSolution tstraight_prop(NavSolution ns, Vector3 fb, Vector3 w_b_ib) {
-	Vector ned_dot = ns.vel;
-	auto em        = navtk::filtering::EarthModel(ns.pos, ns.vel);
-	Vector v_dot   = dot(xt::transpose(ns.rot_mat), fb) -
-	               cross(2.0 * em.omega_ie_n + em.omega_en_n, ns.vel) + em.g_n;
+	Vector ned_dot  = ns.vel;
+	auto em         = navtk::filtering::EarthModel(ns.pos, ns.vel);
+	Vector v_dot    = dot(xt::transpose(ns.rot_mat), fb) -
+	                  cross(2.0 * em.omega_ie_n + em.omega_en_n, ns.vel) + em.g_n;
 	auto cnb        = xt::transpose(ns.rot_mat);
 	Matrix3 cnb_dot = dot(cnb, skew(w_b_ib)) - dot(skew(em.omega_in_n), cnb);
 

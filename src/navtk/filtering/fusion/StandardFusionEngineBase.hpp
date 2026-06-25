@@ -26,7 +26,7 @@ public:
 	 *
 	 * @param time The time to set the filter to
 	 */
-	virtual void set_time(const aspn_xtensor::TypeTimestamp &time) = 0;
+	virtual void set_time(const aspn_xtensor::TypeTimestamp& time) = 0;
 
 	/**
 	 * Get the current time of the filter
@@ -52,7 +52,7 @@ public:
 	 *
 	 * @return `true` if the fusion engine has corresponding StateBlock, `false` otherwise.
 	 */
-	virtual bool has_block(std::string const &label) const = 0;
+	virtual bool has_block(std::string const& label) const = 0;
 
 	/**
 	 * See if the fusion engine has a VirtualStateBlock capable of generating an estimate.
@@ -62,7 +62,7 @@ public:
 	 * @return `true` if the fusion engine has corresponding VirtualStateBlock and it can be linked
 	 * to a StateBlock, `false` otherwise.
 	 */
-	virtual bool has_virtual_state_block(std::string const &target_label) const = 0;
+	virtual bool has_virtual_state_block(std::string const& target_label) const = 0;
 
 	/**
 	 * Get the real state block object if the fusion engine currently has it.  Note that this
@@ -74,7 +74,7 @@ public:
 	 *
 	 * @throw std::invalid_argument If the label does not match any StateBlock.
 	 */
-	virtual not_null<std::shared_ptr<StateBlock<>>> get_state_block(std::string const &label) = 0;
+	virtual not_null<std::shared_ptr<StateBlock<>>> get_state_block(std::string const& label) = 0;
 
 	/**
 	 * Get the real state block object if the fusion engine currently has it.  Note that this
@@ -87,7 +87,7 @@ public:
 	 * @throw std::invalid_argument If the label does not match any StateBlock.
 	 */
 	virtual not_null<std::shared_ptr<const StateBlock<>>> get_state_block(
-	    std::string const &label) const = 0;
+	    std::string const& label) const = 0;
 
 	/**
 	 * Get the current covariance matrix for a StateBlock or VirtualStateBlock represented by
@@ -101,7 +101,7 @@ public:
 	 * @throw std::invalid_argument If the label does not match any StateBlocks or
 	 * VirtualStateBlocks.
 	 */
-	virtual Matrix get_state_block_covariance(std::string const &label) const = 0;
+	virtual Matrix get_state_block_covariance(std::string const& label) const = 0;
 
 	/**
 	 * Sets the current covariance matrix for a real state block directly.  Note that this function
@@ -113,7 +113,7 @@ public:
 	 * @throw std::range_error If the covariance is not NxN, where N is the number of states.
 	 * @throw std::invalid_argument If the label does not match any StateBlock.
 	 */
-	virtual void set_state_block_covariance(std::string const &label, Matrix const &covariance) = 0;
+	virtual void set_state_block_covariance(std::string const& label, Matrix const& covariance) = 0;
 
 	/**
 	 * Get the current estimate vector for a StateBlock or VirtualStateBlock represented
@@ -127,7 +127,7 @@ public:
 	 * @throw std::invalid_argument If the label does not match any StateBlocks or
 	 * VirtualStateBlocks.
 	 */
-	virtual Vector get_state_block_estimate(std::string const &label) const = 0;
+	virtual Vector get_state_block_estimate(std::string const& label) const = 0;
 
 	/**
 	 * Sets the current estimate vector for a real state block directly.  Note that this function
@@ -139,7 +139,7 @@ public:
 	 * @throw std::range_error If the estimate is not Nx1, where N is the number of states.
 	 * @throw std::invalid_argument If the label does not match any StateBlock.
 	 */
-	virtual void set_state_block_estimate(std::string const &label, Vector const &estimate) = 0;
+	virtual void set_state_block_estimate(std::string const& label, Vector const& estimate) = 0;
 
 	/**
 	 * Add a real state block to the fusion engine. A state block provides the fusion engine with a
@@ -175,7 +175,7 @@ public:
 	 *
 	 * @param label The unique label of the StateBlock.
 	 */
-	virtual void remove_state_block(std::string const &label) = 0;
+	virtual void remove_state_block(std::string const& label) = 0;
 
 	/**
 	 * Sets the cross term block matrix between two real state blocks in the internal discrete-time
@@ -193,9 +193,9 @@ public:
 	 *        the StateBlocks corresponding to \p label1 and \p label2 respectively.
 	 * @throw std::invalid_argument If the labels do not match StateBlocks.
 	 */
-	virtual void set_cross_term_process_covariance(std::string const &label1,
-	                                               std::string const &label2,
-	                                               Matrix const &block) = 0;
+	virtual void set_cross_term_process_covariance(std::string const& label1,
+	                                               std::string const& label2,
+	                                               Matrix const& block) = 0;
 
 	/**
 	 * Gets the cross term block matrix between two real or virtual state blocks in the estimate
@@ -210,8 +210,8 @@ public:
 	 * matrix.
 	 * @throw std::invalid_argument If the labels do not match StateBlocks or VirtualStateBlocks.
 	 */
-	virtual Matrix get_cross_term_covariance(std::string const &label1,
-	                                         std::string const &label2) const = 0;
+	virtual Matrix get_cross_term_covariance(std::string const& label1,
+	                                         std::string const& label2) const = 0;
 
 	/**
 	 * Sets the cross term block matrix between two real state blocks in the estimate covariance.
@@ -226,9 +226,9 @@ public:
 	 *
 	 * @throw std::invalid_argument If the labels do not match StateBlocks.
 	 */
-	virtual void set_cross_term_covariance(std::string const &label1,
-	                                       std::string const &label2,
-	                                       Matrix const &block) = 0;
+	virtual void set_cross_term_covariance(std::string const& label1,
+	                                       std::string const& label2,
+	                                       Matrix const& block) = 0;
 
 	/**
 	 * Give an AspnBaseVector to the specified real state block (for real state blocks that need
@@ -240,8 +240,8 @@ public:
 	 *
 	 * @throw std::invalid_argument If the label does not match any StateBlock.
 	 */
-	virtual void give_state_block_aux_data(std::string const &label,
-	                                       AspnBaseVector const &data) = 0;
+	virtual void give_state_block_aux_data(std::string const& label,
+	                                       AspnBaseVector const& data) = 0;
 
 	/**
 	 * Resets the specified state estimates to zeros, and returns the current estimate and
@@ -261,8 +261,8 @@ public:
 	 * number of states in the fusion engine.
 	 */
 	virtual EstimateWithCovariance reset_state_estimate(aspn_xtensor::TypeTimestamp time,
-	                                                    std::string const &label,
-	                                                    std::vector<size_t> const &indices) = 0;
+	                                                    std::string const& label,
+	                                                    std::vector<size_t> const& indices) = 0;
 
 	/**
 	 * Get the total number of states currently in the filter from all real state blocks.
@@ -284,7 +284,7 @@ public:
 	 * Remove a measurement processor by name.
 	 * @param label The unique label of the measurement processor.
 	 */
-	virtual void remove_measurement_processor(std::string const &label) = 0;
+	virtual void remove_measurement_processor(std::string const& label) = 0;
 
 	/**
 	 * Gets a list of the labels of measurement processors that have been added to this fusion
@@ -301,7 +301,7 @@ public:
 	 * @return `true` if the fusion engine has corresponding MeasurementProcessor, `false`
 	 * otherwise.
 	 */
-	virtual bool has_processor(std::string const &label) const = 0;
+	virtual bool has_processor(std::string const& label) const = 0;
 
 	/**
 	 * Get a measurement processor object by name.
@@ -313,7 +313,7 @@ public:
 	 * @throw std::invalid_argument If the label does not match any MeasurementProcessor.
 	 */
 	virtual not_null<std::shared_ptr<MeasurementProcessor<>>> get_measurement_processor(
-	    std::string const &label) = 0;
+	    std::string const& label) = 0;
 
 	/**
 	 * Get a measurement processor object by name.
@@ -325,7 +325,7 @@ public:
 	 * @throw std::invalid_argument If the label does not match any MeasurementProcessor.
 	 */
 	virtual not_null<std::shared_ptr<const MeasurementProcessor<>>> get_measurement_processor(
-	    std::string const &label) const = 0;
+	    std::string const& label) const = 0;
 
 	/**
 	 * Give an AspnBaseVector to the specified measurement processor.
@@ -334,8 +334,8 @@ public:
 	 *
 	 * @throw std::invalid_argument If the label does not match any MeasurementProcessor.
 	 */
-	virtual void give_measurement_processor_aux_data(std::string const &label,
-	                                                 AspnBaseVector const &data) = 0;
+	virtual void give_measurement_processor_aux_data(std::string const& label,
+	                                                 AspnBaseVector const& data) = 0;
 
 	/**
 	 * Propagate the filter estimate forward in time. May be evaluated lazily (not evaluated
@@ -360,7 +360,7 @@ public:
 	 * calling update. If \p timestamp is nullptr, then the fusion engine will attempt to extract
 	 * a timestamp from \p measurement itself. Default value is nullptr.
 	 */
-	virtual void update(std::string const &processor_label,
+	virtual void update(std::string const& processor_label,
 	                    std::shared_ptr<aspn_xtensor::AspnBase> measurement,
 	                    std::shared_ptr<aspn_xtensor::TypeTimestamp> timestamp = nullptr) = 0;
 
@@ -378,7 +378,7 @@ public:
 	 */
 	virtual std::shared_ptr<EstimateWithCovariance> peek_ahead(
 	    aspn_xtensor::TypeTimestamp time,
-	    std::vector<std::string> const &mixed_block_labels) const = 0;
+	    std::vector<std::string> const& mixed_block_labels) const = 0;
 
 	/**
 	 * Returns a list of the target labels of virtual state blocks that have been added to this
@@ -409,8 +409,8 @@ public:
 	 *
 	 * @throw std::invalid_argument If the label does not match any VirtualStateBlock.
 	 */
-	virtual void give_virtual_state_block_aux_data(std::string const &target_label,
-	                                               AspnBaseVector const &data) = 0;
+	virtual void give_virtual_state_block_aux_data(std::string const& target_label,
+	                                               AspnBaseVector const& data) = 0;
 
 	/**
 	 * Remove a VirtualStateBlock that is registered with the fusion engine
@@ -418,7 +418,7 @@ public:
 	 * @param target target value of the virtual state block instance that is to be removed (point
 	 * B).
 	 */
-	virtual void remove_virtual_state_block(std::string const &target) = 0;
+	virtual void remove_virtual_state_block(std::string const& target) = 0;
 
 	/**
 	 * Generates the state and covariance matrices built corresponding to a list of StateBlock
@@ -432,7 +432,7 @@ public:
 	 * block, then the estimate and covariance will be in the virtual representation.
 	 */
 	virtual std::shared_ptr<EstimateWithCovariance> generate_x_and_p(
-	    std::vector<std::string> const &mixed_block_labels) const = 0;
+	    std::vector<std::string> const& mixed_block_labels) const = 0;
 };
 
 }  // namespace filtering

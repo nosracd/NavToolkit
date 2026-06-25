@@ -63,7 +63,7 @@ TEST(StateBlockTests, clone) {
 	auto state_block_label       = "my_label";
 	auto discretization_strategy = DiscretizationStrategy{&full_order_discretization_strategy};
 	auto state_block             = StateBlock<navtk::filtering::DynamicsModel>(
-        1, state_block_label, discretization_strategy, {{1.0}});
+	    1, state_block_label, discretization_strategy, {{1.0}});
 	auto state_block_clone = state_block.clone();
 	auto atol              = 0.0;
 	auto rtol              = 0.0;
@@ -82,7 +82,7 @@ TEST(StateBlockTests, generate_dynamics) {
 	auto atol              = 0.0;
 	auto rtol              = 0.0;
 	auto dyn               = state_block.generate_dynamics(
-        NULL_GEN_XHAT_AND_P_FUNCTION, to_type_timestamp(), to_type_timestamp(1, 0));
+	    NULL_GEN_XHAT_AND_P_FUNCTION, to_type_timestamp(), to_type_timestamp(1, 0));
 	Matrix expected_phi = {{1.0}};
 	Matrix expected_qd  = {{0.0}};
 	ASSERT_ALLCLOSE_EX(expected_phi, dyn.Phi, rtol, atol);

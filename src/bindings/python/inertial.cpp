@@ -565,7 +565,7 @@ void add_inertial_functions(pybind11::module& m) {
 	CDOC(BufferedIns);
 
 	FUNCTION_CAST(calc_force_ned,
-	              Vector3(*)(const Matrix3&, double, const Vector3&, const Vector3&),
+	              Vector3 (*)(const Matrix3&, double, const Vector3&, const Vector3&),
 	              ,
 	              "C_s_to_n"_a,
 	              "dt"_a,
@@ -573,24 +573,24 @@ void add_inertial_functions(pybind11::module& m) {
 	              "dv"_a);
 
 	FUNCTION_CAST(calc_force_ned,
-	              Vector3(*)(const MeasurementPositionVelocityAttitude&,
-	                         const MeasurementPositionVelocityAttitude&),
+	              Vector3 (*)(const MeasurementPositionVelocityAttitude&,
+	                          const MeasurementPositionVelocityAttitude&),
 	              _2,
 	              "pva1"_a,
 	              "pva2"_a);
 
 	FUNCTION_CAST(calc_rot_rate,
-	              Vector3(*)(const Matrix3&,
-	                         double,
-	                         double,
-	                         double,
-	                         double,
-	                         double,
-	                         const Vector3&,
-	                         double,
-	                         double,
-	                         const Vector3&,
-	                         double),
+	              Vector3 (*)(const Matrix3&,
+	                          double,
+	                          double,
+	                          double,
+	                          double,
+	                          double,
+	                          const Vector3&,
+	                          double,
+	                          double,
+	                          const Vector3&,
+	                          double),
 	              ,
 	              "C_s_to_n0"_a,
 	              "r_e"_a,
@@ -606,7 +606,7 @@ void add_inertial_functions(pybind11::module& m) {
 
 	FUNCTION_CAST(
 	    calc_rot_rate,
-	    Vector3(*)(
+	    Vector3 (*)(
 	        const aspn_xtensor::MeasurementPositionVelocityAttitude&, double, const Vector3&),
 	    _2,
 	    "pva"_a,
@@ -614,8 +614,8 @@ void add_inertial_functions(pybind11::module& m) {
 	    "dth"_a);
 
 	FUNCTION_CAST(calc_rot_rate,
-	              Vector3(*)(const MeasurementPositionVelocityAttitude&,
-	                         const MeasurementPositionVelocityAttitude&),
+	              Vector3 (*)(const MeasurementPositionVelocityAttitude&,
+	                          const MeasurementPositionVelocityAttitude&),
 	              _3,
 	              "pva1"_a,
 	              "pva2"_a);

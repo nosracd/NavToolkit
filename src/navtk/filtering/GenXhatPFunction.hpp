@@ -15,7 +15,7 @@ namespace filtering {
  * associated with the states of those blocks. This is used to lazily evaluate `xhat` and `P`.
  */
 using GenXhatPFunction =
-    std::function<std::shared_ptr<EstimateWithCovariance>(const std::vector<std::string> &)>;
+    std::function<std::shared_ptr<EstimateWithCovariance>(const std::vector<std::string>&)>;
 
 /**
  * Warning: this implementation of GenXhatPFunction should be used with care. It which ignores the
@@ -24,7 +24,7 @@ using GenXhatPFunction =
  * or covariance to generate its model.
  */
 static GenXhatPFunction NULL_GEN_XHAT_AND_P_FUNCTION =
-    [](const std::vector<std::string> &) -> std::shared_ptr<EstimateWithCovariance> {
+    [](const std::vector<std::string>&) -> std::shared_ptr<EstimateWithCovariance> {
 	return nullptr;
 };
 

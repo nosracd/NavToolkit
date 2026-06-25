@@ -7,7 +7,7 @@ using std::pow;
 namespace navtk {
 namespace filtering {
 
-double GravityModelSchwartz::calculate_gravity(const EarthModel &earth_model,
+double GravityModelSchwartz::calculate_gravity(const EarthModel& earth_model,
                                                double alt_msl) const {
 	double sin2_l = pow(earth_model.sin_l, 2);
 	double sin4_l = pow(sin2_l, 2);

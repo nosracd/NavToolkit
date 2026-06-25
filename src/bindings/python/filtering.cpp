@@ -247,8 +247,8 @@ public:
 		    not_null<std::shared_ptr<FusionStrategy>>, FusionStrategyBase, clone, );
 	}
 
-	void on_fusion_engine_state_block_added_impl(Vector const &initial_estimate,
-	                                             Matrix const &initial_covariance) override {
+	void on_fusion_engine_state_block_added_impl(Vector const& initial_estimate,
+	                                             Matrix const& initial_covariance) override {
 		PYBIND11_OVERRIDE_PURE(void,
 		                       FusionStrategyBase,
 		                       on_fusion_engine_state_block_added_impl,
@@ -256,7 +256,7 @@ public:
 		                       initial_covariance);
 	}
 
-	void set_covariance_slice_impl(Matrix const &new_covariance,
+	void set_covariance_slice_impl(Matrix const& new_covariance,
 	                               Size first_row,
 	                               Size first_col) override {
 		PYBIND11_OVERRIDE_PURE(void,
@@ -267,7 +267,7 @@ public:
 		                       first_col);
 	}
 
-	void set_estimate_slice_impl(Vector const &new_estimate, Size first_index) override {
+	void set_estimate_slice_impl(Vector const& new_estimate, Size first_index) override {
 		PYBIND11_OVERRIDE_PURE(
 		    void, FusionStrategyBase, set_estimate_slice_impl, new_estimate, first_index);
 	}
@@ -291,11 +291,11 @@ class PyStandardModelStrategy : public PyBase {
 public:
 	using PyBase::PyBase;
 
-	void propagate(const StandardDynamicsModel &dynamics_model) override {
+	void propagate(const StandardDynamicsModel& dynamics_model) override {
 		PYBIND11_OVERRIDE_PURE(void, StandardModelStrategyBase, propagate, dynamics_model);
 	}
 
-	void update(const StandardMeasurementModel &measurement_model) override {
+	void update(const StandardMeasurementModel& measurement_model) override {
 		PYBIND11_OVERRIDE_PURE(void, StandardModelStrategyBase, update, measurement_model);
 	}
 
@@ -309,11 +309,11 @@ class PySampledModelStrategy : public PyFusionStrategy<SampledModelStrategyBase>
 public:
 	using PyFusionStrategy<SampledModelStrategyBase>::PyFusionStrategy;
 
-	void propagate(const SampledDynamicsModel &dynamics_model) override {
+	void propagate(const SampledDynamicsModel& dynamics_model) override {
 		PYBIND11_OVERRIDE_PURE(void, SampledModelStrategyBase, propagate, dynamics_model);
 	}
 
-	void update(const SampledMeasurementModel &measurement_model) override {
+	void update(const SampledMeasurementModel& measurement_model) override {
 		PYBIND11_OVERRIDE_PURE(void, SampledModelStrategyBase, update, measurement_model);
 	}
 };
@@ -337,8 +337,8 @@ public:
 		    not_null<std::shared_ptr<FusionStrategy>>, LinearizedStrategyBaseBase, clone, );
 	}
 
-	void on_fusion_engine_state_block_added_impl(Vector const &initial_estimate,
-	                                             Matrix const &initial_covariance) override {
+	void on_fusion_engine_state_block_added_impl(Vector const& initial_estimate,
+	                                             Matrix const& initial_covariance) override {
 		PYBIND11_OVERRIDE(void,
 		                  LinearizedStrategyBaseBase,
 		                  on_fusion_engine_state_block_added_impl,
@@ -346,7 +346,7 @@ public:
 		                  initial_covariance);
 	}
 
-	void set_covariance_slice_impl(Matrix const &new_covariance,
+	void set_covariance_slice_impl(Matrix const& new_covariance,
 	                               Size first_row,
 	                               Size first_col) override {
 		PYBIND11_OVERRIDE(void,
@@ -357,7 +357,7 @@ public:
 		                  first_col);
 	}
 
-	void set_estimate_slice_impl(Vector const &new_estimate, Size first_index) override {
+	void set_estimate_slice_impl(Vector const& new_estimate, Size first_index) override {
 		PYBIND11_OVERRIDE(
 		    void, LinearizedStrategyBaseBase, set_estimate_slice_impl, new_estimate, first_index);
 	}
@@ -378,11 +378,11 @@ class PyEkfStrategy : public PyBase {
 public:
 	using PyBase::PyBase;
 
-	void propagate(const StandardDynamicsModel &dynamics_model) override {
+	void propagate(const StandardDynamicsModel& dynamics_model) override {
 		PYBIND11_OVERRIDE(void, EkfStrategyBase, propagate, dynamics_model);
 	}
 
-	void update(const StandardMeasurementModel &measurement_model) override {
+	void update(const StandardMeasurementModel& measurement_model) override {
 		PYBIND11_OVERRIDE(void, EkfStrategyBase, update, measurement_model);
 	}
 
@@ -391,7 +391,7 @@ public:
 	}
 };
 
-void add_filtering_experimental_functions(pybind11::module &m) {
+void add_filtering_experimental_functions(pybind11::module& m) {
 
 	m.doc() = "Bindings to the NavToolkit Experimental Filtering Work.";
 
@@ -414,7 +414,7 @@ void add_filtering_experimental_functions(pybind11::module &m) {
 	METHOD_VOID(RbpfModel, any_nonlinear)
 	METHOD_VOID(RbpfModel, any_linear)
 	METHOD_OVERLOAD_VOID(RbpfModel, symmetricize_covariance, )
-	METHOD_OVERLOAD_CONST(RbpfModel, symmetricize_covariance, Matrix &, _2, "temp_covariance"_a)
+	METHOD_OVERLOAD_CONST(RbpfModel, symmetricize_covariance, Matrix&, _2, "temp_covariance"_a)
 	FIELD(RbpfModel, calc_single_jacobian)
 	METHOD_VOID(RbpfModel, get_jitter_scaling)
 	METHOD(RbpfModel, set_jitter_scaling, "jitter_scales"_a)
@@ -441,7 +441,7 @@ void add_filtering_experimental_functions(pybind11::module &m) {
 	FUNCTION(residual_resample_with_replacement, "weights"_a, "m_arg"_a)
 
 	CLASS(SampledFogmBlock, StateBlock<>)
-	    .def(py::init([](const std::string &label,
+	    .def(py::init([](const std::string& label,
 	                     Vector time_constants,
 	                     Vector state_sigmas,
 	                     size_t num_states) {
@@ -457,7 +457,7 @@ void add_filtering_experimental_functions(pybind11::module &m) {
 	         "time_constants"_a,
 	         "state_sigmas"_a,
 	         "num_states"_a)
-	    .def(py::init([](const std::string &label,
+	    .def(py::init([](const std::string& label,
 	                     double time_constants,
 	                     double state_sigmas,
 	                     size_t num_states) {
@@ -494,7 +494,7 @@ void add_filtering_experimental_functions(pybind11::module &m) {
 	py::class_<MeasurementBuffer, py::smart_holder>(m, "MeasurementBuffer")
 	    .def(
 	        "__iter__",
-	        [](MeasurementBuffer &buf) { return py::make_iterator(buf.begin(), buf.end()); },
+	        [](MeasurementBuffer& buf) { return py::make_iterator(buf.begin(), buf.end()); },
 	        py::keep_alive<0, 1>())
 	    .def(py::init<>())
 	    .def("add_measurement",
@@ -574,7 +574,7 @@ void add_filtering_experimental_functions(pybind11::module &m) {
 	        CDOC(MeasurementBuffer3d);
 }
 
-void add_filtering_functions(pybind11::module &m) {
+void add_filtering_functions(pybind11::module& m) {
 	m.doc() = "Bindings to the NavToolkit/C++ Sensor Fusion Framework";
 
 	CLASS(EstimateWithCovariance)
@@ -599,13 +599,13 @@ void add_filtering_functions(pybind11::module &m) {
 	METHOD_OVERLOAD(FusionStrategy, on_fusion_engine_state_block_added, Size, , "how_many"_a)
 	METHOD_OVERLOAD(FusionStrategy,
 	                on_fusion_engine_state_block_added,
-	                PARAMS(Vector const &, Matrix const &),
+	                PARAMS(Vector const&, Matrix const&),
 	                _2,
 	                "initial_estimate"_a,
 	                "initial_covariance"_a)
 	METHOD_OVERLOAD(FusionStrategy,
 	                on_fusion_engine_state_block_added,
-	                PARAMS(Vector const &, Matrix const &, Matrix const &),
+	                PARAMS(Vector const&, Matrix const&, Matrix const&),
 	                _3,
 	                "initial_estimate"_a,
 	                "initial_covariance"_a,
@@ -616,14 +616,14 @@ void add_filtering_functions(pybind11::module &m) {
 	METHOD_VOID(FusionStrategy, get_covariance)
 	METHOD_OVERLOAD(FusionStrategy,
 	                set_covariance_slice,
-	                PARAMS(Matrix const &, Size, Size),
+	                PARAMS(Matrix const&, Size, Size),
 	                ,
 	                "new_covariance"_a,
 	                "first_row"_a,
 	                "first_col"_a)
 	METHOD_OVERLOAD(FusionStrategy,
 	                set_covariance_slice,
-	                PARAMS(Matrix const &, Size),
+	                PARAMS(Matrix const&, Size),
 	                _2,
 	                "new_covariance"_a,
 	                "first_state"_a = 0)
@@ -848,7 +848,7 @@ void add_filtering_functions(pybind11::module &m) {
 			                       time_to);
 		}
 
-		void receive_aux_data(const AspnBaseVector &aux_data) override {
+		void receive_aux_data(const AspnBaseVector& aux_data) override {
 			PYBIND11_OVERRIDE(void, StandardStateBlock, receive_aux_data, aux_data);
 		}
 
@@ -908,7 +908,7 @@ void add_filtering_functions(pybind11::module &m) {
 			                       measurement,
 			                       gen_x_and_p_func);
 		}
-		void receive_aux_data(const AspnBaseVector &aux_data) override {
+		void receive_aux_data(const AspnBaseVector& aux_data) override {
 			PYBIND11_OVERRIDE(void, MeasurementProcessor, receive_aux_data, aux_data);
 		}
 
@@ -983,14 +983,14 @@ void add_filtering_functions(pybind11::module &m) {
 			PYBIND11_OVERRIDE_PURE(
 			    not_null<std::shared_ptr<VirtualStateBlock>>, VirtualStateBlock, clone, );
 		}
-		EstimateWithCovariance convert(EstimateWithCovariance const &ec,
-		                               aspn_xtensor::TypeTimestamp const &time) override {
+		EstimateWithCovariance convert(EstimateWithCovariance const& ec,
+		                               aspn_xtensor::TypeTimestamp const& time) override {
 			PYBIND11_OVERRIDE(EstimateWithCovariance, VirtualStateBlock, convert, ec, time);
 		}
-		Vector convert_estimate(Vector const &x, aspn_xtensor::TypeTimestamp const &time) override {
+		Vector convert_estimate(Vector const& x, aspn_xtensor::TypeTimestamp const& time) override {
 			PYBIND11_OVERRIDE_PURE(Vector, VirtualStateBlock, convert_estimate, x, time);
 		}
-		Matrix jacobian(Vector const &x, aspn_xtensor::TypeTimestamp const &time) override {
+		Matrix jacobian(Vector const& x, aspn_xtensor::TypeTimestamp const& time) override {
 			PYBIND11_OVERRIDE_PURE(Matrix, VirtualStateBlock, jacobian, x, time);
 		}
 	};
@@ -1007,22 +1007,22 @@ void add_filtering_functions(pybind11::module &m) {
 
 	CLASS(StandardFusionEngine)
 	CTOR(StandardFusionEngine,
-	     PARAMS(const aspn_xtensor::TypeTimestamp &,
+	     PARAMS(const aspn_xtensor::TypeTimestamp&,
 	            not_null<std::shared_ptr<StandardModelStrategy>>),
 	     "cur_time"_a,
 	     NOT_NONE("strategy"))
 	CTOR_OVERLOAD(StandardFusionEngine,
-	              PARAMS(const aspn_xtensor::TypeTimestamp &),
+	              PARAMS(const aspn_xtensor::TypeTimestamp&),
 	              _2,
 	              py::arg_v("cur_time", aspn_xtensor::TypeTimestamp((int64_t)0), "0"))
-	CTOR_OVERLOAD(StandardFusionEngine, PARAMS(const StandardFusionEngine &), _3, "other"_a)
+	CTOR_OVERLOAD(StandardFusionEngine, PARAMS(const StandardFusionEngine&), _3, "other"_a)
 	METHOD_VOID(StandardFusionEngine, get_time)
 	METHOD(StandardFusionEngine, set_time, "time"_a)
 	METHOD_VOID(StandardFusionEngine, get_state_block_names_list)
 	METHOD(StandardFusionEngine, has_block, "label"_a)
 	METHOD(StandardFusionEngine, has_virtual_state_block, "label"_a)
-	METHOD_OVERLOAD(StandardFusionEngine, get_state_block, const std::string &, , "label"_a)
-	METHOD_OVERLOAD_CONST(StandardFusionEngine, get_state_block, const std::string &, _2, "label"_a)
+	METHOD_OVERLOAD(StandardFusionEngine, get_state_block, const std::string&, , "label"_a)
+	METHOD_OVERLOAD_CONST(StandardFusionEngine, get_state_block, const std::string&, _2, "label"_a)
 	METHOD(StandardFusionEngine, get_state_block_covariance, "label"_a)
 	METHOD(StandardFusionEngine, set_state_block_covariance, "label"_a, "covariance"_a)
 	METHOD(StandardFusionEngine, get_state_block_estimate, "label"_a)
@@ -1040,9 +1040,9 @@ void add_filtering_functions(pybind11::module &m) {
 	METHOD_VOID(StandardFusionEngine, get_measurement_processor_names_list)
 	METHOD(StandardFusionEngine, has_processor, "label"_a)
 	METHOD_OVERLOAD(
-	    StandardFusionEngine, get_measurement_processor, const std::string &, , "label"_a)
+	    StandardFusionEngine, get_measurement_processor, const std::string&, , "label"_a)
 	METHOD_OVERLOAD_CONST(
-	    StandardFusionEngine, get_measurement_processor, const std::string &, _2, "label"_a)
+	    StandardFusionEngine, get_measurement_processor, const std::string&, _2, "label"_a)
 	METHOD(StandardFusionEngine, propagate, "time"_a)
 	METHOD(StandardFusionEngine,
 	       update,
@@ -1076,7 +1076,7 @@ void add_filtering_functions(pybind11::module &m) {
 
 	CLASS(Pinson15NedBlock, StateBlock<>)
 	CTOR(Pinson15NedBlock,
-	     PARAMS(const std::string &,
+	     PARAMS(const std::string&,
 	            ImuModel,
 	            Pinson15NedBlock::LinearizationPointFunction,
 	            DiscretizationStrategy,
@@ -1089,7 +1089,7 @@ void add_filtering_functions(pybind11::module &m) {
 	               "DiscretizationStrategy(second_order_discretization_strategy)"),
 	     py::arg_v(
 	         "gravity_model", std::make_shared<GravityModelSchwartz>(), "GravityModelSchwartz()"))
-	CTOR_OVERLOAD(Pinson15NedBlock, const Pinson15NedBlock &, _2, "block"_a)
+	CTOR_OVERLOAD(Pinson15NedBlock, const Pinson15NedBlock&, _2, "block"_a)
 	METHOD_VOID(Pinson15NedBlock, generate_f_pinson15)
 	METHOD_VOID(Pinson15NedBlock, generate_q_pinson15)
 	METHOD_VOID(Pinson15NedBlock, get_imu_model)
@@ -1132,7 +1132,7 @@ void add_filtering_functions(pybind11::module &m) {
 
 	CLASS(Pinson21NedBlock, StateBlock<>)
 	CTOR(Pinson21NedBlock,
-	     PARAMS(const std::string &,
+	     PARAMS(const std::string&,
 	            ImuModel,
 	            Pinson15NedBlock::LinearizationPointFunction,
 	            DiscretizationStrategy,
@@ -1145,7 +1145,7 @@ void add_filtering_functions(pybind11::module &m) {
 	               "DiscretizationStrategy(second_order_discretization_strategy)"),
 	     py::arg_v(
 	         "gravity_model", std::make_shared<GravityModelSchwartz>(), "GravityModelSchwartz"))
-	CTOR_OVERLOAD(Pinson21NedBlock, const Pinson21NedBlock &, _2, "block"_a)
+	CTOR_OVERLOAD(Pinson21NedBlock, const Pinson21NedBlock&, _2, "block"_a)
 	METHOD_VOID(Pinson21NedBlock, generate_f_pinson)
 	CDOC(Pinson21NedBlock);
 
@@ -1169,7 +1169,7 @@ void add_filtering_functions(pybind11::module &m) {
 
 	CLASS(ClockBiasesStateBlock, StateBlock<>)
 	CTOR(ClockBiasesStateBlock,
-	     PARAMS(const std::string &, ClockModel, ClockChoice, bool),
+	     PARAMS(const std::string&, ClockModel, ClockChoice, bool),
 	     "label"_a,
 	     "clock_model"_a,
 	     py::arg_v("clock_choice", navtk::filtering::ClockChoice::QD, "ClockChoice.QD"),
@@ -1178,7 +1178,7 @@ void add_filtering_functions(pybind11::module &m) {
 
 	CLASS(FogmBlock, StateBlock<>)
 	CTOR(FogmBlock,
-	     PARAMS(const std::string &, Vector, Vector, size_t, DiscretizationStrategy),
+	     PARAMS(const std::string&, Vector, Vector, size_t, DiscretizationStrategy),
 	     "label"_a,
 	     "time_constants"_a,
 	     "state_sigmas"_a,
@@ -1187,7 +1187,7 @@ void add_filtering_functions(pybind11::module &m) {
 	               DiscretizationStrategy{&full_order_discretization_strategy},
 	               "DiscretizationStrategy(full_order_discretization_strategy)"))
 	CTOR_OVERLOAD(FogmBlock,
-	              PARAMS(const std::string &, double, double, size_t, DiscretizationStrategy),
+	              PARAMS(const std::string&, double, double, size_t, DiscretizationStrategy),
 	              _2,
 	              "label"_a,
 	              "time_constant"_a,
@@ -1196,12 +1196,12 @@ void add_filtering_functions(pybind11::module &m) {
 	              py::arg_v("discretization_strategy",
 	                        DiscretizationStrategy{&full_order_discretization_strategy},
 	                        "DiscretizationStrategy(full_order_discretization_strategy)"))
-	CTOR_OVERLOAD(FogmBlock, PARAMS(const FogmBlock &), _3, "block"_a)
+	CTOR_OVERLOAD(FogmBlock, PARAMS(const FogmBlock&), _3, "block"_a)
 	CDOC(FogmBlock);
 
 	CLASS(FogmAccel, FogmBlock)
 	CTOR(FogmAccel,
-	     PARAMS(const std::string &, Vector, Vector, size_t, DiscretizationStrategy),
+	     PARAMS(const std::string&, Vector, Vector, size_t, DiscretizationStrategy),
 	     "label"_a,
 	     "time_constants"_a,
 	     "state_sigmas"_a,
@@ -1210,7 +1210,7 @@ void add_filtering_functions(pybind11::module &m) {
 	               DiscretizationStrategy{&full_order_discretization_strategy},
 	               "DiscretizationStrategy(full_order_discretization_strategy)"))
 	CTOR_OVERLOAD(FogmAccel,
-	              PARAMS(const std::string &, double, double, size_t, DiscretizationStrategy),
+	              PARAMS(const std::string&, double, double, size_t, DiscretizationStrategy),
 	              _2,
 	              "label"_a,
 	              "time_constant"_a,
@@ -1223,7 +1223,7 @@ void add_filtering_functions(pybind11::module &m) {
 
 	CLASS(FogmVelocity, FogmBlock)
 	CTOR(FogmVelocity,
-	     PARAMS(const std::string &, Vector, Vector, size_t, DiscretizationStrategy),
+	     PARAMS(const std::string&, Vector, Vector, size_t, DiscretizationStrategy),
 	     "label"_a,
 	     "time_constants"_a,
 	     "state_sigmas"_a,
@@ -1232,7 +1232,7 @@ void add_filtering_functions(pybind11::module &m) {
 	               DiscretizationStrategy{&full_order_discretization_strategy},
 	               "DiscretizationStrategy(full_order_discretization_strategy)"))
 	CTOR_OVERLOAD(FogmVelocity,
-	              PARAMS(const std::string &, double, double, size_t, DiscretizationStrategy),
+	              PARAMS(const std::string&, double, double, size_t, DiscretizationStrategy),
 	              _2,
 	              "label"_a,
 	              "time_constant"_a,
@@ -1245,7 +1245,7 @@ void add_filtering_functions(pybind11::module &m) {
 
 	CLASS(DirectMeasurementProcessor, MeasurementProcessor<>)
 	CTOR(DirectMeasurementProcessor,
-	     PARAMS(std::string, const std::string &, Matrix),
+	     PARAMS(std::string, const std::string&, Matrix),
 	     "label"_a,
 	     "state_block_label"_a,
 	     "measurement_matrix"_a)
@@ -1256,7 +1256,7 @@ void add_filtering_functions(pybind11::module &m) {
 	              "state_block_labels"_a,
 	              "measurement_matrix"_a)
 	CTOR_OVERLOAD(
-	    DirectMeasurementProcessor, PARAMS(const DirectMeasurementProcessor &), _3, "processor"_a)
+	    DirectMeasurementProcessor, PARAMS(const DirectMeasurementProcessor&), _3, "processor"_a)
 	METHOD_VOID(DirectMeasurementProcessor, get_measurement_matrix)
 	CDOC(DirectMeasurementProcessor);
 
@@ -1267,7 +1267,7 @@ void add_filtering_functions(pybind11::module &m) {
 
 	CLASS(AltitudeMeasurementProcessor, MeasurementProcessor<>)
 	CTOR(AltitudeMeasurementProcessor,
-	     PARAMS(std::string, const std::string &),
+	     PARAMS(std::string, const std::string&),
 	     "label"_a,
 	     "state_block_label"_a)
 	CTOR_OVERLOAD(AltitudeMeasurementProcessor,
@@ -1279,7 +1279,7 @@ void add_filtering_functions(pybind11::module &m) {
 
 	CLASS(AltitudeMeasurementProcessorWithBias, MeasurementProcessor<>)
 	CTOR(AltitudeMeasurementProcessorWithBias,
-	     PARAMS(std::string, const std::string &, const std::string &),
+	     PARAMS(std::string, const std::string&, const std::string&),
 	     "label"_a,
 	     "pinson_label"_a,
 	     "altitude_bias_label"_a)
@@ -1292,7 +1292,7 @@ void add_filtering_functions(pybind11::module &m) {
 
 	CLASS(Attitude3dMeasurementProcessor, MeasurementProcessor<>)
 	CTOR(Attitude3dMeasurementProcessor,
-	     PARAMS(std::string, const std::string &),
+	     PARAMS(std::string, const std::string&),
 	     "label"_a,
 	     "state_block_label"_a)
 	CTOR_OVERLOAD(Attitude3dMeasurementProcessor,
@@ -1304,7 +1304,7 @@ void add_filtering_functions(pybind11::module &m) {
 
 	CLASS(BiasedRangeProcessor, MeasurementProcessor<>)
 	CTOR(BiasedRangeProcessor,
-	     PARAMS(std::string, const std::string &, const std::string &),
+	     PARAMS(std::string, const std::string&, const std::string&),
 	     "label"_a,
 	     "position_label"_a,
 	     "bias_label"_a)
@@ -1318,7 +1318,7 @@ void add_filtering_functions(pybind11::module &m) {
 	CLASS(DeltaPositionMeasurementProcessor, MeasurementProcessor<>)
 	CTOR(DeltaPositionMeasurementProcessor,
 	     PARAMS(std::string,
-	            const std::string &,
+	            const std::string&,
 	            Matrix,
 	            bool,
 	            bool,
@@ -1354,14 +1354,14 @@ void add_filtering_functions(pybind11::module &m) {
 
 	CLASS(DirectionToPoints3dMeasurementProcessor, MeasurementProcessor<>)
 	CTOR(DirectionToPoints3dMeasurementProcessor,
-	     PARAMS(std::string, const std::string &),
+	     PARAMS(std::string, const std::string&),
 	     "label"_a,
 	     "state_block_label"_a)
 	CDOC(DirectionToPoints3dMeasurementProcessor);
 
 	CLASS(GeodeticPos3dMeasurementProcessor, MeasurementProcessor<>)
 	CTOR(GeodeticPos3dMeasurementProcessor,
-	     PARAMS(std::string, const std::string &, Matrix),
+	     PARAMS(std::string, const std::string&, Matrix),
 	     "label"_a,
 	     "state_block_label"_a,
 	     "measurement_matrix"_a)
@@ -1375,7 +1375,7 @@ void add_filtering_functions(pybind11::module &m) {
 
 	CLASS(GeodeticPos2dMeasurementProcessor, MeasurementProcessor<>)
 	CTOR(GeodeticPos2dMeasurementProcessor,
-	     PARAMS(std::string, const std::string &, Matrix),
+	     PARAMS(std::string, const std::string&, Matrix),
 	     "label"_a,
 	     "state_block_label"_a,
 	     "measurement_matrix"_a)
@@ -1390,11 +1390,11 @@ void add_filtering_functions(pybind11::module &m) {
 	CLASS(MagnetometerToHeadingMeasurementProcessor, MeasurementProcessor<>)
 	CTOR(MagnetometerToHeadingMeasurementProcessor,
 	     PARAMS(std::string,
-	            const std::string &,
-	            const std::shared_ptr<MagnetometerCalibration> &,
+	            const std::string&,
+	            const std::shared_ptr<MagnetometerCalibration>&,
 	            double,
 	            double,
-	            const Matrix &),
+	            const Matrix&),
 	     "label"_a,
 	     "state_block_label"_a,
 	     "calibration"_a,
@@ -1404,10 +1404,10 @@ void add_filtering_functions(pybind11::module &m) {
 	CTOR_OVERLOAD(MagnetometerToHeadingMeasurementProcessor,
 	              PARAMS(std::string,
 	                     vector<std::string>,
-	                     const std::shared_ptr<MagnetometerCalibration> &,
+	                     const std::shared_ptr<MagnetometerCalibration>&,
 	                     double,
 	                     double,
-	                     const Matrix &),
+	                     const Matrix&),
 	              _2,
 	              "label"_a,
 	              "state_block_labels"_a,
@@ -1419,7 +1419,7 @@ void add_filtering_functions(pybind11::module &m) {
 
 	CLASS(MagneticFieldMagnitudeMeasurementProcessor, MeasurementProcessor<>)
 	CTOR(MagneticFieldMagnitudeMeasurementProcessor,
-	     PARAMS(std::string, const std::string &, Vector, Vector, Matrix),
+	     PARAMS(std::string, const std::string&, Vector, Vector, Matrix),
 	     "label"_a,
 	     "state_block_label"_a,
 	     "x_vec"_a,
@@ -1437,13 +1437,13 @@ void add_filtering_functions(pybind11::module &m) {
 
 	CLASS(PinsonPositionMeasurementProcessor, MeasurementProcessor<>)
 	CTOR(PinsonPositionMeasurementProcessor,
-	     PARAMS(const std::string &, std::vector<std::string>, TypeMounting, TypeMounting),
+	     PARAMS(const std::string&, std::vector<std::string>, TypeMounting, TypeMounting),
 	     "label"_a,
 	     "state_block_label"_a,
 	     "inertial_mount"_a,
 	     "sensor_mount"_a)
 	CTOR_OVERLOAD(PinsonPositionMeasurementProcessor,
-	              PARAMS(const PinsonPositionMeasurementProcessor &),
+	              PARAMS(const PinsonPositionMeasurementProcessor&),
 	              _2,
 	              "processor"_a)
 	CDOC(PinsonPositionMeasurementProcessor);
@@ -1451,7 +1451,7 @@ void add_filtering_functions(pybind11::module &m) {
 	CLASS(PositionVelocityAttitudeMeasurementProcessor, MeasurementProcessor<>)
 	CTOR(PositionVelocityAttitudeMeasurementProcessor,
 	     PARAMS(std::string,
-	            const std::string &,
+	            const std::string&,
 	            Matrix,
 	            bool,
 	            bool,
@@ -1501,7 +1501,7 @@ void add_filtering_functions(pybind11::module &m) {
 	CLASS(VelocityMeasurementProcessor, MeasurementProcessor<>)
 	CTOR(VelocityMeasurementProcessor,
 	     PARAMS(std::string,
-	            const std::string &,
+	            const std::string&,
 	            Matrix,
 	            bool,
 	            bool,
@@ -1534,7 +1534,7 @@ void add_filtering_functions(pybind11::module &m) {
 
 	CLASS(ZuptMeasurementProcessor, MeasurementProcessor<>)
 	CTOR(ZuptMeasurementProcessor,
-	     PARAMS(std::string, const std::string &, const Matrix3),
+	     PARAMS(std::string, const std::string&, const Matrix3),
 	     "label"_a,
 	     "state_block_label"_a,
 	     "cov"_a)
@@ -1555,10 +1555,10 @@ void add_filtering_functions(pybind11::module &m) {
 	METHOD(VirtualStateBlockManager, convert_estimate, "orig"_a, "start"_a, "target"_a, "time"_a)
 	METHOD_OVERLOAD_CONST(VirtualStateBlockManager,
 	                      jacobian,
-	                      PARAMS(const EstimateWithCovariance &,
-	                             const std::string &,
-	                             const std::string &,
-	                             const aspn_xtensor::TypeTimestamp &),
+	                      PARAMS(const EstimateWithCovariance&,
+	                             const std::string&,
+	                             const std::string&,
+	                             const aspn_xtensor::TypeTimestamp&),
 	                      ,
 	                      "orig"_a,
 	                      "start"_a,
@@ -1566,10 +1566,10 @@ void add_filtering_functions(pybind11::module &m) {
 	                      "time"_a)
 	METHOD_OVERLOAD_CONST(VirtualStateBlockManager,
 	                      jacobian,
-	                      PARAMS(const Vector &,
-	                             const std::string &,
-	                             const std::string &,
-	                             const aspn_xtensor::TypeTimestamp &),
+	                      PARAMS(const Vector&,
+	                             const std::string&,
+	                             const std::string&,
+	                             const aspn_xtensor::TypeTimestamp&),
 	                      ,
 	                      "orig"_a,
 	                      "start"_a,
@@ -1587,18 +1587,18 @@ void add_filtering_functions(pybind11::module &m) {
 			    not_null<std::shared_ptr<VirtualStateBlock>>, VirtualStateBlock, clone, );
 		}
 
-		EstimateWithCovariance convert(EstimateWithCovariance const &ec,
-		                               aspn_xtensor::TypeTimestamp const &time) override {
+		EstimateWithCovariance convert(EstimateWithCovariance const& ec,
+		                               aspn_xtensor::TypeTimestamp const& time) override {
 			PYBIND11_OVERRIDE(
 			    EstimateWithCovariance, NumericalVirtualStateBlock, convert, ec, time);
 		}
-		Vector convert_estimate(Vector const &x, aspn_xtensor::TypeTimestamp const &time) override {
+		Vector convert_estimate(Vector const& x, aspn_xtensor::TypeTimestamp const& time) override {
 			PYBIND11_OVERRIDE(Vector, NumericalVirtualStateBlock, convert_estimate, x, time);
 		}
-		Matrix jacobian(Vector const &x, aspn_xtensor::TypeTimestamp const &time) override {
+		Matrix jacobian(Vector const& x, aspn_xtensor::TypeTimestamp const& time) override {
 			PYBIND11_OVERRIDE(Matrix, NumericalVirtualStateBlock, jacobian, x, time);
 		}
-		Vector fx(Vector const &x, aspn_xtensor::TypeTimestamp const &time) override {
+		Vector fx(Vector const& x, aspn_xtensor::TypeTimestamp const& time) override {
 			PYBIND11_OVERRIDE_PURE(Vector, NumericalVirtualStateBlock, fx, x, time);
 		}
 	};
@@ -1610,7 +1610,7 @@ void add_filtering_functions(pybind11::module &m) {
 
 	CLASS(NumericalVirtualStateBlock, PyNumericalVirtualStateBlock, VirtualStateBlock)
 	CTOR(NumericalVirtualStateBlock,
-	     PARAMS(const std::string &, const std::string &),
+	     PARAMS(const std::string&, const std::string&),
 	     "current"_a,
 	     "target"_a)
 	METHOD_PROTECTED(
@@ -1619,7 +1619,7 @@ void add_filtering_functions(pybind11::module &m) {
 
 	CLASS(ScaleVirtualStateBlock, VirtualStateBlock)
 	CTOR(ScaleVirtualStateBlock,
-	     PARAMS(const std::string &, const std::string &, const Vector &),
+	     PARAMS(const std::string&, const std::string&, const Vector&),
 	     "current"_a,
 	     "target"_a,
 	     "scale"_a)
@@ -1633,10 +1633,10 @@ void add_filtering_functions(pybind11::module &m) {
 
 	CLASS(FirstOrderVirtualStateBlock, VirtualStateBlock)
 	CTOR(FirstOrderVirtualStateBlock,
-	     PARAMS(const std::string &,
-	            const std::string &,
-	            std::function<Vector(const Vector &)>,
-	            std::function<Matrix(const Vector &)>),
+	     PARAMS(const std::string&,
+	            const std::string&,
+	            std::function<Vector(const Vector&)>,
+	            std::function<Matrix(const Vector&)>),
 	     "current"_a,
 	     "target"_a,
 	     "fx"_a,
@@ -1645,12 +1645,12 @@ void add_filtering_functions(pybind11::module &m) {
 
 	CLASS(ShiftVirtualStateBlock, VirtualStateBlock)
 	CTOR(ShiftVirtualStateBlock,
-	     PARAMS(const std::string &,
-	            const std::string &,
-	            const Vector3 &,
-	            const Matrix3 &,
-	            std::function<Vector(const Vector &, const Vector3 &, const Matrix3 &)>,
-	            std::function<Matrix(const Vector &, const Vector3 &, const Matrix3 &)>),
+	     PARAMS(const std::string&,
+	            const std::string&,
+	            const Vector3&,
+	            const Matrix3&,
+	            std::function<Vector(const Vector&, const Vector3&, const Matrix3&)>,
+	            std::function<Matrix(const Vector&, const Vector3&, const Matrix3&)>),
 	     "current"_a,
 	     "target"_a,
 	     "l_bs_b"_a,
@@ -1660,49 +1660,43 @@ void add_filtering_functions(pybind11::module &m) {
 	CDOC(ShiftVirtualStateBlock);
 
 	CLASS(SensorToPlatformCartesianVirtualStateBlock, VirtualStateBlock)
-	CTOR(SensorToPlatformCartesianVirtualStateBlock,
-	     PARAMS(const std::string &,
-	            const std::string &,
-	            const Vector3 &,
-	            const Matrix3 &,
-	            const Matrix3 &),
-	     "current"_a,
-	     "target"_a,
-	     "l_bs_b"_a,
-	     "C_platform_to_sensor"_a,
-	     "C_k_to_j"_a)
+	CTOR(
+	    SensorToPlatformCartesianVirtualStateBlock,
+	    PARAMS(
+	        const std::string&, const std::string&, const Vector3&, const Matrix3&, const Matrix3&),
+	    "current"_a,
+	    "target"_a,
+	    "l_bs_b"_a,
+	    "C_platform_to_sensor"_a,
+	    "C_k_to_j"_a)
 	CDOC(SensorToPlatformCartesianVirtualStateBlock);
 
 	CLASS(PlatformToSensorCartesianVirtualStateBlock, VirtualStateBlock)
-	CTOR(PlatformToSensorCartesianVirtualStateBlock,
-	     PARAMS(const std::string &,
-	            const std::string &,
-	            const Vector3 &,
-	            const Matrix3 &,
-	            const Matrix3 &),
-	     "current"_a,
-	     "target"_a,
-	     "l_bs_b"_a,
-	     "C_platform_to_sensor"_a,
-	     "C_k_to_j"_a)
+	CTOR(
+	    PlatformToSensorCartesianVirtualStateBlock,
+	    PARAMS(
+	        const std::string&, const std::string&, const Vector3&, const Matrix3&, const Matrix3&),
+	    "current"_a,
+	    "target"_a,
+	    "l_bs_b"_a,
+	    "C_platform_to_sensor"_a,
+	    "C_k_to_j"_a)
 	CDOC(PlatformToSensorCartesianVirtualStateBlock);
 
 	CLASS(EcefToStandard, VirtualStateBlock)
-	CTOR(EcefToStandard, PARAMS(const std::string &, const std::string &), "current"_a, "target"_a)
+	CTOR(EcefToStandard, PARAMS(const std::string&, const std::string&), "current"_a, "target"_a)
 	CDOC(EcefToStandard);
 
 	CLASS(EcefToStandardQuat, VirtualStateBlock)
-	CTOR(EcefToStandardQuat,
-	     PARAMS(const std::string &, const std::string &),
-	     "current"_a,
-	     "target"_a)
+	CTOR(
+	    EcefToStandardQuat, PARAMS(const std::string&, const std::string&), "current"_a, "target"_a)
 	CDOC(EcefToStandardQuat);
 
 	CLASS(PinsonErrorToStandard, VirtualStateBlock)
 	CTOR(PinsonErrorToStandard,
-	     PARAMS(const std::string &,
-	            const std::string &,
-	            std::function<NavSolution(const aspn_xtensor::TypeTimestamp &)>),
+	     PARAMS(const std::string&,
+	            const std::string&,
+	            std::function<NavSolution(const aspn_xtensor::TypeTimestamp&)>),
 	     "current"_a,
 	     "target"_a,
 	     "ref_fun"_a)
@@ -1710,9 +1704,9 @@ void add_filtering_functions(pybind11::module &m) {
 
 	CLASS(PinsonErrorToStandardQuat, VirtualStateBlock)
 	CTOR(PinsonErrorToStandardQuat,
-	     PARAMS(const std::string &,
-	            const std::string &,
-	            std::function<NavSolution(const aspn_xtensor::TypeTimestamp &)>),
+	     PARAMS(const std::string&,
+	            const std::string&,
+	            std::function<NavSolution(const aspn_xtensor::TypeTimestamp&)>),
 	     "current"_a,
 	     "target"_a,
 	     "ref_fun"_a)
@@ -1720,11 +1714,11 @@ void add_filtering_functions(pybind11::module &m) {
 
 	CLASS(PinsonToSensor, NumericalVirtualStateBlock)
 	CTOR(PinsonToSensor,
-	     PARAMS(const std::string &,
-	            const std::string &,
-	            std::function<NavSolution(const aspn_xtensor::TypeTimestamp &)>,
-	            const TypeMounting &,
-	            const TypeMounting &),
+	     PARAMS(const std::string&,
+	            const std::string&,
+	            std::function<NavSolution(const aspn_xtensor::TypeTimestamp&)>,
+	            const TypeMounting&,
+	            const TypeMounting&),
 	     "current"_a,
 	     "target"_a,
 	     "ref_fun"_a,
@@ -1734,11 +1728,11 @@ void add_filtering_functions(pybind11::module &m) {
 
 	CLASS(PinsonToSensorLlh, NumericalVirtualStateBlock)
 	CTOR(PinsonToSensorLlh,
-	     PARAMS(const std::string &,
-	            const std::string &,
-	            std::function<NavSolution(const aspn_xtensor::TypeTimestamp &)>,
-	            const TypeMounting &,
-	            const TypeMounting &),
+	     PARAMS(const std::string&,
+	            const std::string&,
+	            std::function<NavSolution(const aspn_xtensor::TypeTimestamp&)>,
+	            const TypeMounting&,
+	            const TypeMounting&),
 	     "current"_a,
 	     "target"_a,
 	     "ref_fun"_a,
@@ -1748,7 +1742,7 @@ void add_filtering_functions(pybind11::module &m) {
 
 	CLASS(PlatformToSensorEcef, VirtualStateBlock)
 	CTOR(PlatformToSensorEcef,
-	     PARAMS(const std::string &, const std::string &, const TypeMounting &, double),
+	     PARAMS(const std::string&, const std::string&, const TypeMounting&, double),
 	     "current"_a,
 	     "target"_a,
 	     "sensor_mount"_a,
@@ -1757,7 +1751,7 @@ void add_filtering_functions(pybind11::module &m) {
 
 	CLASS(PlatformToSensorEcefQuat, VirtualStateBlock)
 	CTOR(PlatformToSensorEcefQuat,
-	     PARAMS(const std::string &, const std::string &, const TypeMounting &, double),
+	     PARAMS(const std::string&, const std::string&, const TypeMounting&, double),
 	     "current"_a,
 	     "target"_a,
 	     "sensor_mount"_a,
@@ -1765,12 +1759,12 @@ void add_filtering_functions(pybind11::module &m) {
 	CDOC(PlatformToSensorEcefQuat);
 
 	CLASS(QuatToRpyPva, VirtualStateBlock)
-	CTOR(QuatToRpyPva, PARAMS(const std::string &, const std::string &), "current"_a, "target"_a)
+	CTOR(QuatToRpyPva, PARAMS(const std::string&, const std::string&), "current"_a, "target"_a)
 	CDOC(QuatToRpyPva);
 
 	CLASS(SensorToPlatformEcef, VirtualStateBlock)
 	CTOR(SensorToPlatformEcef,
-	     PARAMS(const std::string &, const std::string &, const TypeMounting &, double),
+	     PARAMS(const std::string&, const std::string&, const TypeMounting&, double),
 	     "current"_a,
 	     "target"_a,
 	     "sensor_mount"_a,
@@ -1779,7 +1773,7 @@ void add_filtering_functions(pybind11::module &m) {
 
 	CLASS(SensorToPlatformEcefQuat, VirtualStateBlock)
 	CTOR(SensorToPlatformEcefQuat,
-	     PARAMS(const std::string &, const std::string &, const TypeMounting &, double),
+	     PARAMS(const std::string&, const std::string&, const TypeMounting&, double),
 	     "current"_a,
 	     "target"_a,
 	     "sensor_mount"_a,
@@ -1787,19 +1781,17 @@ void add_filtering_functions(pybind11::module &m) {
 	CDOC(SensorToPlatformEcefQuat);
 
 	CLASS(StandardToEcef, VirtualStateBlock)
-	CTOR(StandardToEcef, PARAMS(const std::string &, const std::string &), "current"_a, "target"_a)
+	CTOR(StandardToEcef, PARAMS(const std::string&, const std::string&), "current"_a, "target"_a)
 	CDOC(StandardToEcef);
 
 	CLASS(StandardToEcefQuat, VirtualStateBlock)
-	CTOR(StandardToEcefQuat,
-	     PARAMS(const std::string &, const std::string &),
-	     "current"_a,
-	     "target"_a)
+	CTOR(
+	    StandardToEcefQuat, PARAMS(const std::string&, const std::string&), "current"_a, "target"_a)
 	CDOC(StandardToEcefQuat);
 
 	CLASS(StateExtractor, VirtualStateBlock)
 	CTOR(StateExtractor,
-	     PARAMS(std::string, std::string, Size, const std::vector<Size> &),
+	     PARAMS(std::string, std::string, Size, const std::vector<Size>&),
 	     "current"_a,
 	     "target"_a,
 	     "incoming_state_size"_a,
@@ -1822,32 +1814,31 @@ void add_filtering_functions(pybind11::module &m) {
 
 	FUNCTION_CAST(
 	    calc_numerical_jacobian,
-	    Matrix(*)(const std::function<Vector(const Vector &)> &, const Vector &, const Vector &),
+	    Matrix (*)(const std::function<Vector(const Vector&)>&, const Vector&, const Vector&),
 	    ,
 	    "f"_a,
 	    "x"_a,
 	    "eps"_a)
 	FUNCTION_CAST(calc_numerical_jacobian,
-	              Matrix(*)(const std::function<Vector(const Vector &)> &, const Vector &, Scalar),
+	              Matrix (*)(const std::function<Vector(const Vector&)>&, const Vector&, Scalar),
 	              _2,
 	              "f"_a,
 	              "x"_a,
 	              "eps"_a = 0.001)
+	FUNCTION_CAST(calc_numerical_hessians,
+	              std::vector<Matrix> (*)(
+	                  const std::function<Vector(const Vector&)>&, const Vector&, const Vector&),
+	              ,
+	              "f"_a,
+	              "x"_a,
+	              "eps"_a)
 	FUNCTION_CAST(
 	    calc_numerical_hessians,
-	    std::vector<Matrix>(*)(
-	        const std::function<Vector(const Vector &)> &, const Vector &, const Vector &),
-	    ,
+	    std::vector<Matrix> (*)(const std::function<Vector(const Vector&)>&, const Vector&, Scalar),
+	    _2,
 	    "f"_a,
 	    "x"_a,
-	    "eps"_a)
-	FUNCTION_CAST(calc_numerical_hessians,
-	              std::vector<Matrix>(*)(
-	                  const std::function<Vector(const Vector &)> &, const Vector &, Scalar),
-	              _2,
-	              "f"_a,
-	              "x"_a,
-	              "eps"_a = 0.001)
+	    "eps"_a = 0.001)
 	NAMESPACE_FUNCTION(calc_mean_cov, navtk::filtering, "samples"_a)
 	NAMESPACE_FUNCTION(monte_carlo_approx, navtk::filtering, "ec"_a, "fx"_a, "num_samples"_a = 100)
 	NAMESPACE_FUNCTION(

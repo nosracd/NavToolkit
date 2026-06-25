@@ -108,7 +108,7 @@ public:
 	 * GravityModelSchwartz.
 	 */
 	Pinson15NedBlock(
-	    const std::string &label,
+	    const std::string& label,
 	    ImuModel imu_model,
 	    LinearizationPointFunction lin_function        = nullptr,
 	    DiscretizationStrategy discretization_strategy = &second_order_discretization_strategy,
@@ -120,7 +120,7 @@ public:
 	 *
 	 * @param block The Pinson15NedBlock to copy.
 	 */
-	Pinson15NedBlock(const Pinson15NedBlock &block);
+	Pinson15NedBlock(const Pinson15NedBlock& block);
 
 	/**
 	 * A function which is used to give the state block aux data. Note that
@@ -130,7 +130,7 @@ public:
 	 * @param aux_data An AspnBaseVector containing inertial aux (Pva + Imu messages) and/or a
 	 * filtering::ImuModel.
 	 */
-	void receive_aux_data(const AspnBaseVector &aux_data) override;
+	void receive_aux_data(const AspnBaseVector& aux_data) override;
 
 	/**
 	 * Create a copy of the StateBlock with the same properties. Note that
@@ -375,7 +375,7 @@ public:
 	 *
 	 * @return The F matrix.
 	 */
-	Matrix generate_f_pinson15(const Pva &pva_aux, const Imu &force_and_rate_aux);
+	Matrix generate_f_pinson15(const Pva& pva_aux, const Imu& force_and_rate_aux);
 
 	/**
 	 * Generates the Q matrix.
@@ -384,7 +384,7 @@ public:
 	 *
 	 * @return The Q matrix.
 	 */
-	Matrix generate_q_pinson15(const Matrix &C_sensor_to_nav);
+	Matrix generate_q_pinson15(const Matrix& C_sensor_to_nav);
 
 	/**
 	 * @return The active ImuModel.
@@ -429,7 +429,7 @@ public:
 	 *
 	 * @return Input matrix with slight scale adjustment w.r.t. N and E position error states.
 	 */
-	Matrix scale_phi(Matrix &phi);
+	Matrix scale_phi(Matrix& phi);
 
 private:
 	/**

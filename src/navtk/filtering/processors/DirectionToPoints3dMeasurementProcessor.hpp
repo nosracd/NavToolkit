@@ -40,7 +40,7 @@ public:
 	 * updating.
 	 */
 	DirectionToPoints3dMeasurementProcessor(std::string label,
-	                                        const std::string &state_block_label);
+	                                        const std::string& state_block_label);
 
 	/**
 	 * Generates a StandardMeasurementModel instance that maps the input data to the estimated
@@ -67,7 +67,7 @@ public:
 	 * aspn_xtensor::TypeMounting. This mounting is assumed to contain a quaternion to rotate
 	 * measurements from the body to sensor frame.
 	 */
-	void receive_aux_data(const AspnBaseVector &aux_data) override;
+	void receive_aux_data(const AspnBaseVector& aux_data) override;
 
 	/**
 	 * Create a copy of the MeasurementProcessor with the same properties.

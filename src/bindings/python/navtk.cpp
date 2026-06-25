@@ -44,7 +44,7 @@ using mat_double_pair = std::pair<Matrix3, double>;
 using namespace pybind11::literals;
 namespace py = pybind11;
 
-void add_experimental_functions(pybind11::module &m) {
+void add_experimental_functions(pybind11::module& m) {
 	m.doc() = "Bindings to the NavToolkit Experimental Work.";
 	FUNCTION(s_rand, "seed"_a);
 }
@@ -55,7 +55,7 @@ PYBIND11_MODULE(navtk, m) {
 	py::module_::import("aspn23_xtensor");
 
 	NAMESPACE_FUNCTION_OVERLOAD(
-	    to_seconds, navtk, PARAMS(const std::vector<TypeTimestamp> &), , "times"_a)
+	    to_seconds, navtk, PARAMS(const std::vector<TypeTimestamp>&), , "times"_a)
 
 	ENUM(ErrorMode)
 	CHOICE(ErrorMode, OFF)
@@ -85,12 +85,12 @@ PYBIND11_MODULE(navtk, m) {
 	CTOR(ErrorModeLock, PARAMS(ErrorMode, bool), "target_mode"_a, "restore_on_destruct"_a)
 	CTOR(ErrorModeLock, PARAMS(ErrorMode), "target_mode"_a)
 	    .def("__enter__",
-	         [](PyErrorModeLock &lock) {
+	         [](PyErrorModeLock& lock) {
 		         py::gil_scoped_release unlock_gil;
 		         lock.relock();
 	         })
 	    .def("__exit__",
-	         [](PyErrorModeLock &lock, pybind11::object &, pybind11::object &, pybind11::object &) {
+	         [](PyErrorModeLock& lock, pybind11::object&, pybind11::object&, pybind11::object&) {
 		         lock.unlock();
 	         });
 
@@ -99,21 +99,21 @@ PYBIND11_MODULE(navtk, m) {
 		    NAVTK_VERSION_MAJOR, NAVTK_VERSION_MINOR, NAVTK_VERSION_PATCH, NAVTK_VERSION_TOKEN);
 	});
 
-	FUNCTION_CAST(solve_wahba_svd, navtk::Matrix3(*)(const navtk::Matrix3 &), , "outer"_a);
+	FUNCTION_CAST(solve_wahba_svd, navtk::Matrix3 (*)(const navtk::Matrix3&), , "outer"_a);
 	FUNCTION_CAST(
 	    solve_wahba_svd,
-	    navtk::Matrix3(*)(const std::vector<navtk::Vector3> &, const std::vector<navtk::Vector3> &),
+	    navtk::Matrix3 (*)(const std::vector<navtk::Vector3>&, const std::vector<navtk::Vector3>&),
 	    _2,
 	    "p"_a,
 	    "r"_a);
 	FUNCTION_CAST(solve_wahba_davenport,
-	              std::vector<navtk::Matrix3>(*)(const std::vector<navtk::Vector3> &,
-	                                             const std::vector<navtk::Vector3> &),
+	              std::vector<navtk::Matrix3> (*)(const std::vector<navtk::Vector3>&,
+	                                              const std::vector<navtk::Vector3>&),
 	              ,
 	              "p"_a,
 	              "r"_a);
 	FUNCTION_CAST(solve_wahba_davenport,
-	              std::vector<navtk::Matrix3>(*)(const navtk::Matrix3 &, const navtk::Vector3 &),
+	              std::vector<navtk::Matrix3> (*)(const navtk::Matrix3&, const navtk::Vector3&),
 	              _2,
 	              "outer"_a,
 	              "cr"_a);
@@ -173,14 +173,14 @@ PYBIND11_MODULE(navtk, m) {
 		std::shared_ptr<InertialPosVelAtt> clone() const override {
 			PYBIND11_OVERRIDE_PURE(std::shared_ptr<InertialPosVelAtt>, InertialPosVelAtt, clone, );
 		}
-		PyPosVelAtt(const aspn_xtensor::TypeTimestamp &time,
+		PyPosVelAtt(const aspn_xtensor::TypeTimestamp& time,
 		            AspnMessageType message_type = ASPN_EXTENDED_BEGIN)
 		    : InertialPosVelAtt::InertialPosVelAtt(time, message_type) {}
 	};
 
 	py ::class_<InertialPosVelAtt, PyPosVelAtt, aspn_xtensor ::AspnBase, py ::smart_holder>(
 	    inertial_submod, "InertialPosVelAtt")
-	    .def(py ::init<const aspn_xtensor ::TypeTimestamp &>(),
+	    .def(py ::init<const aspn_xtensor ::TypeTimestamp&>(),
 	         __doc_InertialPosVelAtt_InertialPosVelAtt,
 	         py ::arg_v("t", aspn_xtensor ::TypeTimestamp((int64_t)0), "0"))
 	    .def("is_wander_capable",

@@ -506,7 +506,7 @@ void CoarseDynamicAlignment::add_new_meas(const aspn_xtensor::MeasurementPositio
 			auto mid_vel = iteration_data->get_vel_mid().second;
 			auto mid_dcm = C_k_to_start;
 			auto pva     = navtk::utils::to_positionvelocityattitude(filtering::NavSolution(
-                extract_pos(mid_pos), mid_vel, mid_dcm, mid_pos.get_time_of_validity()));
+			    extract_pos(mid_pos), mid_vel, mid_dcm, mid_pos.get_time_of_validity()));
 			auto f_and_r = navtk::utils::to_imu(pva.get_time_of_validity(), frc.second, zeros(3));
 			lin_points.push_back(std::make_pair(pva, f_and_r));
 
@@ -646,9 +646,9 @@ Matrix CoarseDynamicAlignment::update_vel_cov() const {
 
 		auto hand_jac = zeros(3, 9);
 
-		auto pos_dt = (last_pos.get_aspn_c()->time_of_validity.elapsed_nsec -
-		               prior_last_pos.get_aspn_c()->time_of_validity.elapsed_nsec) *
-		              1e-9;
+		auto pos_dt    = (last_pos.get_aspn_c()->time_of_validity.elapsed_nsec -
+		                  prior_last_pos.get_aspn_c()->time_of_validity.elapsed_nsec) *
+		                 1e-9;
 		hand_jac(0, 0) = (last_pos.get_term1() - prior_last_pos.get_term1()) / pos_dt * r *
 		                 (1 - e2) * 3 * e2 * sl * cl / std::pow(trm, 2.5);
 		hand_jac(0, 2) = (last_pos.get_term1() - prior_last_pos.get_term1()) / pos_dt;
@@ -689,7 +689,7 @@ filtering::NavSolution CoarseDynamicAlignment::mech_align(
 	auto approx_dt = (align_buffer[1].get_aspn_c()->time_of_validity.elapsed_nsec -
 	                  align_buffer[0].get_aspn_c()->time_of_validity.elapsed_nsec);
 	auto first_dt  = (align_buffer[0].get_aspn_c()->time_of_validity.elapsed_nsec -
-                     pos.get_aspn_c()->time_of_validity.elapsed_nsec);
+	                  pos.get_aspn_c()->time_of_validity.elapsed_nsec);
 
 	auto spva = std::make_shared<StandardPosVelAtt>(
 	    pos.get_time_of_validity(), extract_pos(pos), vel, C_s_to_n);

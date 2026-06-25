@@ -19,8 +19,8 @@ using aspn_xtensor::MeasurementImu;
 using aspn_xtensor::MeasurementPosition;
 
 ZuptMeasurementProcessor::ZuptMeasurementProcessor(std::string label,
-                                                   const std::string &state_block_label,
-                                                   const Matrix3 &cov,
+                                                   const std::string& state_block_label,
+                                                   const Matrix3& cov,
                                                    const Size window,
                                                    const double calib_time,
                                                    const double speed_cutoff,

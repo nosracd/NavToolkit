@@ -11,7 +11,7 @@ namespace filtering {
 
 PositionVelocityAttitudeMeasurementProcessor::PositionVelocityAttitudeMeasurementProcessor(
     std::string label,
-    const std::string &state_block_label,
+    const std::string& state_block_label,
     Matrix measurement_matrix,
     bool use_p1,
     bool use_p2,
@@ -149,13 +149,13 @@ PositionVelocityAttitudeMeasurementProcessor::generate_model(
 			    "Received NaN value for quaternion field in ASPN "
 			    "MeasurementPositionVelocityAttitude.");
 		else {
-			auto cns_meas  = navutils::quat_to_dcm(quaternion);
-			auto csn_ref   = input_meas->ref_pva.rot_mat;
-			auto c_nest_n  = dot(cns_meas, csn_ref);
-			auto tilt_meas = -Vector3{-c_nest_n(1, 2) + c_nest_n(2, 1),
-			                          c_nest_n(0, 2) - c_nest_n(2, 0),
-			                          -c_nest_n(0, 1) + c_nest_n(1, 0)} /
-			                 2.0;
+			auto cns_meas                      = navutils::quat_to_dcm(quaternion);
+			auto csn_ref                       = input_meas->ref_pva.rot_mat;
+			auto c_nest_n                      = dot(cns_meas, csn_ref);
+			auto tilt_meas                     = -Vector3{-c_nest_n(1, 2) + c_nest_n(2, 1),
+			                                              c_nest_n(0, 2) - c_nest_n(2, 0),
+			                                              -c_nest_n(0, 1) + c_nest_n(1, 0)} /
+			                                     2.0;
 			xt::view(z, xt::keep(index_tilts)) = tilt_meas;
 		}
 	}
@@ -164,7 +164,7 @@ PositionVelocityAttitudeMeasurementProcessor::generate_model(
 	if (xhat_p == nullptr) {
 		return nullptr;
 	}
-	auto h = [measurement_matrix = measurement_matrix](const Vector &xhat) {
+	auto h = [measurement_matrix = measurement_matrix](const Vector& xhat) {
 		return dot(measurement_matrix, xhat);
 	};
 

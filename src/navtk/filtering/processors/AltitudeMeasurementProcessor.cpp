@@ -10,7 +10,7 @@ namespace filtering {
 
 AltitudeMeasurementProcessor::AltitudeMeasurementProcessor(
     std::string label,
-    const std::string &state_block_label,
+    const std::string& state_block_label,
     AspnMeasurementAltitudeReference expected_frame)
     : MeasurementProcessor(std::move(label), std::vector<std::string>(1, state_block_label)),
       expected_frame(expected_frame) {}
@@ -50,7 +50,7 @@ std::shared_ptr<StandardMeasurementModel> AltitudeMeasurementProcessor::generate
 	}
 	Matrix linear_meas = zeros(1, num_rows(xhat_p->estimate));
 	linear_meas(0, 2)  = -1.0;
-	auto h = [linear_meas = linear_meas](const Vector &xhat) { return dot(linear_meas, xhat); };
+	auto h = [linear_meas = linear_meas](const Vector& xhat) { return dot(linear_meas, xhat); };
 
 	return std::make_shared<StandardMeasurementModel>(
 	    StandardMeasurementModel(z, h, linear_meas, Matrix{{data->get_variance()}}));

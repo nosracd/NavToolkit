@@ -49,7 +49,7 @@ BasicInsAndFilter::BasicInsAndFilter(const aspn_xtensor::MeasurementPositionVelo
 	engine.give_state_block_aux_data(p_tag, init_aux);
 	auto mount = aspn_xtensor::TypeMounting(zeros(3), zeros(3), Vector{1, 0, 0, 0}, zeros(3, 3));
 	auto proc  = std::make_shared<filtering::PinsonPositionMeasurementProcessor>(
-        g_tag, std::vector<std::string>{p_tag}, mount, mount);
+	    g_tag, std::vector<std::string>{p_tag}, mount, mount);
 	engine.add_measurement_processor(proc);
 }
 

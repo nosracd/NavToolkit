@@ -20,7 +20,7 @@ struct GravityModel {
 	 *
 	 * @return The magnitude of the force of gravity in m/s^2.
 	 */
-	virtual double calculate_gravity(const EarthModel &earth_model, double alt_msl) const = 0;
+	virtual double calculate_gravity(const EarthModel& earth_model, double alt_msl) const = 0;
 
 	virtual ~GravityModel() = default;
 };

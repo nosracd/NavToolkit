@@ -14,7 +14,7 @@ using std::vector;
 using xt::range;
 using xt::view;
 
-CubicSplineModel::CubicSplineModel(const vector<double> &x, const vector<double> &y)
+CubicSplineModel::CubicSplineModel(const vector<double>& x, const vector<double>& y)
     : InterpolationModel(x, y) {
 	auto n = y.size();
 
@@ -32,7 +32,7 @@ CubicSplineModel::CubicSplineModel(const vector<double> &x, const vector<double>
 	view(upper_diag, not_front) = view(dx, not_back);
 	view(lower_diag, not_back)  = view(dx, not_front);
 	view(yr, not_front)         = 3.0 * (view(dx, not_front) * view(slope, not_back) +
-                                 view(dx, not_back) * view(slope, not_front));
+	                                     view(dx, not_back) * view(slope, not_front));
 
 	m_diag[0]     = 2 * dx[0];
 	upper_diag[0] = dx[0];

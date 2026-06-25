@@ -50,12 +50,12 @@ Matrix pade_7(const ExpmHelper& expm_helper) {
 	Vector b{17297280, 8648640, 1995840, 277200, 25200, 1512, 56};
 	auto ident = eye(num_rows(expm_helper.A));
 	auto U     = dot(expm_helper.A,
-                 xt::fma(expm_helper.A4,
-                         b[5],
-                         xt::fma(expm_helper.A2, b[3], xt::fma(ident, b[1], expm_helper.A6))));
-	auto V     = xt::fma(expm_helper.A6,
-                     b[6],
-                     xt::fma(expm_helper.A4, b[4], xt::fma(expm_helper.A2, b[2], ident * b[0])));
+	                 xt::fma(expm_helper.A4,
+	                         b[5],
+	                         xt::fma(expm_helper.A2, b[3], xt::fma(ident, b[1], expm_helper.A6))));
+	auto V = xt::fma(expm_helper.A6,
+	                 b[6],
+	                 xt::fma(expm_helper.A4, b[4], xt::fma(expm_helper.A2, b[2], ident * b[0])));
 	return pade_approximation(U, V);
 }
 
@@ -98,15 +98,15 @@ Matrix pade_13(const ExpmHelper& expm_helper) {
 	Matrix ident = eye(num_rows(expm_helper_scaled.A));
 	Matrix U     = dot(expm_helper_scaled.A,
 
-                   dot(expm_helper_scaled.A6,
-                       xt::fma(expm_helper_scaled.A2,
-                               b[9],
-                               xt::fma(expm_helper_scaled.A4, b[11], expm_helper_scaled.A6))) +
-                       xt::fma(expm_helper_scaled.A6,
-                               b[7],
-                               xt::fma(expm_helper_scaled.A4,
-                                       b[5],
-                                       xt::fma(expm_helper_scaled.A2, b[3], ident * b[1]))));
+	                   dot(expm_helper_scaled.A6,
+	                       xt::fma(expm_helper_scaled.A2,
+	                               b[9],
+	                               xt::fma(expm_helper_scaled.A4, b[11], expm_helper_scaled.A6))) +
+	                       xt::fma(expm_helper_scaled.A6,
+	                               b[7],
+	                               xt::fma(expm_helper_scaled.A4,
+	                                       b[5],
+	                                       xt::fma(expm_helper_scaled.A2, b[3], ident * b[1]))));
 
 	Matrix V = dot(expm_helper_scaled.A6,
 	               xt::fma(expm_helper_scaled.A6,
@@ -117,7 +117,7 @@ Matrix pade_13(const ExpmHelper& expm_helper) {
 	                   xt::fma(expm_helper_scaled.A4,
 	                           b[4],
 	                           xt::fma(expm_helper_scaled.A2, b[2], ident * b[0])));
-	auto R = pade_approximation(U, V);
+	auto R   = pade_approximation(U, V);
 	return matrix_power(R, pow(2, n_squarings));
 }
 

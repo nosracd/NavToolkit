@@ -12,7 +12,7 @@ namespace filtering {
 
 Attitude3dMeasurementProcessor::Attitude3dMeasurementProcessor(
     std::string label,
-    const std::string &state_block_label,
+    const std::string& state_block_label,
     AspnMeasurementAttitude3DReferenceFrame expected_frame)
     : MeasurementProcessor(std::move(label), std::vector<std::string>(1, state_block_label)),
       expected_frame(expected_frame) {}
@@ -25,7 +25,7 @@ Attitude3dMeasurementProcessor::Attitude3dMeasurementProcessor(
       expected_frame(expected_frame) {}
 
 
-EstimateWithCovariance extract_z_r(const MeasurementAttitude3D &d,
+EstimateWithCovariance extract_z_r(const MeasurementAttitude3D& d,
                                    AspnMeasurementAttitude3DReferenceFrame expected_frame) {
 	if (d.get_reference_frame() != expected_frame)
 		spdlog::warn("Received an altitude measurement in an unexpected frame.");
@@ -34,7 +34,7 @@ EstimateWithCovariance extract_z_r(const MeasurementAttitude3D &d,
 }
 
 EstimateWithCovariance extract_z_r(std::shared_ptr<MeasurementAttitude3D> meas_data,
-                                   const NavSolution &ref_pva,
+                                   const NavSolution& ref_pva,
                                    AspnMeasurementAttitude3DReferenceFrame expected_frame) {
 	if (meas_data->get_reference_frame() != expected_frame)
 		spdlog::warn("Received an altitude measurement in an unexpected frame.");
@@ -99,7 +99,7 @@ std::shared_ptr<StandardMeasurementModel> Attitude3dMeasurementProcessor::genera
 		xt::view(linear_meas, xt::all(), xt::range(6, 9)) = eye(3);
 	}
 
-	auto h = [linear_meas = linear_meas](const Vector &xhat) { return dot(linear_meas, xhat); };
+	auto h = [linear_meas = linear_meas](const Vector& xhat) { return dot(linear_meas, xhat); };
 
 	return std::make_shared<StandardMeasurementModel>(
 	    StandardMeasurementModel(zr.estimate, h, linear_meas, zr.covariance));

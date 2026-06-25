@@ -107,28 +107,28 @@ void add_utils_functions(pybind11::module& m) {
 	// bind these later, we could pass a type name to a function that implements the class for that
 	// type.
 
-	FUNCTION_CAST(to_navsolution, NavSolution(*)(const PVA&), , "pva"_a)
-	FUNCTION_CAST(to_navsolution, NavSolution(*)(const InertialPosVelAtt&), _2, "pva"_a)
-	FUNCTION_CAST(to_navsolution, NavSolution(*)(const Vector&), _3, "pva"_a)
-	FUNCTION_CAST(to_positionvelocityattitude, PVA(*)(const NavSolution&), , "pva"_a)
-	FUNCTION_CAST(to_positionvelocityattitude, PVA(*)(const InertialPosVelAtt&), _2, "pva"_a)
-	FUNCTION_CAST(to_positionvelocityattitude, PVA(*)(const Vector&), _3, "pva"_a)
-	FUNCTION_CAST(to_standardposvelatt, StandardPosVelAtt(*)(const NavSolution&), , "pva"_a)
-	FUNCTION_CAST(to_standardposvelatt, StandardPosVelAtt(*)(const PVA&), _2, "pva"_a)
-	FUNCTION_CAST(to_standardposvelatt, StandardPosVelAtt(*)(const Vector&), _3, "pva"_a)
-	FUNCTION_CAST(to_vector_pva, Vector(*)(const NavSolution&), , "pva"_a)
-	FUNCTION_CAST(to_vector_pva, Vector(*)(const PVA&), _2, "pva"_a)
-	FUNCTION_CAST(to_vector_pva, Vector(*)(const InertialPosVelAtt&), _3, "pva"_a)
+	FUNCTION_CAST(to_navsolution, NavSolution (*)(const PVA&), , "pva"_a)
+	FUNCTION_CAST(to_navsolution, NavSolution (*)(const InertialPosVelAtt&), _2, "pva"_a)
+	FUNCTION_CAST(to_navsolution, NavSolution (*)(const Vector&), _3, "pva"_a)
+	FUNCTION_CAST(to_positionvelocityattitude, PVA (*)(const NavSolution&), , "pva"_a)
+	FUNCTION_CAST(to_positionvelocityattitude, PVA (*)(const InertialPosVelAtt&), _2, "pva"_a)
+	FUNCTION_CAST(to_positionvelocityattitude, PVA (*)(const Vector&), _3, "pva"_a)
+	FUNCTION_CAST(to_standardposvelatt, StandardPosVelAtt (*)(const NavSolution&), , "pva"_a)
+	FUNCTION_CAST(to_standardposvelatt, StandardPosVelAtt (*)(const PVA&), _2, "pva"_a)
+	FUNCTION_CAST(to_standardposvelatt, StandardPosVelAtt (*)(const Vector&), _3, "pva"_a)
+	FUNCTION_CAST(to_vector_pva, Vector (*)(const NavSolution&), , "pva"_a)
+	FUNCTION_CAST(to_vector_pva, Vector (*)(const PVA&), _2, "pva"_a)
+	FUNCTION_CAST(to_vector_pva, Vector (*)(const InertialPosVelAtt&), _3, "pva"_a)
 	FUNCTION(to_inertial_aux, "nav_sol"_a, "forces"_a, "rates"_a = navtk::zeros(3))
 
-	FUNCTION_CAST(repr, std::string(*)(const Matrix&, const std::string&), , "matrix"_a, "decl"_a)
-	FUNCTION_CAST(repr, std::string(*)(const Matrix&), , "matrix"_a)
+	FUNCTION_CAST(repr, std::string (*)(const Matrix&, const std::string&), , "matrix"_a, "decl"_a)
+	FUNCTION_CAST(repr, std::string (*)(const Matrix&), , "matrix"_a)
 	// Don't need binding for template `std::string repr(const xt::xexpression<E>& expr)` function.
 	// xtensor is mapped to numpy, which already has a repr implementation.
 
 	FUNCTION_CAST(
 	    diff,
-	    std::string(*)(
+	    std::string (*)(
 	        const std::string&, const std::string&, const Matrix&, const Matrix&, double, double),
 	    ,
 	    "before_name"_a,
@@ -138,7 +138,7 @@ void add_utils_functions(pybind11::module& m) {
 	    "rtol"_a = 1e-05,
 	    "atol"_a = 1e-08)
 	FUNCTION_CAST(diff,
-	              std::string(*)(const Matrix&, const Matrix&, double, double),
+	              std::string (*)(const Matrix&, const Matrix&, double, double),
 	              ,
 	              "before"_a,
 	              "after"_a,
@@ -162,7 +162,7 @@ void add_utils_functions(pybind11::module& m) {
 	//               "time_interp"_a)
 
 	FUNCTION_CAST(linear_interpolate,
-	              prsd(*)(const vd&, const vd&, const vd&),
+	              prsd (*)(const vd&, const vd&, const vd&),
 	              ,
 	              "time_source"_a,
 	              "data_source"_a,
@@ -225,9 +225,9 @@ void add_utils_functions(pybind11::module& m) {
 	NAMESPACE_FUNCTION(
 	    cubic_spline_interpolate, su, "time_source"_a, "data_source"_a, "time_interp"_a)
 	FUNCTION_CAST(linear_interp_pva,
-	              navtk::not_null<std::shared_ptr<PVA>>(*)(navtk::not_null<std::shared_ptr<PVA>>,
-	                                                       navtk::not_null<std::shared_ptr<PVA>>,
-	                                                       const aspn_xtensor::TypeTimestamp&),
+	              navtk::not_null<std::shared_ptr<PVA>> (*)(navtk::not_null<std::shared_ptr<PVA>>,
+	                                                        navtk::not_null<std::shared_ptr<PVA>>,
+	                                                        const aspn_xtensor::TypeTimestamp&),
 	              ,
 	              "pva1"_a,
 	              "pva2"_a,
@@ -237,8 +237,8 @@ void add_utils_functions(pybind11::module& m) {
 	FUNCTIONT(normalize, PARAMS(double), "orig"_a, "min_val"_a)
 	FUNCTIONT(diff, PARAMS(double), "data"_a)
 	FUNCTIONT(diff, PARAMS(aspn_xtensor::TypeTimestamp), "data"_a)
-	FUNCTION_CAST(find_duplicates, std::vector<navtk::Size>(*)(const vprdd&), , "data"_a)
-	FUNCTION_CAST(find_duplicates, std::vector<navtk::Size>(*)(const vd&), _2, "data"_a)
+	FUNCTION_CAST(find_duplicates, std::vector<navtk::Size> (*)(const vprdd&), , "data"_a)
+	FUNCTION_CAST(find_duplicates, std::vector<navtk::Size> (*)(const vd&), _2, "data"_a)
 	FUNCTIONT(find_outside, double, "query_time"_a, "data"_a)
 	FUNCTIONT(remove_at_indices, double, "data"_a, "to_remove"_a)
 	FUNCTIONT(split_vector_pairs, PARAMS(double, double), "orig"_a)

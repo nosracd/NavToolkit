@@ -28,7 +28,7 @@ public:
 	 * the delta position measurement, where N is the number of use_* parameters that are true.
 	 */
 	GeodeticPos3dMeasurementProcessor(std::string label,
-	                                  const std::string &state_block_label,
+	                                  const std::string& state_block_label,
 	                                  Matrix measurement_matrix);
 
 	/**

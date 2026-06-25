@@ -67,8 +67,8 @@ public:
 	 * this field will be used to size the H matrix, which reduces computational expense.
 	 */
 	ZuptMeasurementProcessor(std::string label,
-	                         const std::string &state_block_label,
-	                         const Matrix3 &cov,
+	                         const std::string& state_block_label,
+	                         const Matrix3& cov,
 	                         const Size window                  = 1,
 	                         const double calib_time            = 1.0,
 	                         const double speed_cutoff          = 0.2,

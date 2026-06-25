@@ -29,12 +29,12 @@ using xt::view;
 namespace navtk {
 namespace filtering {
 
-std::invalid_argument bad_block(string const &label);
-std::invalid_argument bad_processor(string const &label);
-std::invalid_argument bad_vsb(string const &label);
+std::invalid_argument bad_block(string const& label);
+std::invalid_argument bad_processor(string const& label);
+std::invalid_argument bad_vsb(string const& label);
 
 StandardFusionEngine::StandardFusionEngine(
-    const aspn_xtensor::TypeTimestamp &cur_time,
+    const aspn_xtensor::TypeTimestamp& cur_time,
     not_null<std::shared_ptr<StandardModelStrategy>> strategy)
     : cur_time(cur_time), strategy(std::move(strategy)) {
 	auto num_states = this->strategy->get_num_states();
@@ -47,10 +47,10 @@ StandardFusionEngine::StandardFusionEngine(
 	}
 }
 
-StandardFusionEngine::StandardFusionEngine(const aspn_xtensor::TypeTimestamp &cur_time)
+StandardFusionEngine::StandardFusionEngine(const aspn_xtensor::TypeTimestamp& cur_time)
     : StandardFusionEngine(cur_time, std::make_shared<EkfStrategy>()) {}
 
-StandardFusionEngine::StandardFusionEngine(const StandardFusionEngine &other)
+StandardFusionEngine::StandardFusionEngine(const StandardFusionEngine& other)
     : StandardFusionEngine() {
 	cur_time = other.cur_time;
 	strategy = std::dynamic_pointer_cast<StandardModelStrategy>(other.strategy->clone());
@@ -68,19 +68,19 @@ StandardFusionEngine::StandardFusionEngine(const StandardFusionEngine &other)
 		add_measurement_processor(processor->clone());
 	}
 
-	for (auto const &it : other.process_covariance_cross_terms) {
+	for (auto const& it : other.process_covariance_cross_terms) {
 		set_cross_term_process_covariance(it.label1, it.label2, it.term);
 	}
 }
 
-StandardFusionEngine &StandardFusionEngine::operator=(const StandardFusionEngine &other) {
+StandardFusionEngine& StandardFusionEngine::operator=(const StandardFusionEngine& other) {
 	if (this != &other) {
 		*this = StandardFusionEngine(other);
 	}
 	return *this;
 }
 
-void StandardFusionEngine::set_time(const aspn_xtensor::TypeTimestamp &time) { cur_time = time; }
+void StandardFusionEngine::set_time(const aspn_xtensor::TypeTimestamp& time) { cur_time = time; }
 
 aspn_xtensor::TypeTimestamp StandardFusionEngine::get_time() const { return cur_time; }
 
@@ -90,25 +90,25 @@ vector<string> StandardFusionEngine::get_state_block_names_list() const {
 	    blocks.begin(),
 	    blocks.end(),
 	    out.begin(),
-	    [](not_null<std::shared_ptr<StateBlock<>>> const &m) -> string { return m->get_label(); });
+	    [](not_null<std::shared_ptr<StateBlock<>>> const& m) -> string { return m->get_label(); });
 	return out;
 }
 
 not_null<std::shared_ptr<const StateBlock<>>> StandardFusionEngine::get_state_block(
-    string const &label) const {
-	for (auto const &block : blocks)
+    string const& label) const {
+	for (auto const& block : blocks)
 		if (block->get_label() == label)
 			return std::const_pointer_cast<const StateBlock<>>(block.get());
 	throw bad_block(label);
 }
 
-not_null<std::shared_ptr<StateBlock<>>> StandardFusionEngine::get_state_block(string const &label) {
-	for (auto const &block : blocks)
+not_null<std::shared_ptr<StateBlock<>>> StandardFusionEngine::get_state_block(string const& label) {
+	for (auto const& block : blocks)
 		if (block->get_label() == label) return block;
 	throw bad_block(label);
 }
 
-Matrix StandardFusionEngine::get_state_block_covariance(string const &label) const {
+Matrix StandardFusionEngine::get_state_block_covariance(string const& label) const {
 	auto block_found = has_block(label);
 	auto real_label  = block_found ? label : get_real_block_labels({label}).front();
 	auto indices     = get_mat_indices(real_label);
@@ -122,7 +122,7 @@ Matrix StandardFusionEngine::get_state_block_covariance(string const &label) con
 	return dot(dot(jac, pre_cov), xt::transpose(jac));
 }
 
-Vector StandardFusionEngine::get_state_block_estimate(string const &label) const {
+Vector StandardFusionEngine::get_state_block_estimate(string const& label) const {
 	auto block_found = has_block(label);
 	auto real_label  = block_found ? label : get_real_block_labels({label}).front();
 	auto indices     = get_mat_indices(real_label);
@@ -134,11 +134,11 @@ Vector StandardFusionEngine::get_state_block_estimate(string const &label) const
 }
 
 EstimateWithCovariance StandardFusionEngine::get_state_block_est_and_cov(
-    string const &label) const {
+    string const& label) const {
 	auto block_found = has_block(label);
 	auto real_label  = block_found ? label : get_real_block_labels({label}).front();
 	auto real_ec     = EstimateWithCovariance(get_state_block_estimate(real_label),
-                                          get_state_block_covariance(real_label));
+	                                          get_state_block_covariance(real_label));
 	return block_found ? real_ec : vsb_man.convert(real_ec, real_label, label, cur_time);
 }
 
@@ -148,8 +148,8 @@ void StandardFusionEngine::add_state_block(not_null<std::shared_ptr<StateBlock<>
 	clear_cache();
 }
 
-void StandardFusionEngine::set_state_block_covariance(string const &label,
-                                                      Matrix const &covariance) {
+void StandardFusionEngine::set_state_block_covariance(string const& label,
+                                                      Matrix const& covariance) {
 	auto indices = get_mat_indices(label);
 
 	if (ValidationContext validation{}) {
@@ -161,9 +161,9 @@ void StandardFusionEngine::set_state_block_covariance(string const &label,
 	clear_cache();
 }
 
-void StandardFusionEngine::set_cross_term_process_covariance(string const &label1,
-                                                             string const &label2,
-                                                             Matrix const &block) {
+void StandardFusionEngine::set_cross_term_process_covariance(string const& label1,
+                                                             string const& label2,
+                                                             Matrix const& block) {
 	if (ValidationContext validation{}) {
 		auto num_states1 = get_state_block(label1)->get_num_states();
 		auto num_states2 = get_state_block(label2)->get_num_states();
@@ -175,16 +175,16 @@ void StandardFusionEngine::set_cross_term_process_covariance(string const &label
 	process_covariance_cross_terms.erase(
 	    std::remove_if(process_covariance_cross_terms.begin(),
 	                   process_covariance_cross_terms.end(),
-	                   [&](ProcessCovarianceCrossTerm const &t) -> bool {
+	                   [&](ProcessCovarianceCrossTerm const& t) -> bool {
 		                   return t.label1 == label1 && t.label2 == label2;
 	                   }),
 	    process_covariance_cross_terms.end());
 	process_covariance_cross_terms.push_back({label1, label2, block});
 }
 
-void StandardFusionEngine::set_cross_term_covariance(string const &label1,
-                                                     string const &label2,
-                                                     Matrix const &block) {
+void StandardFusionEngine::set_cross_term_covariance(string const& label1,
+                                                     string const& label2,
+                                                     Matrix const& block) {
 	auto a = get_mat_indices(label1);
 	auto b = get_mat_indices(label2);
 
@@ -199,8 +199,8 @@ void StandardFusionEngine::set_cross_term_covariance(string const &label1,
 	clear_cache();
 }
 
-Matrix StandardFusionEngine::get_cross_term_covariance(string const &label1,
-                                                       string const &label2) const {
+Matrix StandardFusionEngine::get_cross_term_covariance(string const& label1,
+                                                       string const& label2) const {
 
 	auto block1_found = has_block(label1);
 	auto block2_found = has_block(label2);
@@ -228,7 +228,7 @@ Matrix StandardFusionEngine::get_cross_term_covariance(string const &label1,
 	return dot(dot(jac1, pre_cov), xt::transpose(jac2));
 }
 
-void StandardFusionEngine::set_state_block_estimate(string const &label, Vector const &estimate) {
+void StandardFusionEngine::set_state_block_estimate(string const& label, Vector const& estimate) {
 	auto indices = get_mat_indices(label);
 
 	if (ValidationContext validation{}) {
@@ -241,7 +241,7 @@ void StandardFusionEngine::set_state_block_estimate(string const &label, Vector 
 }
 
 // TODO PNTOS-246 Throw an error if label does not belong to any StateBlock
-void StandardFusionEngine::remove_state_block(string const &label) {
+void StandardFusionEngine::remove_state_block(string const& label) {
 	Size start_index = 0;
 	for (auto itr = blocks.begin(); itr != blocks.end(); ++itr) {
 		if ((*itr)->get_label() == label) {
@@ -255,8 +255,8 @@ void StandardFusionEngine::remove_state_block(string const &label) {
 }
 
 
-void StandardFusionEngine::give_state_block_aux_data(string const &label,
-                                                     AspnBaseVector const &data) {
+void StandardFusionEngine::give_state_block_aux_data(string const& label,
+                                                     AspnBaseVector const& data) {
 	auto block = get_state_block(label);
 	block->receive_aux_data(std::move(data));
 }
@@ -269,21 +269,21 @@ void StandardFusionEngine::add_measurement_processor(
 
 vector<string> StandardFusionEngine::get_measurement_processor_names_list() const {
 	vector<string> out(processors.size());
-	std::transform(processors.begin(), processors.end(), out.begin(), [](const auto &m) -> string {
+	std::transform(processors.begin(), processors.end(), out.begin(), [](const auto& m) -> string {
 		return m->get_label();
 	});
 	return out;
 }
 
-bool StandardFusionEngine::has_processor(string const &label) const {
-	for (const auto &processor : processors)
+bool StandardFusionEngine::has_processor(string const& label) const {
+	for (const auto& processor : processors)
 		if (processor->get_label() == label) return true;
 	return false;
 }
 
 not_null<std::shared_ptr<const MeasurementProcessor<>>>
-StandardFusionEngine::get_measurement_processor(string const &label) const {
-	for (auto const &proc : processors)
+StandardFusionEngine::get_measurement_processor(string const& label) const {
+	for (auto const& proc : processors)
 		if (proc->get_label() == label)
 			return std::const_pointer_cast<const MeasurementProcessor<>>(proc.get());
 	throw bad_processor(label);
@@ -291,33 +291,33 @@ StandardFusionEngine::get_measurement_processor(string const &label) const {
 
 
 not_null<std::shared_ptr<MeasurementProcessor<>>> StandardFusionEngine::get_measurement_processor(
-    string const &label) {
-	for (auto const &proc : processors)
+    string const& label) {
+	for (auto const& proc : processors)
 		if (proc->get_label() == label) return proc;
 	throw bad_processor(label);
 }
 
 
 // TODO PNTOS-246 Throw an error if label does not belong to any MeasurementProcessor
-void StandardFusionEngine::remove_measurement_processor(string const &label) {
+void StandardFusionEngine::remove_measurement_processor(string const& label) {
 	processors.erase(
 	    std::remove_if(processors.begin(),
 	                   processors.end(),
-	                   [&](not_null<std::shared_ptr<MeasurementProcessor<>>> const &it) -> bool {
+	                   [&](not_null<std::shared_ptr<MeasurementProcessor<>>> const& it) -> bool {
 		                   return it->get_label() == label;
 	                   }),
 	    processors.end());
 }
 
 
-void StandardFusionEngine::give_measurement_processor_aux_data(string const &label,
-                                                               AspnBaseVector const &data) {
+void StandardFusionEngine::give_measurement_processor_aux_data(string const& label,
+                                                               AspnBaseVector const& data) {
 	auto proc = get_measurement_processor(label);
 	proc->receive_aux_data(std::move(data));
 }
 
 std::shared_ptr<EstimateWithCovariance> StandardFusionEngine::peek_ahead(
-    aspn_xtensor::TypeTimestamp time, std::vector<std::string> const &mixed_block_labels) const {
+    aspn_xtensor::TypeTimestamp time, std::vector<std::string> const& mixed_block_labels) const {
 
 	if (mixed_block_labels.empty()) {
 		spdlog::warn("peek_ahead with empty mixed_block_labels does nothing.");
@@ -332,8 +332,8 @@ std::shared_ptr<EstimateWithCovariance> StandardFusionEngine::peek_ahead(
 }
 
 EstimateWithCovariance StandardFusionEngine::reset_state_estimate(aspn_xtensor::TypeTimestamp time,
-                                                                  string const &label,
-                                                                  vector<size_t> const &indices) {
+                                                                  string const& label,
+                                                                  vector<size_t> const& indices) {
 	if (time < cur_time) {
 		log_or_throw<std::invalid_argument>(
 		    "Cannot reset filter states in past. Filter at time {}, reset requested at {}",
@@ -373,12 +373,12 @@ void StandardFusionEngine::add_virtual_state_block(not_null<std::shared_ptr<Virt
 	vsb_man.add_virtual_state_block(v);
 }
 
-void StandardFusionEngine::remove_virtual_state_block(std::string const &target) {
+void StandardFusionEngine::remove_virtual_state_block(std::string const& target) {
 	vsb_man.remove_virtual_state_block(target);
 }
 
-void StandardFusionEngine::give_virtual_state_block_aux_data(std::string const &target_label,
-                                                             AspnBaseVector const &data) {
+void StandardFusionEngine::give_virtual_state_block_aux_data(std::string const& target_label,
+                                                             AspnBaseVector const& data) {
 
 	auto vsb = vsb_man.get_virtual_state_block(target_label);
 	if (!vsb) {
@@ -389,19 +389,19 @@ void StandardFusionEngine::give_virtual_state_block_aux_data(std::string const &
 
 size_t StandardFusionEngine::get_num_states() const {
 	size_t out = 0;
-	for (auto const &block : blocks) out += block->get_num_states();
+	for (auto const& block : blocks) out += block->get_num_states();
 	return out;
 }
 
 // protected
 
-pair<size_t, size_t> StandardFusionEngine::get_mat_indices(string const &label) const {
+pair<size_t, size_t> StandardFusionEngine::get_mat_indices(string const& label) const {
 	return get_mat_indices(find_block_idx_or_bail(label));
 }
 
 pair<size_t, size_t> StandardFusionEngine::get_mat_indices(size_t idx) const {
 	size_t state_begin = 0, ii = 0;
-	for (auto const &block : blocks) {
+	for (auto const& block : blocks) {
 		if (ii == idx) return {state_begin, state_begin + block->get_num_states()};
 		state_begin += block->get_num_states();
 		++ii;
@@ -425,37 +425,37 @@ vector<pair<size_t, size_t>> StandardFusionEngine::get_mat_indices_list() const 
 	return out;
 }
 
-size_t StandardFusionEngine::find_block_idx_or_bail(string const &label) const {
+size_t StandardFusionEngine::find_block_idx_or_bail(string const& label) const {
 	for (size_t ii = 0; ii < blocks.size(); ++ii)
 		if (blocks[ii]->get_label() == label) return ii;
 	throw bad_block(label);
 }
 
-size_t StandardFusionEngine::find_processor_idx_or_bail(string const &label) const {
+size_t StandardFusionEngine::find_processor_idx_or_bail(string const& label) const {
 	for (size_t ii = 0; ii < processors.size(); ++ii)
 		if (processors[ii]->get_label() == label) return ii;
 	throw bad_processor(label);
 }
 
-bool StandardFusionEngine::has_block(string const &label) const {
-	for (const auto &block : blocks)
+bool StandardFusionEngine::has_block(string const& label) const {
+	for (const auto& block : blocks)
 		if (block->get_label() == label) return true;
 	return false;
 }
 
-bool StandardFusionEngine::has_virtual_state_block(string const &target_label) const {
+bool StandardFusionEngine::has_virtual_state_block(string const& target_label) const {
 
 	auto vsb_link = vsb_man.get_start_block_label(target_label);
 
 	if (vsb_link.first) {
-		for (const auto &block : blocks)
+		for (const auto& block : blocks)
 			if (block->get_label() == vsb_link.second) return true;
 	}
 	return false;
 }
 
 vector<string> StandardFusionEngine::get_real_block_labels(
-    vector<string> const &mixed_block_labels) const {
+    vector<string> const& mixed_block_labels) const {
 	vector<string> real_labels;
 	for (auto i = mixed_block_labels.begin(); i != mixed_block_labels.end(); i++) {
 		if (has_block(*i))
@@ -472,7 +472,7 @@ vector<string> StandardFusionEngine::get_real_block_labels(
 }
 
 std::function<Vector(Vector)> StandardFusionEngine::calc_full_transform(
-    vector<string> const &mixed_block_labels) const {
+    vector<string> const& mixed_block_labels) const {
 	// Need a function that takes 'real' state vector and transforms it into 'virtual' vector
 	auto labels = get_real_block_labels(mixed_block_labels);
 	vector<int> sizes;
@@ -506,7 +506,7 @@ std::function<Vector(Vector)> StandardFusionEngine::calc_full_transform(
 }
 
 Matrix StandardFusionEngine::calc_transform_jacobian(
-    vector<string> const &mixed_block_labels) const {
+    vector<string> const& mixed_block_labels) const {
 
 	vector<Matrix> jacs;
 	Size all_rows = 0;
@@ -542,7 +542,7 @@ Matrix StandardFusionEngine::calc_transform_jacobian(
 }
 
 std::shared_ptr<EstimateWithCovariance> StandardFusionEngine::generate_x_and_p(
-    vector<string> const &mixed_block_labels) const {
+    vector<string> const& mixed_block_labels) const {
 
 	if (mixed_block_labels.empty()) {
 		spdlog::warn("No labels provided, nothing to do.");
@@ -577,12 +577,12 @@ std::shared_ptr<EstimateWithCovariance> StandardFusionEngine::generate_x_and_p(
 }
 
 not_null<std::shared_ptr<StandardMeasurementModel>> StandardFusionEngine::expand_update_model(
-    StandardMeasurementModel const &model, StandardMeasurementProcessor const &proc) {
+    StandardMeasurementModel const& model, StandardMeasurementProcessor const& proc) {
 	return expand_update_model(model, proc.get_state_block_labels());
 }
 
 not_null<std::shared_ptr<StandardMeasurementModel>> StandardFusionEngine::expand_update_model(
-    StandardMeasurementModel const &model, vector<string> const &state_block_labels) {
+    StandardMeasurementModel const& model, vector<string> const& state_block_labels) {
 	auto out = std::make_shared<StandardMeasurementModel>(model);
 
 	size_t num_meas                   = num_rows(model.z);
@@ -597,23 +597,23 @@ not_null<std::shared_ptr<StandardMeasurementModel>> StandardFusionEngine::expand
 	return out;
 }
 
-std::invalid_argument bad_block(string const &label) {
+std::invalid_argument bad_block(string const& label) {
 	return std::invalid_argument("Couldn't find block named " + label);
 }
 
-std::invalid_argument bad_processor(string const &label) {
+std::invalid_argument bad_processor(string const& label) {
 	return std::invalid_argument("Couldn't find processor named " + label);
 }
 
-std::invalid_argument bad_vsb(string const &label) {
+std::invalid_argument bad_vsb(string const& label) {
 	return std::invalid_argument("Couldn't find block nor VirtualStateBlock for name " + label);
 }
 
 std::vector<Size> StandardFusionEngine::get_all_state_indices(
-    const std::vector<std::string> &block_labels) const {
+    const std::vector<std::string>& block_labels) const {
 	std::vector<Size> all_indices;
 
-	for (const auto &label : block_labels) {
+	for (const auto& label : block_labels) {
 		auto start_stop_indices = get_mat_indices(label);
 		for (size_t idx = start_stop_indices.first; idx < start_stop_indices.second; idx++) {
 			all_indices.push_back(idx);
@@ -639,7 +639,7 @@ void StandardFusionEngine::propagate(aspn_xtensor::TypeTimestamp time) {
 	vector<StandardDynamicsModel> dynamics;
 	dynamics.reserve(blocks.size());
 
-	for (auto const &blk : blocks) {
+	for (auto const& blk : blocks) {
 		auto label = blk->get_label();
 		auto dyn   = blk->generate_dynamics(gen_x_and_p_func, cur_time, time);
 		if (ValidationContext validation{}) {
@@ -662,7 +662,7 @@ void StandardFusionEngine::propagate(aspn_xtensor::TypeTimestamp time) {
 		Vector out = zeros(num_rows(xLarge));
 		size_t ii  = 0;
 		size_t start(0);
-		for (auto const &dyn : dynamics) {
+		for (auto const& dyn : dynamics) {
 			auto fOut = dyn.g(view(xLarge, range(mat_idx_list[ii].first, mat_idx_list[ii].second)));
 			view(out, range(start, start + num_rows(fOut))) = fOut;
 			start += num_rows(fOut);
@@ -675,7 +675,7 @@ void StandardFusionEngine::propagate(aspn_xtensor::TypeTimestamp time) {
 	Matrix Phi      = zeros(num_states, num_states);
 	Matrix Qd       = zeros(num_states, num_states);
 	size_t ii       = 0;
-	for (auto const &dyn : dynamics) {
+	for (auto const& dyn : dynamics) {
 		size_t start = mat_idx_list[ii].first;
 		size_t end   = mat_idx_list[ii].second;
 
@@ -683,7 +683,7 @@ void StandardFusionEngine::propagate(aspn_xtensor::TypeTimestamp time) {
 		view(Qd, range(start, end), range(start, end))  = dyn.Qd;
 		++ii;
 	}
-	for (auto const &it : process_covariance_cross_terms) {
+	for (auto const& it : process_covariance_cross_terms) {
 		auto ind1 = get_mat_indices(it.label1);
 		auto ind2 = get_mat_indices(it.label2);
 		view(Qd, range(ind1.first, ind1.second), range(ind2.first, ind2.second)) = it.term;
@@ -695,7 +695,7 @@ void StandardFusionEngine::propagate(aspn_xtensor::TypeTimestamp time) {
 	clear_cache();
 }
 
-void StandardFusionEngine::update(string const &processor_label,
+void StandardFusionEngine::update(string const& processor_label,
                                   std::shared_ptr<aspn_xtensor::AspnBase> measurement,
                                   std::shared_ptr<aspn_xtensor::TypeTimestamp> timestamp) {
 

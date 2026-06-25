@@ -30,8 +30,8 @@ public:
 	 */
 	AltitudeMeasurementProcessorWithBias(
 	    std::string label,
-	    const std::string &pinson_label,
-	    const std::string &altitude_bias_label,
+	    const std::string& pinson_label,
+	    const std::string& altitude_bias_label,
 	    AspnMeasurementAltitudeReference expected_frame = ASPN_MEASUREMENT_ALTITUDE_REFERENCE_MSL);
 
 	/**

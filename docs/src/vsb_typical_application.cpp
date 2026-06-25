@@ -8,20 +8,20 @@ int main() {
 	auto timestamp = aspn_xtensor::TypeTimestamp(int64_t(0));
 	auto header = aspn_xtensor::TypeHeader(ASPN_MEASUREMENT_POSITION_VELOCITY_ATTITUDE, 0, 0, 0, 0);
 	auto pva    = aspn_xtensor::MeasurementPositionVelocityAttitude(
-        header,
-        timestamp,
-        ASPN_MEASUREMENT_POSITION_VELOCITY_ATTITUDE_REFERENCE_FRAME_GEODETIC,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        {},
-        {},
-        ASPN_MEASUREMENT_POSITION_VELOCITY_ATTITUDE_ERROR_MODEL_NONE,
-        {},
-        {});
+	    header,
+	    timestamp,
+	    ASPN_MEASUREMENT_POSITION_VELOCITY_ATTITUDE_REFERENCE_FRAME_GEODETIC,
+	    0,
+	    0,
+	    0,
+	    0,
+	    0,
+	    0,
+	    {},
+	    {},
+	    ASPN_MEASUREMENT_POSITION_VELOCITY_ATTITUDE_ERROR_MODEL_NONE,
+	    {},
+	    {});
 
 	// Create a dummy inertial
 	auto ins = navtk::inertial::BufferedImu(pva);

@@ -65,7 +65,7 @@ std::pair<bool, Matrix> ManualHeadingAlignment::get_computed_covariance(
 
 		// Uncertainty in the calculated attitude is a result of accel biases
 		double g          = navutils::calculate_gravity_schwartz(gps_buffer.back().get_term3(),
-                                                        gps_buffer.back().get_term1())[2];
+		                                                         gps_buffer.back().get_term1())[2];
 		auto csn          = computed_alignment.second.rot_mat;
 		Matrix3 cov_accel = xt::view(cov.second, xt::range(9, 12), xt::range(9, 12));
 
@@ -95,7 +95,7 @@ std::pair<bool, ImuErrors> ManualHeadingAlignment::get_imu_errors() const {
 		auto dv_avg  = avgs.first;
 		auto dth_avg = avgs.second;
 		auto g       = navutils::calculate_gravity_schwartz(gps_buffer.back().get_term3(),
-                                                      gps_buffer.back().get_term1());
+		                                                    gps_buffer.back().get_term1());
 		auto dt      = calc_average_delta_time();
 
 		Vector3 wie_n{cos(gps_buffer.back().get_term1()) * navutils::ROTATION_RATE,

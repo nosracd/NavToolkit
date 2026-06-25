@@ -28,7 +28,7 @@ public:
 	 * @param sf scale factor matrix to assign to [scale_factor]
 	 * @param b the bias vector to assign to [bias]
 	 */
-	void set_calibration_params(Matrix const &sf, Vector const &b);
+	void set_calibration_params(Matrix const& sf, Vector const& b);
 
 	/**
 	 * Apply calibration parameters to a magnetometer measurement to obtain a calibrated
@@ -39,7 +39,7 @@ public:
 	 * @return Vector containing the calibrated magnetic field vector in the same units as the input
 	 * values.
 	 */
-	virtual Vector apply_calibration(const Vector &mag) const override;
+	virtual Vector apply_calibration(const Vector& mag) const override;
 
 protected:
 	/**

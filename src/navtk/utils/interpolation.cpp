@@ -28,7 +28,7 @@ namespace navtk {
 namespace utils {
 
 template <typename T>
-void check_data_source_validity(const vector<T> &time_source, const vector<T> &data_source) {
+void check_data_source_validity(const vector<T>& time_source, const vector<T>& data_source) {
 	if (time_source.size() != data_source.size()) {
 		log_or_throw(
 		    "Exception Occurred: Source time and source data are not matching lengths for "
@@ -42,9 +42,9 @@ void check_data_source_validity(const vector<T> &time_source, const vector<T> &d
 }
 
 template <typename T>
-vector<Size> condition_source_data(vector<double> &time_source,
-                                   vector<T> &data_source,
-                                   vector<double> &time_interp) {
+vector<Size> condition_source_data(vector<double>& time_source,
+                                   vector<T>& data_source,
+                                   vector<double>& time_interp) {
 
 	check_data_source_validity(time_source, data_source);
 
@@ -97,8 +97,8 @@ pair<vector<Size>, vector<double>> all_interpolate(
     vector<double> time_source,
     vector<double> data_source,
     vector<double> time_interp,
-    std::function<not_null<std::unique_ptr<InterpolationModel>>(const vector<double> &,
-                                                                const vector<double> &)> fact) {
+    std::function<not_null<std::unique_ptr<InterpolationModel>>(const vector<double>&,
+                                                                const vector<double>&)> fact) {
 
 	// check for any requirements not met by the input vectors
 	vector<Size> unused_indices = condition_source_data(time_source, data_source, time_interp);
@@ -115,45 +115,45 @@ pair<vector<Size>, vector<double>> all_interpolate(
 	return std::make_pair(unused_indices, y_interp);
 }
 
-pair<vector<Size>, vector<double>> linear_interpolate(const vector<double> &orig_time_source,
-                                                      const vector<double> &data_source,
-                                                      const vector<double> &orig_time_interp) {
-	auto fact = [](const vector<double> &x, const vector<double> &y) {
+pair<vector<Size>, vector<double>> linear_interpolate(const vector<double>& orig_time_source,
+                                                      const vector<double>& data_source,
+                                                      const vector<double>& orig_time_interp) {
+	auto fact = [](const vector<double>& x, const vector<double>& y) {
 		return std::make_unique<LinearModel>(x, y);
 	};
 	return all_interpolate(orig_time_source, data_source, orig_time_interp, fact);
 }
 
 pair<vector<Size>, vector<double>> quadratic_spline_interpolate(
-    const vector<double> &orig_time_source,
-    const vector<double> &data_source,
-    const vector<double> &orig_time_interp) {
+    const vector<double>& orig_time_source,
+    const vector<double>& data_source,
+    const vector<double>& orig_time_interp) {
 
-	auto fact = [](const vector<double> &x, const vector<double> &y) {
+	auto fact = [](const vector<double>& x, const vector<double>& y) {
 		return std::make_unique<QuadraticSplineModel>(x, y);
 	};
 	return all_interpolate(orig_time_source, data_source, orig_time_interp, fact);
 }
 
 pair<vector<Size>, vector<double>> cubic_spline_interpolate(
-    const vector<double> &orig_time_source,
-    const vector<double> &data_source,
-    const vector<double> &orig_time_interp) {
+    const vector<double>& orig_time_source,
+    const vector<double>& data_source,
+    const vector<double>& orig_time_interp) {
 
-	std::function<not_null<std::unique_ptr<InterpolationModel>>(const vector<double> &,
-	                                                            const vector<double> &)>
+	std::function<not_null<std::unique_ptr<InterpolationModel>>(const vector<double>&,
+	                                                            const vector<double>&)>
 	    fact;
 	if (data_source.size() < 4) {
 		spdlog::warn(
 		    "Need at least 4 source data points to perform cubic interpolation. "
 		    "Switching to using linear interpolation.");
 
-		fact = [](const vector<double> &x, const vector<double> &y) {
+		fact = [](const vector<double>& x, const vector<double>& y) {
 			return std::make_unique<LinearModel>(x, y);
 		};
 
 	} else {
-		fact = [](const vector<double> &x, const vector<double> &y) {
+		fact = [](const vector<double>& x, const vector<double>& y) {
 			return std::make_unique<CubicSplineModel>(x, y);
 		};
 	}
@@ -162,9 +162,9 @@ pair<vector<Size>, vector<double>> cubic_spline_interpolate(
 }
 
 aspn_xtensor::MeasurementPositionVelocityAttitude linear_interp_pva(
-    const aspn_xtensor::MeasurementPositionVelocityAttitude &pva1,
-    const aspn_xtensor::MeasurementPositionVelocityAttitude &pva2,
-    const aspn_xtensor::TypeTimestamp &t) {
+    const aspn_xtensor::MeasurementPositionVelocityAttitude& pva1,
+    const aspn_xtensor::MeasurementPositionVelocityAttitude& pva2,
+    const aspn_xtensor::TypeTimestamp& t) {
 
 	int64_t time1       = pva1.get_aspn_c()->time_of_validity.elapsed_nsec;
 	int64_t time2       = pva2.get_aspn_c()->time_of_validity.elapsed_nsec;
@@ -196,7 +196,7 @@ aspn_xtensor::MeasurementPositionVelocityAttitude linear_interp_pva(
 not_null<std::shared_ptr<aspn_xtensor::MeasurementPositionVelocityAttitude>> linear_interp_pva(
     not_null<std::shared_ptr<aspn_xtensor::MeasurementPositionVelocityAttitude>> pva1,
     not_null<std::shared_ptr<aspn_xtensor::MeasurementPositionVelocityAttitude>> pva2,
-    const aspn_xtensor::TypeTimestamp &t) {
+    const aspn_xtensor::TypeTimestamp& t) {
 
 	int64_t time1       = pva1->get_aspn_c()->time_of_validity.elapsed_nsec;
 	int64_t time2       = pva2->get_aspn_c()->time_of_validity.elapsed_nsec;
@@ -226,9 +226,9 @@ not_null<std::shared_ptr<aspn_xtensor::MeasurementPositionVelocityAttitude>> lin
 }
 
 aspn_xtensor::MeasurementPositionVelocityAttitude linear_extrapolate_pva(
-    const aspn_xtensor::MeasurementPositionVelocityAttitude &pva1,
-    const aspn_xtensor::MeasurementPositionVelocityAttitude &pva2,
-    const aspn_xtensor::TypeTimestamp &t) {
+    const aspn_xtensor::MeasurementPositionVelocityAttitude& pva1,
+    const aspn_xtensor::MeasurementPositionVelocityAttitude& pva2,
+    const aspn_xtensor::TypeTimestamp& t) {
 
 	aspn_xtensor::TypeTimestamp time1 = pva1.get_time_of_validity();
 	aspn_xtensor::TypeTimestamp time2 = pva2.get_time_of_validity();
@@ -272,7 +272,7 @@ aspn_xtensor::MeasurementPositionVelocityAttitude linear_extrapolate_pva(
 not_null<std::shared_ptr<aspn_xtensor::MeasurementPositionVelocityAttitude>> linear_extrapolate_pva(
     not_null<std::shared_ptr<aspn_xtensor::MeasurementPositionVelocityAttitude>> pva1,
     not_null<std::shared_ptr<aspn_xtensor::MeasurementPositionVelocityAttitude>> pva2,
-    const aspn_xtensor::TypeTimestamp &t) {
+    const aspn_xtensor::TypeTimestamp& t) {
 
 	aspn_xtensor::TypeTimestamp time1 = pva1->get_time_of_validity();
 	aspn_xtensor::TypeTimestamp time2 = pva2->get_time_of_validity();
@@ -314,11 +314,11 @@ not_null<std::shared_ptr<aspn_xtensor::MeasurementPositionVelocityAttitude>> lin
 	    pva1->get_integrity());
 }
 
-Vector3 linear_interp_rpy(const aspn_xtensor::TypeTimestamp &t1,
-                          const Vector3 &rpy1,
-                          const aspn_xtensor::TypeTimestamp &t2,
-                          const Vector3 &rpy2,
-                          const aspn_xtensor::TypeTimestamp &t) {
+Vector3 linear_interp_rpy(const aspn_xtensor::TypeTimestamp& t1,
+                          const Vector3& rpy1,
+                          const aspn_xtensor::TypeTimestamp& t2,
+                          const Vector3& rpy2,
+                          const aspn_xtensor::TypeTimestamp& t) {
 
 	if (t1 > t2) {
 		return linear_interp_rpy(t2, rpy2, t1, rpy1, t);
@@ -336,11 +336,11 @@ Vector3 linear_interp_rpy(const aspn_xtensor::TypeTimestamp &t1,
 	return linear_extrapolate_rpy(t1, rpy1, t2, rpy2, t);
 }
 
-Vector3 linear_extrapolate_rpy(const aspn_xtensor::TypeTimestamp &t1,
-                               const Vector3 &rpy1,
-                               const aspn_xtensor::TypeTimestamp &t2,
-                               const Vector3 &rpy2,
-                               const aspn_xtensor::TypeTimestamp &t) {
+Vector3 linear_extrapolate_rpy(const aspn_xtensor::TypeTimestamp& t1,
+                               const Vector3& rpy1,
+                               const aspn_xtensor::TypeTimestamp& t2,
+                               const Vector3& rpy2,
+                               const aspn_xtensor::TypeTimestamp& t) {
 	if (t1 > t2) {
 		return linear_extrapolate_rpy(t2, rpy2, t1, rpy1, t);
 	}

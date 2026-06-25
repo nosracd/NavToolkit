@@ -12,7 +12,7 @@ namespace filtering {
 
 VelocityMeasurementProcessor::VelocityMeasurementProcessor(
     std::string label,
-    const std::string &state_block_label,
+    const std::string& state_block_label,
     Matrix measurement_matrix,
     bool use_x,
     bool use_y,
@@ -103,7 +103,7 @@ std::shared_ptr<StandardMeasurementModel> VelocityMeasurementProcessor::generate
 	if (xhat_p == nullptr) {
 		return nullptr;
 	}
-	auto h = [measurement_matrix = measurement_matrix](const Vector &xhat) {
+	auto h = [measurement_matrix = measurement_matrix](const Vector& xhat) {
 		return dot(measurement_matrix, xhat);
 	};
 

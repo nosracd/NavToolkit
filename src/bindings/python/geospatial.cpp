@@ -128,7 +128,7 @@ public:
 	}
 };
 
-void add_geospatial_functions(pybind11::module &m) {
+void add_geospatial_functions(pybind11::module& m) {
 	m.doc() = "Classes and utilties for reading geographic spatial map data.";
 
 	CLASS(ElevationInterpolator)
@@ -245,7 +245,7 @@ void add_geospatial_functions(pybind11::module &m) {
 
 	CLASS(GdalRaster, Raster)
 	CTOR(GdalRaster,
-	     PARAMS(const std::string &, const std::string &),
+	     PARAMS(const std::string&, const std::string&),
 	     "filename"_a,
 	     "undulation_path"_a = "WW15MGH.GRD")
 	METHOD_VOID(GdalRaster, is_valid)

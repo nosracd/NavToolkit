@@ -109,7 +109,7 @@ protected:
 	 */
 	InertialPosVelAtt(const aspn_xtensor::TypeTimestamp& t = aspn_xtensor::to_type_timestamp(),
 	                  AspnMessageType message_type         = ASPN_EXTENDED_BEGIN)
-	    : aspn_xtensor::TypeHeader(message_type, 0, 0, 0, 0), time_validity(t){};
+	    : aspn_xtensor::TypeHeader(message_type, 0, 0, 0, 0), time_validity(t) {};
 };
 
 }  // namespace inertial

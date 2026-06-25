@@ -34,8 +34,8 @@ GriddedInterpolant::GriddedInterpolant(Vector x_vector, Vector y_vector, Matrix 
 	                  xt::view(x_vec, xt::range(0, num_x_elem - 2));
 	auto y_vec_diff = xt::view(y_vec, xt::range(1, num_y_elem - 1)) -
 	                  xt::view(y_vec, xt::range(0, num_y_elem - 2));
-	x_spacing = xt::mean(x_vec_diff)[0];
-	y_spacing = xt::mean(y_vec_diff)[0];
+	x_spacing       = xt::mean(x_vec_diff)[0];
+	y_spacing       = xt::mean(y_vec_diff)[0];
 
 	if (ValidationContext{}) {
 		// check if monotonic and for equal spacing
@@ -73,13 +73,13 @@ double GriddedInterpolant::interpolate(double x, double y) {
 	auto x_off   = (x - x_vec[x_denominator.idx]) / x_spacing;
 	auto y_off   = (y - y_vec[y_denominator.idx]) / y_spacing;
 	Matrix mat   = dot(dot(Matrix{{1, x_off, std::pow(x_off, 2), std::pow(x_off, 3)}}, coefs),
-                     xt::transpose(Matrix{{1, y_off, std::pow(y_off, 2), std::pow(y_off, 3)}}));
+	                   xt::transpose(Matrix{{1, y_off, std::pow(y_off, 2), std::pow(y_off, 3)}}));
 
 	return mat(0, 0);
 }
 
 GriddedInterpolant::Denominator GriddedInterpolant::get_3_point_denominators(
-    int idx, const Vector &vec) const {
+    int idx, const Vector& vec) const {
 	// Determine denominator values for 3 point derivative
 	int index  = idx;
 	int plus2  = 2;
@@ -100,7 +100,7 @@ GriddedInterpolant::Denominator GriddedInterpolant::get_3_point_denominators(
 	return {index, plus2, minus1};
 }
 
-Matrix GriddedInterpolant::big_f(const Denominator &x, const Denominator &y) {
+Matrix GriddedInterpolant::big_f(const Denominator& x, const Denominator& y) {
 
 	auto f_00 = q(x.idx, y.idx);
 	auto f_10 = q(x.idx + 1, y.idx);

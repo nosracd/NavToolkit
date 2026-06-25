@@ -26,7 +26,7 @@ public:
 	 * @param y Dependent sampled values at each `x` element, size N. Also 0th order terms of
 	 * splines polynomial coefficients.
 	 */
-	CubicSplineModel(const std::vector<double> &x, const std::vector<double> &y);
+	CubicSplineModel(const std::vector<double>& x, const std::vector<double>& y);
 
 	double y_at(double x_interp) override;
 

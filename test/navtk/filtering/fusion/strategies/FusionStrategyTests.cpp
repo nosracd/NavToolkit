@@ -27,11 +27,11 @@ public:
 		return std::make_shared<TestableFusionStrategy>(*this);
 	}
 
-	void on_fusion_engine_state_block_added_impl(Vector const &, Matrix const &) override {}
+	void on_fusion_engine_state_block_added_impl(Vector const&, Matrix const&) override {}
 
-	void set_covariance_slice_impl(Matrix const &, Size, Size) override {}
+	void set_covariance_slice_impl(Matrix const&, Size, Size) override {}
 
-	void set_estimate_slice_impl(Vector const &, Size) override {}
+	void set_estimate_slice_impl(Vector const&, Size) override {}
 
 	void on_fusion_engine_state_block_removed_impl(Size, Size) override {}
 };

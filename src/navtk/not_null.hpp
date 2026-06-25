@@ -211,8 +211,9 @@ std::ostream& operator<<(std::ostream& os, const not_null<T>& val) {
  * @return The result of the is-equal comparison.
  */
 template <class T, class U>
-auto operator==(const not_null<T>& lhs, const not_null<U>& rhs) noexcept(
-    noexcept(lhs.get() == rhs.get())) -> decltype(lhs.get() == rhs.get()) {
+auto operator==(const not_null<T>& lhs,
+                const not_null<U>& rhs) noexcept(noexcept(lhs.get() == rhs.get()))
+    -> decltype(lhs.get() == rhs.get()) {
 	return lhs.get() == rhs.get();
 }
 /**
@@ -222,8 +223,9 @@ auto operator==(const not_null<T>& lhs, const not_null<U>& rhs) noexcept(
  * @return The result of not-equal comparison.
  */
 template <class T, class U>
-auto operator!=(const not_null<T>& lhs, const not_null<U>& rhs) noexcept(
-    noexcept(lhs.get() != rhs.get())) -> decltype(lhs.get() != rhs.get()) {
+auto operator!=(const not_null<T>& lhs,
+                const not_null<U>& rhs) noexcept(noexcept(lhs.get() != rhs.get()))
+    -> decltype(lhs.get() != rhs.get()) {
 	return lhs.get() != rhs.get();
 }
 /**
@@ -233,8 +235,9 @@ auto operator!=(const not_null<T>& lhs, const not_null<U>& rhs) noexcept(
  * @return The result of the less-than comparison.
  */
 template <class T, class U>
-auto operator<(const not_null<T>& lhs, const not_null<U>& rhs) noexcept(
-    noexcept(lhs.get() < rhs.get())) -> decltype(lhs.get() < rhs.get()) {
+auto operator<(const not_null<T>& lhs,
+               const not_null<U>& rhs) noexcept(noexcept(lhs.get() < rhs.get()))
+    -> decltype(lhs.get() < rhs.get()) {
 	return lhs.get() < rhs.get();
 }
 /**
@@ -244,8 +247,9 @@ auto operator<(const not_null<T>& lhs, const not_null<U>& rhs) noexcept(
  * @return The result of the less-than-or-equal comparison.
  */
 template <class T, class U>
-auto operator<=(const not_null<T>& lhs, const not_null<U>& rhs) noexcept(
-    noexcept(lhs.get() <= rhs.get())) -> decltype(lhs.get() <= rhs.get()) {
+auto operator<=(const not_null<T>& lhs,
+                const not_null<U>& rhs) noexcept(noexcept(lhs.get() <= rhs.get()))
+    -> decltype(lhs.get() <= rhs.get()) {
 	return lhs.get() <= rhs.get();
 }
 /**
@@ -255,8 +259,9 @@ auto operator<=(const not_null<T>& lhs, const not_null<U>& rhs) noexcept(
  * @return The result of the greater-than comparison.
  */
 template <class T, class U>
-auto operator>(const not_null<T>& lhs, const not_null<U>& rhs) noexcept(
-    noexcept(lhs.get() > rhs.get())) -> decltype(lhs.get() > rhs.get()) {
+auto operator>(const not_null<T>& lhs,
+               const not_null<U>& rhs) noexcept(noexcept(lhs.get() > rhs.get()))
+    -> decltype(lhs.get() > rhs.get()) {
 	return lhs.get() > rhs.get();
 }
 /**
@@ -266,8 +271,9 @@ auto operator>(const not_null<T>& lhs, const not_null<U>& rhs) noexcept(
  * @return The result of the greater-than-or-equal comparison.
  */
 template <class T, class U>
-auto operator>=(const not_null<T>& lhs, const not_null<U>& rhs) noexcept(
-    noexcept(lhs.get() >= rhs.get())) -> decltype(lhs.get() >= rhs.get()) {
+auto operator>=(const not_null<T>& lhs,
+                const not_null<U>& rhs) noexcept(noexcept(lhs.get() >= rhs.get()))
+    -> decltype(lhs.get() >= rhs.get()) {
 	return lhs.get() >= rhs.get();
 }
 

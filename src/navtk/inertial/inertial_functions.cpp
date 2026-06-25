@@ -126,13 +126,13 @@ Vector3 calc_force_ned(const aspn_xtensor::MeasurementPositionVelocityAttitude& 
 	Vector3 acceleration = delta_v / delta_t;
 	auto earth_model     = filtering::EarthModel(utils::extract_pos(pva1), velocity1);
 	auto offset          = calc_force_and_acceleration_offset(earth_model.r_e,
-                                                     earth_model.r_n,
-                                                     pva1.get_p3(),
-                                                     earth_model.cos_l,
-                                                     earth_model.g_n,
-                                                     earth_model.sec_l,
-                                                     earth_model.sin_l,
-                                                     velocity1);
+	                                                          earth_model.r_n,
+	                                                          pva1.get_p3(),
+	                                                          earth_model.cos_l,
+	                                                          earth_model.g_n,
+	                                                          earth_model.sec_l,
+	                                                          earth_model.sin_l,
+	                                                          velocity1);
 	return acceleration - offset;
 }
 

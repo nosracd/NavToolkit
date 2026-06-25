@@ -27,22 +27,22 @@ public:
 	/**
 	 * Deleted.
 	 */
-	InterpolationModel(const InterpolationModel &) = delete;
+	InterpolationModel(const InterpolationModel&) = delete;
 
 	/**
 	 * Deleted.
 	 */
-	InterpolationModel &operator=(const InterpolationModel &) = delete;
+	InterpolationModel& operator=(const InterpolationModel&) = delete;
 
 	/**
 	 * Deleted.
 	 */
-	InterpolationModel(InterpolationModel &&) = delete;
+	InterpolationModel(InterpolationModel&&) = delete;
 
 	/**
 	 * Deleted.
 	 */
-	InterpolationModel &operator=(InterpolationModel &&) = delete;
+	InterpolationModel& operator=(InterpolationModel&&) = delete;
 
 	/**
 	 * Get the interpolated data point at query value.
@@ -60,7 +60,7 @@ protected:
 	 * @param x Independent sample points, size N.
 	 * @param y Dependent sampled values at each `x` element, size N.
 	 */
-	InterpolationModel(const std::vector<double> &x, const std::vector<double> &y) : x(x), y(y){};
+	InterpolationModel(const std::vector<double>& x, const std::vector<double>& y) : x(x), y(y) {};
 
 	/**
 	 * Base data times/x values, size N.

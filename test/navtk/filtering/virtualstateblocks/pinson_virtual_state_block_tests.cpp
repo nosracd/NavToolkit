@@ -764,11 +764,11 @@ TEST_F(PinsonVirtualStateBlockTests, PinsonErrToWholeQuatWrap_SLOW) {
 	Vector x_scales                     = navtk::ones(navtk::num_rows(x)) * 1e-3;
 	xt::view(x_scales, xt::range(6, 9)) = 1e-5;
 	auto ref_gen                        = [](const aspn_xtensor::TypeTimestamp& time) {
-        Vector3 nom_pos{1.0, 2.0, 3.0};
-        Vector3 nom_vel{1.1, -2.2, 0.5};
-        Vector3 nom_rpy{0.7, 0.8, -1.9};
-        auto dcm = xt::transpose(rpy_to_dcm(nom_rpy));
-        return NavSolution(nom_pos, nom_vel, dcm, time);
+		Vector3 nom_pos{1.0, 2.0, 3.0};
+		Vector3 nom_vel{1.1, -2.2, 0.5};
+		Vector3 nom_rpy{0.7, 0.8, -1.9};
+		auto dcm = xt::transpose(rpy_to_dcm(nom_rpy));
+		return NavSolution(nom_pos, nom_vel, dcm, time);
 	};
 	wrap_test(make_shared<PinsonErrorToStandardQuat>("a", "b", ref_gen), x, x_scales * x);
 }

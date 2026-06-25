@@ -29,7 +29,7 @@ public:
 	 *
 	 * @param dynamics_model A description of the dynamics of the state vector.
 	 */
-	void propagate(const StandardDynamicsModel &dynamics_model) override;
+	void propagate(const StandardDynamicsModel& dynamics_model) override;
 
 	/**
 	 * Unscented Kalman Filter Interface implementation of update.
@@ -38,7 +38,7 @@ public:
 	 *
 	 * @param measurement_model The measurement model to use during innovation.
 	 */
-	void update(const StandardMeasurementModel &measurement_model) override;
+	void update(const StandardMeasurementModel& measurement_model) override;
 
 	not_null<std::shared_ptr<FusionStrategy>> clone() const override;
 

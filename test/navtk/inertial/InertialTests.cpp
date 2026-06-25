@@ -618,10 +618,10 @@ TEST_F(InertialTests, clone_tests) {
 	auto cl = start.clone();
 	verify_sol(start_ref, cl);
 	auto wpa     = WanderPosVelAtt(aspn_xtensor::to_type_timestamp(12.4),
-                               xt::transpose(navtk::navutils::rpy_to_dcm({0.2, 1.0, 3.0})),
-                               101.0,
+	                               xt::transpose(navtk::navutils::rpy_to_dcm({0.2, 1.0, 3.0})),
+	                               101.0,
 	                               {1.2, 3.3, -4.4},
-                               xt::transpose(navtk::navutils::rpy_to_dcm({0.4, 0.6, 0.0})));
+	                               xt::transpose(navtk::navutils::rpy_to_dcm({0.4, 0.6, 0.0})));
 	auto w_clone = wpa.clone();
 	verify_sol(std::make_shared<WanderPosVelAtt>(wpa), w_clone);
 }

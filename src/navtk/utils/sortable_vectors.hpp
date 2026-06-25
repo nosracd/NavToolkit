@@ -16,7 +16,7 @@ namespace utils {
  * @param min_val Baseline value.
  */
 template <typename T>
-void normalize(std::vector<T> &orig, T min_val) {
+void normalize(std::vector<T>& orig, T min_val) {
 	for (Size k = 0; k < orig.size(); k++) {
 		orig[k] -= min_val;
 	}
@@ -54,7 +54,7 @@ std::vector<T> diff(std::vector<T> data) {
  * Return vector will be empty of no duplicates are found.
  */
 template <typename T>
-std::vector<Size> find_duplicates(const std::vector<T> &data) {
+std::vector<Size> find_duplicates(const std::vector<T>& data) {
 	std::vector<Size> duplicate_indices;
 	for (auto k = data.cbegin(); k < data.cend() - 1; k++) {
 		if (*k == *(k + 1)) {
@@ -74,7 +74,7 @@ std::vector<Size> find_duplicates(const std::vector<T> &data) {
  * Return vector will be empty if no duplicates are found.
  */
 template <>
-std::vector<Size> find_duplicates(const std::vector<std::pair<double, double>> &data);
+std::vector<Size> find_duplicates(const std::vector<std::pair<double, double>>& data);
 
 /**
  * Generate a vector of indices marking elements considered outside of the range of another data
@@ -91,8 +91,8 @@ std::vector<Size> find_duplicates(const std::vector<std::pair<double, double>> &
  * `data`.
  */
 template <typename T>
-std::vector<Size> find_outside(const std::vector<double> &query_time,
-                               const std::vector<std::pair<double, T>> &data) {
+std::vector<Size> find_outside(const std::vector<double>& query_time,
+                               const std::vector<std::pair<double, T>>& data) {
 	std::vector<Size> external_indices;
 	for (Size k = 0; k < query_time.size(); k++) {
 		if (query_time[k] < data[0].first || query_time[k] > data[data.size() - 1].first) {
@@ -110,7 +110,7 @@ std::vector<Size> find_outside(const std::vector<double> &query_time,
  * @param to_remove Indices of elements to remove. Should be sorted.
  */
 template <typename T>
-void remove_at_indices(std::vector<T> &data, const std::vector<Size> &to_remove) {
+void remove_at_indices(std::vector<T>& data, const std::vector<Size>& to_remove) {
 	if (!to_remove.empty()) {
 		for (auto rm = to_remove.cend() - 1; rm >= to_remove.cbegin(); rm--) {
 			data.erase(data.cbegin() + *rm);
@@ -129,7 +129,7 @@ void remove_at_indices(std::vector<T> &data, const std::vector<Size> &to_remove)
  */
 template <typename U, typename T>
 std::pair<std::vector<U>, std::vector<T>> split_vector_pairs(
-    const std::vector<std::pair<U, T>> &orig) {
+    const std::vector<std::pair<U, T>>& orig) {
 	std::vector<U> first;
 	std::vector<T> second;
 	first.reserve(orig.size());
@@ -152,15 +152,15 @@ std::pair<std::vector<U>, std::vector<T>> split_vector_pairs(
  * @return A sorted vector of `{tags[k], data[k]}.
  */
 template <typename T>
-std::vector<std::pair<double, T>> pair_and_time_sort_data(const std::vector<double> &tags,
-                                                          const std::vector<T> &data) {
+std::vector<std::pair<double, T>> pair_and_time_sort_data(const std::vector<double>& tags,
+                                                          const std::vector<T>& data) {
 	std::vector<std::pair<double, T>> paired;
 	for (Size k = 0; k < tags.size(); k++) {
 		paired.push_back(std::make_pair(tags[k], data[k]));
 	}
 	sort(paired.begin(),
 	     paired.begin() + paired.size(),
-	     [](std::pair<double, T> &msg1, std::pair<double, T> &msg2) {
+	     [](std::pair<double, T>& msg1, std::pair<double, T>& msg2) {
 		     return msg1.first < msg2.first;
 	     });
 	return paired;

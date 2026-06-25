@@ -17,7 +17,7 @@ bool OutlierDetection::is_outlier(double value) {
 	navtk::Vector value_history_vector = navtk::zeros(value_history.size());
 	navtk::Size ii                     = 0;
 
-	for (auto &val : value_history) value_history_vector[ii++] = val;
+	for (auto& val : value_history) value_history_vector[ii++] = val;
 
 	bool result = is_last_item_an_outlier(value_history_vector);
 	return result;

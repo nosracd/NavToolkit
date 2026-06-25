@@ -36,9 +36,9 @@ std::vector<filtering::NavSolution> constant_vel_pva(filtering::NavSolution star
  * @return 3 x n Matrix of position measurements. The first row will be latitude in radians, the
  * second row longitude in radians, and the third altitude, m HAE.
  */
-Matrix noisy_pos_meas(const std::vector<filtering::NavSolution> &truth,
-                      const Vector &sigma = zeros(3),
-                      const Matrix &err   = zeros(0, 0));
+Matrix noisy_pos_meas(const std::vector<filtering::NavSolution>& truth,
+                      const Vector& sigma = zeros(3),
+                      const Matrix& err   = zeros(0, 0));
 
 /**
  * Generate a set of corrupted altitude measurements.
@@ -50,9 +50,9 @@ Matrix noisy_pos_meas(const std::vector<filtering::NavSolution> &truth,
  *
  * @return n length Vector of altitude measurements, m HAE.
  */
-Vector noisy_alt_meas(const std::vector<filtering::NavSolution> &truth,
+Vector noisy_alt_meas(const std::vector<filtering::NavSolution>& truth,
                       double sigma      = 0.0,
-                      const Vector &err = zeros(0));
+                      const Vector& err = zeros(0));
 
 /**
  * Generate a set of uncorrelated corrupted velocity measurements.
@@ -64,9 +64,9 @@ Vector noisy_alt_meas(const std::vector<filtering::NavSolution> &truth,
  *
  * @return 3 x n Matrix of NED velocity measurements, in m/s.
  */
-Matrix noisy_vel_meas(const std::vector<filtering::NavSolution> &truth,
-                      const Vector &sigma = zeros(3),
-                      const Matrix &err   = zeros(0, 0));
+Matrix noisy_vel_meas(const std::vector<filtering::NavSolution>& truth,
+                      const Vector& sigma = zeros(3),
+                      const Matrix& err   = zeros(0, 0));
 
 /**
  * Generate a set of uncorrelated corrupted attitude measurements (DCMs, nav to platform).
@@ -78,9 +78,9 @@ Matrix noisy_vel_meas(const std::vector<filtering::NavSolution> &truth,
  *
  * @return n length vector of 3x3 nav-to-platform DCMs.
  */
-std::vector<Matrix> noisy_att_meas(const std::vector<filtering::NavSolution> &truth,
-                                   const Vector &tilt_sigma = zeros(3),
-                                   const Matrix &tilts      = zeros(0, 0));
+std::vector<Matrix> noisy_att_meas(const std::vector<filtering::NavSolution>& truth,
+                                   const Vector& tilt_sigma = zeros(3),
+                                   const Matrix& tilts      = zeros(0, 0));
 
 }  // namespace exampleutils
 }  // namespace navtk

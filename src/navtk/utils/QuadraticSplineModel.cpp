@@ -14,7 +14,7 @@ using std::vector;
 using xt::range;
 using xt::view;
 
-QuadraticSplineModel::QuadraticSplineModel(const vector<double> &x, const vector<double> &y)
+QuadraticSplineModel::QuadraticSplineModel(const vector<double>& x, const vector<double>& y)
     : InterpolationModel(x, y) {
 	auto dy                      = xt::adapt(diff(y), {y.size() - 1});
 	auto yr                      = zeros(y.size());

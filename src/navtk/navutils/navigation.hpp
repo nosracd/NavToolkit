@@ -467,7 +467,7 @@ Matrix dcm_to_rpy(const B& dcm) {
 			auto y_pls_r = atan2(dcm_tensor(i, 1, 2) + dcm_tensor(i, 0, 1),
 			                     dcm_tensor(i, 0, 2) - dcm_tensor(i, 1, 1)) +
 			               PI;
-			rpys(i, 2) = remainder((y_pls_r - rpys(i, 0)), 2.0 * PI);
+			rpys(i, 2)   = remainder((y_pls_r - rpys(i, 0)), 2.0 * PI);
 		}
 	}
 

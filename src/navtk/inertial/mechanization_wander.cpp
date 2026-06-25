@@ -228,14 +228,14 @@ not_null<std::shared_ptr<InertialPosVelAtt>> mechanization_wander(
 
 	auto pos_tup = pva->get_C_n_to_e_h();
 	auto tup     = mechanization_wander(meas_accel,
-                                    meas_gyro,
-                                    dt,
-                                    std::get<0>(pos_tup),
-                                    std::get<1>(pos_tup),
-                                    pva->get_vn(),
-                                    pva->get_C_s_to_l(),
-                                    mech_options,
-                                    aiding_alt_data);
+	                                    meas_gyro,
+	                                    dt,
+	                                    std::get<0>(pos_tup),
+	                                    std::get<1>(pos_tup),
+	                                    pva->get_vn(),
+	                                    pva->get_C_s_to_l(),
+	                                    mech_options,
+	                                    aiding_alt_data);
 
 	return std::make_shared<WanderPosVelAtt>(pva->time_validity + dt,
 	                                         std::get<0>(tup),

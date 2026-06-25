@@ -28,7 +28,7 @@ public:
 	StaticWahbaAlignment(const filtering::ImuModel& model = filtering::stim300_model(),
 	                     const double align_time          = 120.0,
 	                     const Matrix3& vel_cov           = Matrix3{
-	                                   {1e-4, 0, 0}, {0, 1e-4, 0}, {0, 0, 1e-4}});
+	                         {1e-4, 0, 0}, {0, 1e-4, 0}, {0, 0, 1e-4}});
 
 	/**
 	 * Get the covariance associated with the computed alignment.

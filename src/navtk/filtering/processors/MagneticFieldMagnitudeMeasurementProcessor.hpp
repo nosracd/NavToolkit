@@ -30,7 +30,7 @@ public:
 	 * @param map N x M grid of map values at grid points (x,y).
 	 */
 	MagneticFieldMagnitudeMeasurementProcessor(std::string label,
-	                                           const std::string &state_block_label,
+	                                           const std::string& state_block_label,
 	                                           Vector x_vec,
 	                                           Vector y_vec,
 	                                           Matrix map);

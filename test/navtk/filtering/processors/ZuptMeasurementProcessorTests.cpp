@@ -33,7 +33,7 @@ using aspn_xtensor::TypeTimestamp;
 using navtk::filtering::ZuptMeasurementProcessor;
 
 using GenXhatPFunction = std::function<std::shared_ptr<navtk::filtering::EstimateWithCovariance>(
-    const std::vector<std::string> &)>;
+    const std::vector<std::string>&)>;
 
 TEST(ZuptMeasurementProcessorTests, wrongMeasType) {
 
@@ -42,7 +42,7 @@ TEST(ZuptMeasurementProcessorTests, wrongMeasType) {
 	auto zupt_mp = ZuptMeasurementProcessor("a", state_block_label, cov);
 
 	int num_states                = 3;
-	GenXhatPFunction dummy_xhat_p = [=](const std::vector<std::string> &) {
+	GenXhatPFunction dummy_xhat_p = [=](const std::vector<std::string>&) {
 		return std::make_shared<EstimateWithCovariance>(navtk::ones(num_states),
 		                                                navtk::zeros(num_states, num_states));
 	};
@@ -63,7 +63,7 @@ ERROR_MODE_SENSITIVE_TEST(TEST, ZuptMeasurementProcessorTests, testInvalidData) 
 	auto zupt_mp                  = ZuptMeasurementProcessor("a", state_block_label, cov);
 
 	int num_states                = 3;
-	GenXhatPFunction dummy_xhat_p = [num_states](const std::vector<std::string> &) {
+	GenXhatPFunction dummy_xhat_p = [num_states](const std::vector<std::string>&) {
 		return std::make_shared<EstimateWithCovariance>(navtk::ones(num_states),
 		                                                navtk::zeros(num_states, num_states));
 	};
@@ -89,7 +89,7 @@ TEST(ZuptMeasurementProcessorTests, expected_model) {
 
 	int num_states = 15;
 
-	GenXhatPFunction dummy_xhat_p = [=](const std::vector<std::string> &) {
+	GenXhatPFunction dummy_xhat_p = [=](const std::vector<std::string>&) {
 		return std::make_shared<EstimateWithCovariance>(navtk::ones(num_states),
 		                                                navtk::zeros(num_states, num_states));
 	};
@@ -145,7 +145,7 @@ TEST(ZuptMeasurementProcessorTests, detect_imu_stationary) {
 
 	int num_states = 15;
 
-	GenXhatPFunction dummy_xhat_p = [=](const std::vector<std::string> &) {
+	GenXhatPFunction dummy_xhat_p = [=](const std::vector<std::string>&) {
 		return std::make_shared<EstimateWithCovariance>(navtk::ones(num_states),
 		                                                navtk::zeros(num_states, num_states));
 	};
@@ -180,7 +180,7 @@ TEST(ZuptMeasurementProcessorTests, detect_pos_stationary) {
 
 	int num_states = 15;
 
-	GenXhatPFunction dummy_xhat_p = [=](const std::vector<std::string> &) {
+	GenXhatPFunction dummy_xhat_p = [=](const std::vector<std::string>&) {
 		return std::make_shared<EstimateWithCovariance>(navtk::ones(num_states),
 		                                                navtk::zeros(num_states, num_states));
 	};
@@ -224,7 +224,7 @@ TEST(ZuptMeasurementProcessorTests, detect_imu_movement) {
 
 	int num_states = 15;
 
-	GenXhatPFunction dummy_xhat_p = [=](const std::vector<std::string> &) {
+	GenXhatPFunction dummy_xhat_p = [=](const std::vector<std::string>&) {
 		return std::make_shared<EstimateWithCovariance>(navtk::ones(num_states),
 		                                                navtk::zeros(num_states, num_states));
 	};
@@ -259,7 +259,7 @@ TEST(ZuptMeasurementProcessorTests, detect_pos_movement) {
 
 	int num_states = 15;
 
-	GenXhatPFunction dummy_xhat_p = [=](const std::vector<std::string> &) {
+	GenXhatPFunction dummy_xhat_p = [=](const std::vector<std::string>&) {
 		return std::make_shared<EstimateWithCovariance>(navtk::ones(num_states),
 		                                                navtk::zeros(num_states, num_states));
 	};

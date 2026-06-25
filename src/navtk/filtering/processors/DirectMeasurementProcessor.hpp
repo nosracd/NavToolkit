@@ -32,7 +32,7 @@ public:
 	 * of states referenced by `state_block_labels`..
 	 */
 	DirectMeasurementProcessor(std::string label,
-	                           const std::string &state_block_label,
+	                           const std::string& state_block_label,
 	                           Matrix measurement_matrix);
 
 	/**
@@ -55,7 +55,7 @@ public:
 	 *
 	 * @param processor The DirectMeasurementProcessor to copy.
 	 */
-	DirectMeasurementProcessor(const DirectMeasurementProcessor &processor);
+	DirectMeasurementProcessor(const DirectMeasurementProcessor& processor);
 
 	/**
 	 * Generates a StandardMeasurementModel instance that maps the input data to the estimated

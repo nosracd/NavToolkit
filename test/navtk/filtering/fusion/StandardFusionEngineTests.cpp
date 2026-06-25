@@ -52,7 +52,7 @@ using xt::range;
 using xt::view;
 
 template <typename T>
-T *anonymous() {
+T* anonymous() {
 	return new T();
 }
 
@@ -103,7 +103,7 @@ struct StandardFusionEngineTests : public ::testing::Test {
 	public:
 		std::shared_ptr<FakeAux> aux;
 		Processor() : TestableProcessor("myprocessor", std::vector<std::string>{"myblock"}) {}
-		virtual void receive_aux_data(const AspnBaseVector &r) override {
+		virtual void receive_aux_data(const AspnBaseVector& r) override {
 			aux = std::dynamic_pointer_cast<FakeAux>(r[0]);
 		}
 		virtual not_null<std::shared_ptr<MeasurementProcessor<>>> clone() override {
@@ -159,7 +159,7 @@ struct StandardFusionEngineTests : public ::testing::Test {
 
 	class NullModelProcessor : public TestableProcessor {
 	public:
-		NullModelProcessor(const std::string &block_label)
+		NullModelProcessor(const std::string& block_label)
 		    : TestableProcessor("myprocessor", {block_label}) {}
 		virtual not_null<std::shared_ptr<MeasurementProcessor<>>> clone() override {
 			return make_shared<NullModelProcessor>(get_state_block_labels().front());
@@ -175,7 +175,7 @@ struct StandardFusionEngineTests : public ::testing::Test {
 	public:
 		std::shared_ptr<FakeAux> aux;
 		Block(size_t num_states = 1) : TestableBlock(num_states, "myblock") {}
-		virtual void receive_aux_data(const AspnBaseVector &r) override {
+		virtual void receive_aux_data(const AspnBaseVector& r) override {
 			aux = std::dynamic_pointer_cast<FakeAux>(r[0]);
 		}
 		virtual not_null<std::shared_ptr<StateBlock<>>> clone() override {
@@ -221,8 +221,8 @@ struct StandardFusionEngineTests : public ::testing::Test {
 		}
 	};
 
-	void check_copy(TestableStandardFusionEngine &engine,
-	                const TestableStandardFusionEngine &engine_copy) {
+	void check_copy(TestableStandardFusionEngine& engine,
+	                const TestableStandardFusionEngine& engine_copy) {
 		// Verify that all basic fields on the engine are deeply copied.
 		ASSERT_EQ(engine.cur_time, engine_copy.cur_time);
 		engine.cur_time = engine.cur_time + 1.0;
@@ -345,7 +345,7 @@ TEST_F(StandardFusionEngineTests, UpdateConverges) {
 	engine.set_state_block_estimate("myblock", Vector{9});
 	engine.set_state_block_covariance("myblock", Matrix{{8}});
 	engine.add_measurement_processor(processor);
-	for (auto &meas : measurements) {
+	for (auto& meas : measurements) {
 		auto data        = std::dynamic_pointer_cast<GaussianVectorData>(meas);
 		data->covariance = Matrix{{0.0001}};
 		engine.update("myprocessor", meas);
@@ -504,7 +504,7 @@ ERROR_MODE_SENSITIVE_TEST(TEST_F, StandardFusionEngineTests, StateBlockWrongNumS
 class BadBlock : public StateBlock<> {
 public:
 	BadBlock() : StateBlock(1, "myblock") {}
-	virtual void receive_aux_data(const AspnBaseVector &) override {}
+	virtual void receive_aux_data(const AspnBaseVector&) override {}
 	virtual not_null<std::shared_ptr<StateBlock<>>> clone() override {
 		return make_shared<BadBlock>();
 	}
@@ -709,7 +709,7 @@ TEST_F(StandardFusionEngineTests, ExpandUpdateModel) {
 	engine.add_measurement_processor(processor2);
 	engine.add_measurement_processor(processor3);
 
-	auto gen_x_and_p_func = [&engine](const std::vector<std::string> &labels)
+	auto gen_x_and_p_func = [&engine](const std::vector<std::string>& labels)
 	    -> std::shared_ptr<navtk::filtering::EstimateWithCovariance> {
 		return engine.generate_x_and_p(labels);
 	};
@@ -1173,7 +1173,9 @@ TEST_F(StandardFusionEngineTests, copy) {
 	auto engine_copy = TestableStandardFusionEngine(engine);
 
 	// Copy and scope-delete, should help expose any shallow-copy issues if it isn't compiled away
-	{ auto trash_copy = TestableStandardFusionEngine(engine); }
+	{
+		auto trash_copy = TestableStandardFusionEngine(engine);
+	}
 	check_copy(engine, engine_copy);
 }
 

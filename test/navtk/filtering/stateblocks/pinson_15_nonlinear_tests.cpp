@@ -55,9 +55,9 @@ std::pair<Pva, Imu> correct(NavSolution ns, Vector3 fned, Vector3 w_b_ib, Vector
 	auto cor_fned = fned - dot(xt::transpose(ns.rot_mat), xt::view(xx, xt::range(9, 12)));
 
 	auto cor_ns     = NavSolution(Vector3{cor_lat, cor_lon, cor_alt},
-                              cor_vel,
-                              xt::transpose(cor_cnb),
-                              aspn_xtensor::TypeTimestamp((int64_t)0));
+	                              cor_vel,
+	                              xt::transpose(cor_cnb),
+	                              aspn_xtensor::TypeTimestamp((int64_t)0));
 	auto w_b_ib_cor = w_b_ib - xt::view(xx, xt::range(12, 15));
 	auto pva        = navtk::utils::to_positionvelocityattitude(cor_ns);
 	auto f_and_r    = navtk::utils::to_imu(pva.get_time_of_validity(), cor_fned, w_b_ib_cor);
@@ -138,10 +138,10 @@ struct Pinson15NonlinearTests : public ::testing::Test {
  * is an abuse; result is not actually a valid NavSolution).
  */
 NavSolution straight_prop(Pva pva, Vector3 fb, Vector3 w_b_ib) {
-	Vector ned_dot = navtk::utils::extract_vel(pva);
-	auto em        = EarthModel(navtk::utils::extract_pos(pva), ned_dot);
-	Vector v_dot   = dot(navtk::navutils::quat_to_dcm(pva.get_quaternion()), fb) -
-	               cross(2.0 * em.omega_ie_n + em.omega_en_n, ned_dot) + em.g_n;
+	Vector ned_dot  = navtk::utils::extract_vel(pva);
+	auto em         = EarthModel(navtk::utils::extract_pos(pva), ned_dot);
+	Vector v_dot    = dot(navtk::navutils::quat_to_dcm(pva.get_quaternion()), fb) -
+	                  cross(2.0 * em.omega_ie_n + em.omega_en_n, ned_dot) + em.g_n;
 	auto cnb        = navtk::navutils::quat_to_dcm(pva.get_quaternion());
 	Matrix3 cnb_dot = dot(cnb, skew(w_b_ib)) - dot(skew(em.omega_in_n), cnb);
 

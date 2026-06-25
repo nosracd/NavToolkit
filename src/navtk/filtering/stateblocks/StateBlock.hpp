@@ -79,7 +79,7 @@ public:
 	 * default (zeros(1, 1)). In this case, the Q matrix becomes zeros(num_states, num_states).
 	 */
 	StateBlock(size_t num_states,
-	           const std::string &label,
+	           const std::string& label,
 	           DiscretizationStrategy discretization_strategy = &full_order_discretization_strategy,
 	           Matrix Q                                       = {{0.0}})
 	    : num_states(num_states),
@@ -139,7 +139,7 @@ public:
 	 * message in the incoming AspnBaseVector against the specific aspn_xtensor::AspnBase subclasses
 	 * you can support.
 	 */
-	virtual void receive_aux_data(const AspnBaseVector &) {
+	virtual void receive_aux_data(const AspnBaseVector&) {
 		spdlog::warn("The state block labeled {} does not utilize this type of aux data.", label);
 	};
 

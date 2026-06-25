@@ -112,8 +112,8 @@ struct Attitude3dProcessorTests : public ::testing::Test {
 		auto labels = std::vector<std::string>{b_lab};
 		auto proc   = Attitude3dMeasurementProcessor(proc_lab, labels);
 		auto genxp  = [&num](const std::vector<std::string>&) {
-            return std::make_shared<navtk::filtering::EstimateWithCovariance>(
-                xt::arange(0, (int)num), zeros(num, num));
+			return std::make_shared<navtk::filtering::EstimateWithCovariance>(
+			    xt::arange(0, (int)num), zeros(num, num));
 		};
 		auto mod = proc.generate_model(dummy_att3d, genxp);
 		auto x   = genxp(labels)->estimate;
@@ -137,20 +137,20 @@ struct Attitude3dProcessorTests : public ::testing::Test {
 		auto header = TypeHeader(ASPN_MEASUREMENT_ATTITUDE_3D, 0, 0, 0, 0);
 		auto time   = TypeTimestamp((int64_t)0);
 		auto pva0   = MeasurementPositionVelocityAttitude(
-            header,
-            time,
-            ASPN_MEASUREMENT_POSITION_VELOCITY_ATTITUDE_REFERENCE_FRAME_GEODETIC,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            0.0,
-            rpy_to_quat(zeros(3)),
-            zeros(9, 9),
-            ASPN_MEASUREMENT_POSITION_VELOCITY_ATTITUDE_ERROR_MODEL_NONE,
-            Vector(),
-            std::vector<aspn_xtensor::TypeIntegrity>{});
+		    header,
+		    time,
+		    ASPN_MEASUREMENT_POSITION_VELOCITY_ATTITUDE_REFERENCE_FRAME_GEODETIC,
+		    0.0,
+		    0.0,
+		    0.0,
+		    0.0,
+		    0.0,
+		    0.0,
+		    rpy_to_quat(zeros(3)),
+		    zeros(9, 9),
+		    ASPN_MEASUREMENT_POSITION_VELOCITY_ATTITUDE_ERROR_MODEL_NONE,
+		    Vector(),
+		    std::vector<aspn_xtensor::TypeIntegrity>{});
 		auto nav0 = navtk::utils::to_navsolution(pva0);
 
 		Vector3 tilts{4e-2, -3e-2, -1e-2};
@@ -242,7 +242,7 @@ struct Attitude3dProcessorTests : public ::testing::Test {
 		auto pins_tilt = xt::abs(eye(3) - dot(quat_to_dcm(truth->get_quaternion()),
 		                                      xt::transpose(quat_to_dcm(s1->get_quaternion()))));
 		auto vsb_tilt  = xt::abs(eye(3) - dot(quat_to_dcm(truth->get_quaternion()),
-                                             xt::transpose(quat_to_dcm(s2->get_quaternion()))));
+		                                      xt::transpose(quat_to_dcm(s2->get_quaternion()))));
 
 		ASSERT_ALLCLOSE_EX(zeros(3, 3), pins_tilt, 0.0, atol);
 		ASSERT_ALLCLOSE_EX(zeros(3, 3), vsb_tilt, 0.0, atol);
@@ -272,7 +272,7 @@ ERROR_MODE_SENSITIVE_TEST(TEST_F, Attitude3dProcessorTests, too_small_block) {
 	auto labels = std::vector<std::string>{test.b_lab};
 	auto proc   = Attitude3dMeasurementProcessor(test.proc_lab, labels);
 	auto genxp  = [](const std::vector<std::string>&) {
-        return std::make_shared<navtk::filtering::EstimateWithCovariance>(zeros(2), zeros(2, 2));
+		return std::make_shared<navtk::filtering::EstimateWithCovariance>(zeros(2), zeros(2, 2));
 	};
 	auto res = EXPECT_HONORS_MODE(proc.generate_model(test.dummy_att3d, genxp), "fewer than 3");
 	ASSERT_TRUE(res == nullptr);
@@ -286,10 +286,10 @@ ERROR_MODE_SENSITIVE_TEST(TEST_F, Attitude3dProcessorTests, unsupported_meas) {
 	};
 	auto proc = Attitude3dMeasurementProcessor(test.proc_lab, std::vector<std::string>{test.b_lab});
 	auto res  = EXPECT_HONORS_MODE(
-        proc.generate_model(std::make_shared<navtk::filtering::GaussianVectorData>(
-                                aspn_xtensor::TypeTimestamp((int64_t)0), zeros(3), eye(3)),
-                            genxp),
-        "measurement is unsupported");
+	    proc.generate_model(std::make_shared<navtk::filtering::GaussianVectorData>(
+	                            aspn_xtensor::TypeTimestamp((int64_t)0), zeros(3), eye(3)),
+	                        genxp),
+	    "measurement is unsupported");
 	ASSERT_TRUE(res == nullptr);
 }
 
@@ -297,7 +297,7 @@ ERROR_MODE_SENSITIVE_TEST(TEST_F, Attitude3dProcessorTests, bad_state_labels) {
 	auto genxp = [](const std::vector<std::string>&) { return nullptr; };
 	auto proc  = Attitude3dMeasurementProcessor(test.proc_lab, std::vector<std::string>{});
 	auto res   = EXPECT_HONORS_MODE(proc.generate_model(test.dummy_att3d, genxp),
-                                  "gen_x_and_p_func returned null");
+	                                "gen_x_and_p_func returned null");
 	ASSERT_TRUE(res == nullptr);
 }
 

@@ -156,7 +156,7 @@ TEST_F(VirtualStateBlockTests, s2bCovDiag_SLOW) {
 	auto C_platform_to_sensor = xt::transpose(rpy_to_dcm(Vector{-1.0, 0.4, 2.1}));
 	auto C_k_to_j             = xt::transpose(rpy_to_dcm(Vector{0.6, 2.4, -1.1}));
 	auto tx                   = SensorToPlatformCartesianVirtualStateBlock(
-        "wholeBase", "shiftedIdentity", la, C_platform_to_sensor, C_k_to_j);
+	    "wholeBase", "shiftedIdentity", la, C_platform_to_sensor, C_k_to_j);
 
 	auto cvt = test_transform(start_point, tx);
 
@@ -195,7 +195,7 @@ TEST_F(VirtualStateBlockTests, b2sCovDiag_SLOW) {
 	auto C_platform_to_sensor = xt::transpose(rpy_to_dcm(Vector{-1.0, 0.4, 2.1}));
 	auto C_k_to_j             = xt::transpose(rpy_to_dcm(Vector{0.6, 2.4, -1.1}));
 	auto tx                   = PlatformToSensorCartesianVirtualStateBlock(
-        "wholeBase", "shiftedIdentity", la, C_platform_to_sensor, C_k_to_j);
+	    "wholeBase", "shiftedIdentity", la, C_platform_to_sensor, C_k_to_j);
 	test_transform(start_point, tx);
 }
 
@@ -204,7 +204,7 @@ TEST_F(VirtualStateBlockTests, b2s_inversion) {
 	auto C_platform_to_sensor = xt::transpose(rpy_to_dcm(Vector{-1.0, 0.4, 2.1}));
 	auto C_k_to_j             = xt::transpose(rpy_to_dcm(Vector{0.6, 2.4, -1.1}));
 	auto tx                   = PlatformToSensorCartesianVirtualStateBlock(
-        "wholeBase", "shiftedIdentity", la, C_platform_to_sensor, C_k_to_j);
+	    "wholeBase", "shiftedIdentity", la, C_platform_to_sensor, C_k_to_j);
 	auto tx2 = SensorToPlatformCartesianVirtualStateBlock(
 	    "shiftedIdentity", "wholeBase", la, C_platform_to_sensor, C_k_to_j);
 	auto fin = tx2.convert(tx.convert(start_point, aspn_xtensor::TypeTimestamp((int64_t)0)),
@@ -220,7 +220,7 @@ TEST_F(VirtualStateBlockTests, genericShiftVsSpecific) {
 	auto C_platform_to_sensor = xt::transpose(rpy_to_dcm(Vector{-1.0, 0.4, 2.1}));
 	auto C_k_to_j             = xt::transpose(rpy_to_dcm(Vector{0.6, 2.4, -1.1}));
 	auto tx                   = PlatformToSensorCartesianVirtualStateBlock(
-        "wholeBase", "shiftedIdentity", la, C_platform_to_sensor, C_k_to_j);
+	    "wholeBase", "shiftedIdentity", la, C_platform_to_sensor, C_k_to_j);
 
 	// Wrapping these functions is a little underhanded since they'll have
 	// access to the state of the other transformer, but it's way easier

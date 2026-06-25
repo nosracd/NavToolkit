@@ -33,7 +33,7 @@ TEST(FogmBlockTests, testMultiState_SLOW) {
 		// Update block and grab dynamics model.
 		auto block = FogmBlock("a", tau, sigma, num_states);
 		auto dyn   = block.generate_dynamics(
-            NULL_GEN_XHAT_AND_P_FUNCTION, to_type_timestamp(), to_type_timestamp(dt));
+		    NULL_GEN_XHAT_AND_P_FUNCTION, to_type_timestamp(), to_type_timestamp(dt));
 
 		// Build expected Phi matrix.
 		Matrix expected_phi = eye(num_states) * exp(-dt / tau);
@@ -55,7 +55,7 @@ TEST(FogmBlockTests, testDifferentFOGMParameters) {
 		// Update block and grab dynamics model.
 		auto block = FogmBlock("a", tau, sigma, num_states);
 		auto dyn   = block.generate_dynamics(
-            NULL_GEN_XHAT_AND_P_FUNCTION, to_type_timestamp(), to_type_timestamp(dt));
+		    NULL_GEN_XHAT_AND_P_FUNCTION, to_type_timestamp(), to_type_timestamp(dt));
 
 		// Build expected Phi matrix.
 		Vector phi_elements = {exp(-dt / tau(0)), exp(-dt / tau(1)), exp(-dt / tau(2))};
@@ -79,7 +79,7 @@ std::pair<Vector, Matrix> run_steady_state_test(T&& block,
 	auto xhat = zeros(states);
 	auto P    = zeros(states, states);
 	auto dyn  = block.generate_dynamics(
-        NULL_GEN_XHAT_AND_P_FUNCTION, to_type_timestamp(), to_type_timestamp(dt));
+	    NULL_GEN_XHAT_AND_P_FUNCTION, to_type_timestamp(), to_type_timestamp(dt));
 	for (decltype(iterations) it = 0; it < iterations; ++it) {
 		xhat = navtk::dot(dyn.Phi, xhat);
 		P    = navtk::dot(navtk::dot(dyn.Phi, P), xt::transpose(dyn.Phi)) + dyn.Qd;
@@ -121,7 +121,7 @@ TEST(FogmBlockTests, testVelocityFOGM) {
 		// Update block and grab dynamics model.
 		auto block = FogmVelocity("a", tau, sigma, dim);
 		auto dyn   = block.generate_dynamics(
-            NULL_GEN_XHAT_AND_P_FUNCTION, to_type_timestamp(), to_type_timestamp(dt));
+		    NULL_GEN_XHAT_AND_P_FUNCTION, to_type_timestamp(), to_type_timestamp(dt));
 
 		// Build expected Phi matrix.
 		Matrix expected_f                                          = zeros(dim * 2, dim * 2);
@@ -178,7 +178,7 @@ TEST(FogmBlockTests, testAccelFOGM) {
 		// Update block and grab dynamics model.
 		auto block = FogmAccel("a", tau, sigma, dim);
 		auto dyn   = block.generate_dynamics(
-            NULL_GEN_XHAT_AND_P_FUNCTION, to_type_timestamp(), to_type_timestamp(dt));
+		    NULL_GEN_XHAT_AND_P_FUNCTION, to_type_timestamp(), to_type_timestamp(dt));
 
 		// Build expected Phi matrix.
 		Matrix expected_f                                                = zeros(dim * 3, dim * 3);
@@ -370,7 +370,7 @@ TEST(FogmBlockTests, AccelCloneIsNotObjectSlice) {
 	FogmAccel block("Accel", 1.0, 1.0, 2);
 	auto clone = block.clone();
 	auto dyn   = block.generate_dynamics(
-        NULL_GEN_XHAT_AND_P_FUNCTION, to_type_timestamp(1.0), to_type_timestamp(2.0));
+	    NULL_GEN_XHAT_AND_P_FUNCTION, to_type_timestamp(1.0), to_type_timestamp(2.0));
 	auto clone_dyn = clone->generate_dynamics(
 	    NULL_GEN_XHAT_AND_P_FUNCTION, to_type_timestamp(1.0), to_type_timestamp(2.0));
 	auto& clone_ref = *clone;
@@ -382,7 +382,7 @@ TEST(FogmBlockTests, VeloCloneIsNotObjectSlice) {
 	FogmVelocity block("Velocity", 1.0, 1.0, 2);
 	auto clone = block.clone();
 	auto dyn   = block.generate_dynamics(
-        NULL_GEN_XHAT_AND_P_FUNCTION, to_type_timestamp(1.0), to_type_timestamp(2.0));
+	    NULL_GEN_XHAT_AND_P_FUNCTION, to_type_timestamp(1.0), to_type_timestamp(2.0));
 	auto clone_dyn = clone->generate_dynamics(
 	    NULL_GEN_XHAT_AND_P_FUNCTION, to_type_timestamp(1.0), to_type_timestamp(2.0));
 	auto& clone_ref = *clone;

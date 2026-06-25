@@ -775,8 +775,8 @@ TEST(delta_lat_to_north, InitializerTest) {
 	                                                  6.27613911e-05,
 	                                                  7.84517389e-04,
 	                                                  9.41420867e-03},
-                                              approx_lat,
-                                              approx_alt);
+	                                                 approx_lat,
+	                                                 approx_alt);
 	ASSERT_ALLCLOSE(north_distances, north_distances_test);
 }
 
@@ -812,13 +812,13 @@ TEST(delta_lon_to_east, BatchTest) {
 	Vector approx_alts         = approx_alt * ones(6);
 	Vector east_distances_test = {0.1, 2, 30, 400, 5000, 60000};
 	Vector delta_lons          = {
-        -2.40651610e-08,
-        -4.81303219e-07,
-        -7.21954829e-06,
-        -9.62606439e-05,
-        -1.20325805e-03,
-        -1.44390966e-02,
-    };
+	    -2.40651610e-08,
+	    -4.81303219e-07,
+	    -7.21954829e-06,
+	    -9.62606439e-05,
+	    -1.20325805e-03,
+	    -1.44390966e-02,
+	};
 
 	// Batch of points
 	Vector east_distances_1 = delta_lon_to_east(delta_lons, approx_lat, approx_alt);
@@ -833,16 +833,16 @@ TEST(delta_lon_to_east, InitializerTest) {
 	double approx_alt          = 1000;
 	Vector east_distances_test = {0.1, 2, 30, 400, 5000, 60000};
 	auto east_distances        = delta_lon_to_east(
-        {
-            -2.40651610e-08,
-            -4.81303219e-07,
-            -7.21954829e-06,
-            -9.62606439e-05,
-            -1.20325805e-03,
-            -1.44390966e-02,
-        },
-        approx_lat,
-        approx_alt);
+	    {
+	        -2.40651610e-08,
+	        -4.81303219e-07,
+	        -7.21954829e-06,
+	        -9.62606439e-05,
+	        -1.20325805e-03,
+	        -1.44390966e-02,
+	    },
+	    approx_lat,
+	    approx_alt);
 	ASSERT_ALLCLOSE(east_distances, east_distances_test);
 }
 

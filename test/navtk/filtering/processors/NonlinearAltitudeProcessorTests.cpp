@@ -101,7 +101,7 @@ public:
 		state_indices      = {0, 1, 2};
 		processor_label    = "processor";
 		processor          = std::make_shared<NonlinearAltitudeProcessor>(
-            processor_label, state_block_labels, state_indices, elevation_provider, 3);
+		    processor_label, state_block_labels, state_indices, elevation_provider, 3);
 
 		auto header = TypeHeader(ASPN_MEASUREMENT_ALTITUDE, 0, 0, 0, 0);
 		auto time   = TypeTimestamp(int64_t(0));

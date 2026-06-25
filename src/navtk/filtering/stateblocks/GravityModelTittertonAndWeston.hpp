@@ -18,7 +18,7 @@ struct GravityModelTittertonAndWeston : GravityModel {
 	 *
 	 * @return Gravity magnitude (m/s^2).
 	 */
-	double calculate_gravity(const EarthModel &earth_model, double alt_msl) const override;
+	double calculate_gravity(const EarthModel& earth_model, double alt_msl) const override;
 };
 }  // namespace filtering
 }  // namespace navtk

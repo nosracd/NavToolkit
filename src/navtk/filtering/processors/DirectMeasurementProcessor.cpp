@@ -9,7 +9,7 @@ namespace navtk {
 namespace filtering {
 
 DirectMeasurementProcessor::DirectMeasurementProcessor(std::string label,
-                                                       const std::string &state_block_label,
+                                                       const std::string& state_block_label,
                                                        Matrix measurement_matrix)
     : MeasurementProcessor(std::move(label), std::vector<std::string>(1, state_block_label)),
       measurement_matrix(std::move(measurement_matrix)) {}
@@ -20,7 +20,7 @@ DirectMeasurementProcessor::DirectMeasurementProcessor(std::string label,
     : MeasurementProcessor(std::move(label), std::move(state_block_labels)),
       measurement_matrix(std::move(measurement_matrix)) {}
 
-DirectMeasurementProcessor::DirectMeasurementProcessor(const DirectMeasurementProcessor &processor)
+DirectMeasurementProcessor::DirectMeasurementProcessor(const DirectMeasurementProcessor& processor)
     : MeasurementProcessor(processor), measurement_matrix(processor.measurement_matrix) {}
 
 std::shared_ptr<StandardMeasurementModel> DirectMeasurementProcessor::generate_model(

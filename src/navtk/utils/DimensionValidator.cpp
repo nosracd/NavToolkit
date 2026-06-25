@@ -345,7 +345,7 @@ public:
 			if (is_number(rows) && is_number(cols)) {
 				auto expected = concoct_fixed_description(rows, cols);
 				auto actual   = concoct_fixed_description(std::to_string(num_rows(matrix)),
-                                                        std::to_string(num_cols(matrix)));
+				                                          std::to_string(num_cols(matrix)));
 				build_string << std::endl << name << " must be " << expected << ", got " << actual;
 			}
 

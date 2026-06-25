@@ -11,7 +11,7 @@ namespace navtk {
 namespace filtering {
 
 MagneticFieldMagnitudeMeasurementProcessor::MagneticFieldMagnitudeMeasurementProcessor(
-    std::string label, const std::string &state_block_label, Vector x_vec, Vector y_vec, Matrix map)
+    std::string label, const std::string& state_block_label, Vector x_vec, Vector y_vec, Matrix map)
     : MeasurementProcessor(std::move(label), std::vector<std::string>(1, state_block_label)),
       h_map(std::move(x_vec), std::move(y_vec), std::move(map)) {}
 
@@ -52,12 +52,12 @@ MagneticFieldMagnitudeMeasurementProcessor::generate_model(
 	Vector est      = xhat_p->estimate;
 	Vector3 ins_lla = input_meas->ref_pva.pos;
 	auto h          = [ins_lla = ins_lla, this](double delta_north, double delta_east) {
-        auto filter_corr_lat = ins_lla[0] + navutils::north_to_delta_lat(delta_north, ins_lla[0]);
-        auto filter_corr_lon = ins_lla[1] + navutils::east_to_delta_lon(delta_east, ins_lla[0]);
-        auto value = h_map.interpolate(filter_corr_lat * RAD2DEG, filter_corr_lon * RAD2DEG);
-        return Vector{value};
+		auto filter_corr_lat = ins_lla[0] + navutils::north_to_delta_lat(delta_north, ins_lla[0]);
+		auto filter_corr_lon = ins_lla[1] + navutils::east_to_delta_lon(delta_east, ins_lla[0]);
+		auto value = h_map.interpolate(filter_corr_lat * RAD2DEG, filter_corr_lon * RAD2DEG);
+		return Vector{value};
 	};
-	auto model_h = [h = h](const Vector &xhat) { return h(xhat[0], xhat[1]); };
+	auto model_h = [h = h](const Vector& xhat) { return h(xhat[0], xhat[1]); };
 
 	// Calculate H
 	auto epsilon    = 50.0;

@@ -127,10 +127,10 @@ struct InterpolationTests : public ::testing::Test {
 		auto stop_dcm         = navtk::dot(tx, mid_dcm);
 		auto stop_rpy         = navtk::navutils::dcm_to_rpy(xt::transpose(stop_dcm));
 		auto calc_mid         = linear_interp_rpy(aspn_xtensor::TypeTimestamp((int64_t)0),
-                                          start_rpy,
-                                          to_type_timestamp(1.0),
-                                          stop_rpy,
-                                          to_type_timestamp(0.5));
+		                                          start_rpy,
+		                                          to_type_timestamp(1.0),
+		                                          stop_rpy,
+		                                          to_type_timestamp(0.5));
 		auto new_mid          = xt::transpose(navtk::navutils::rpy_to_dcm(calc_mid));
 		ASSERT_ALLCLOSE(mid_dcm, new_mid);
 	}
@@ -531,11 +531,11 @@ TEST_F(InterpolationTests, LinearInterpolateRpyOutsideRange) {
 	auto rpy1 = navtk::zeros(3);
 	auto rpy2 = navtk::ones(3);
 	auto rpy  = EXPECT_WARN(linear_interp_rpy(aspn_xtensor::TypeTimestamp((int64_t)0),
-                                             navtk::zeros(3),
-                                             to_type_timestamp(1.0),
-                                             navtk::ones(3),
-                                             to_type_timestamp(1.5)),
-                           "after latest data point");
+	                                          navtk::zeros(3),
+	                                          to_type_timestamp(1.0),
+	                                          navtk::ones(3),
+	                                          to_type_timestamp(1.5)),
+	                        "after latest data point");
 	ASSERT_ALLCLOSE(rpy, rpy2);
 }
 
@@ -693,8 +693,8 @@ TEST_F(InterpolationTests, LinearExtrapolatePvaOutsideRange) {
 TEST_F(InterpolationTests, LinearExtrapolatePvaOutsideRangePtr) {
 	auto time = to_type_timestamp(1.5);
 	auto pva  = EXPECT_NO_LOG(
-        linear_extrapolate_pva(std::make_shared<MeasurementPositionVelocityAttitude>(pva0),
-                               std::make_shared<MeasurementPositionVelocityAttitude>(pva1),
-                               time));
+	    linear_extrapolate_pva(std::make_shared<MeasurementPositionVelocityAttitude>(pva0),
+	                           std::make_shared<MeasurementPositionVelocityAttitude>(pva1),
+	                           time));
 	ASSERT_EQ(pva->get_time_of_validity(), time);
 }

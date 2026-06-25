@@ -51,7 +51,7 @@ public:
 	 * GravityModelSchwartz.
 	 */
 	Pinson21NedBlock(
-	    const std::string &label,
+	    const std::string& label,
 	    ImuModel imu_model,
 	    Pinson15NedBlock::LinearizationPointFunction lin_function = nullptr,
 	    DiscretizationStrategy discretization_strategy = &second_order_discretization_strategy,
@@ -63,7 +63,7 @@ public:
 	 *
 	 * @param block The Pinson21NedBlock to copy.
 	 */
-	Pinson21NedBlock(const Pinson21NedBlock &block);
+	Pinson21NedBlock(const Pinson21NedBlock& block);
 
 	/**
 	 * Create a copy of the StateBlock with the same properties. Note that the lin_function of
@@ -78,7 +78,7 @@ public:
 	 *
 	 * @param aux_data An AspnBaseVector containing aux data as subclasses of aspn_xtensor::AspnBase
 	 */
-	void receive_aux_data(const AspnBaseVector &aux_data) override;
+	void receive_aux_data(const AspnBaseVector& aux_data) override;
 
 	/**
 	 * Generates the dynamics model for the filter.

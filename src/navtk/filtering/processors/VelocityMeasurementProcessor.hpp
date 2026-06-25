@@ -36,7 +36,7 @@ public:
 	 * \p expected_frame
 	 */
 	VelocityMeasurementProcessor(std::string label,
-	                             const std::string &state_block_label,
+	                             const std::string& state_block_label,
 	                             Matrix measurement_matrix,
 	                             bool use_x,
 	                             bool use_y,

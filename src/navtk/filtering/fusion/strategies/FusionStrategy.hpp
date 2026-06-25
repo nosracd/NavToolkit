@@ -61,8 +61,8 @@ public:
 	 * @return The index of the first state added (let this be N), such that
 	 * `xt::view(get_estimate(), xt::range(N, N + how_many))` will be the new states.
 	 */
-	Size on_fusion_engine_state_block_added(Vector const &initial_estimate,
-	                                        Matrix const &initial_covariance);
+	Size on_fusion_engine_state_block_added(Vector const& initial_estimate,
+	                                        Matrix const& initial_covariance);
 	/**
 	 * A method that is called by the fusion engine when a state block has been added. It is not
 	 * intended to be called directly. It increases the size of the estimate and covariance. The
@@ -79,9 +79,9 @@ public:
 	 * @return The index of the first state added (let this be N), such that
 	 * `xt::view(get_estimate(), xt::range(N, N + how_many))` will be the new states.
 	 */
-	Size on_fusion_engine_state_block_added(Vector const &initial_estimate,
-	                                        Matrix const &initial_covariance,
-	                                        Matrix const &cross_covariance);
+	Size on_fusion_engine_state_block_added(Vector const& initial_estimate,
+	                                        Matrix const& initial_covariance,
+	                                        Matrix const& cross_covariance);
 
 	/**
 	 * A method that is called by the fusion engine when a state block has been removed. It is not
@@ -105,7 +105,7 @@ public:
 	 * @param first_index The first index of the estimate that should be replaced by \p
 	 * new_estimate .
 	 */
-	void set_estimate_slice(Vector const &new_estimate, Size first_index = 0);
+	void set_estimate_slice(Vector const& new_estimate, Size first_index = 0);
 
 	/**
 	 * @return The current state covariance.
@@ -121,7 +121,7 @@ public:
 	 * @param first_row The first row of P to be replaced.
 	 * @param first_col The first column of P to be replaced.
 	 */
-	void set_covariance_slice(Matrix const &new_covariance, Size first_row, Size first_col);
+	void set_covariance_slice(Matrix const& new_covariance, Size first_row, Size first_col);
 
 	/**
 	 * Change a subset of the covariance matrix, along its diagonal, starting with the given state
@@ -135,7 +135,7 @@ public:
 	 * matrix P.
 	 * @param first_state The first state of the covariance to be replaced by \p new_covariance .
 	 */
-	void set_covariance_slice(Matrix const &new_covariance, Size first_state = 0);
+	void set_covariance_slice(Matrix const& new_covariance, Size first_state = 0);
 
 	// TODO (PNTOS-266) Find a workaround in Pybind11 for returning std::`unique_ptr` and refactor
 	//      clone() to return std::`unique_ptr` instead of `std::shared_ptr`.
@@ -162,8 +162,8 @@ protected:
 	 * @param initial_estimate The state estimate used to initialize the new states.
 	 * @param initial_covariance The state covariance used to initialize the new states.
 	 */
-	virtual void on_fusion_engine_state_block_added_impl(Vector const &initial_estimate,
-	                                                     Matrix const &initial_covariance) = 0;
+	virtual void on_fusion_engine_state_block_added_impl(Vector const& initial_estimate,
+	                                                     Matrix const& initial_covariance) = 0;
 
 	/**
 	 * Called by #set_covariance_slice and some implementations of
@@ -172,7 +172,7 @@ protected:
 	 * @param first_row row of the top-left corner of the coefficients to overwrite
 	 * @param first_col column of the top-left corner of the coefficients to overwrite
 	 */
-	virtual void set_covariance_slice_impl(Matrix const &new_covariance,
+	virtual void set_covariance_slice_impl(Matrix const& new_covariance,
 	                                       Size first_row,
 	                                       Size first_col) = 0;
 
@@ -183,7 +183,7 @@ protected:
 	 * @param new_estimate new state values
 	 * @param first_index where to start writing
 	 */
-	virtual void set_estimate_slice_impl(Vector const &new_estimate, Size first_index) = 0;
+	virtual void set_estimate_slice_impl(Vector const& new_estimate, Size first_index) = 0;
 
 	/**
 	 * Called by `on_fusion_engine_state_block_removed` with sanitized inputs.

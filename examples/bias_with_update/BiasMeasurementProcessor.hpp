@@ -13,7 +13,7 @@ class BiasMeasurementProcessor : public navtk::filtering::MeasurementProcessor<>
 public:
 	navtk::Matrix measurement_matrix;
 
-	BiasMeasurementProcessor(std::string label, const std::string &state_block_label)
+	BiasMeasurementProcessor(std::string label, const std::string& state_block_label)
 	    : MeasurementProcessor(std::move(label), state_block_label),
 	      measurement_matrix(navtk::Matrix{{1.0}}) {}
 

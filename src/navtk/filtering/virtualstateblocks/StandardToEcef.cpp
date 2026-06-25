@@ -32,7 +32,7 @@ Vector StandardToEcef::convert_estimate(const Vector& x, const aspn_xtensor::Typ
 	auto pos_ecef      = navutils::llh_to_ecef(xt::view(x, xt::range(POS_START, POS_END)));
 	auto vel_ecef      = dot(C_ned_to_ecef, xt::view(x, xt::range(VEL_START, VEL_END)));
 	auto rpy_ecef      = navutils::dcm_to_rpy(
-        dot(C_ned_to_ecef, navutils::rpy_to_dcm(xt::view(x, xt::range(RPY_START, RPY_END)))));
+	    dot(C_ned_to_ecef, navutils::rpy_to_dcm(xt::view(x, xt::range(RPY_START, RPY_END)))));
 	return xt::concatenate(
 	    xt::xtuple(pos_ecef, vel_ecef, rpy_ecef, xt::view(x, xt::range(RPY_END, num_rows(x)))));
 }

@@ -48,7 +48,7 @@ struct EarthModel {
 	 * @param vel The north-east-down velocity in m/s.
 	 * @param gravity A GravityModel.
 	 */
-	EarthModel(Vector3 pos, Vector3 vel, const GravityModel &gravity = GravityModelSchwartz());
+	EarthModel(Vector3 pos, Vector3 vel, const GravityModel& gravity = GravityModelSchwartz());
 
 	/**
 	 * Latitude in radians.

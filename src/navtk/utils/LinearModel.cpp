@@ -8,7 +8,7 @@ namespace utils {
 
 using std::vector;
 
-LinearModel::LinearModel(const vector<double> &x, const vector<double> &y)
+LinearModel::LinearModel(const vector<double>& x, const vector<double>& y)
     : InterpolationModel(x, y) {}
 
 double LinearModel::y_at(double x_interp) {

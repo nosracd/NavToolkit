@@ -42,20 +42,20 @@ struct type_caster<navtk::not_null<T>> {
 namespace py = pybind11;
 
 // Used to add a namespace inside the top navtk namespace
-#define ADD_NAMESPACE(M, NAME)                            \
-	{                                                     \
-		auto submod = M.def_submodule(#NAME);             \
-		void add_##NAME##_functions(pybind11::module& m); \
-		add_##NAME##_functions(submod);                   \
+#define ADD_NAMESPACE(M, NAME)                             \
+	{                                                      \
+		auto submod = M.def_submodule(#NAME);              \
+		void add_##NAME##_functions(pybind11::module & m); \
+		add_##NAME##_functions(submod);                    \
 	}
 // Same as ADD_NAMESPACE but for a namespace nested inside a child of navtk namespace.
 // The only difference between this and ADD_NAMESPACE is the name of the function containing
 // bindings for this subnamespace.
-#define ADD_SUBNAMESPACE(M, SUBNAMESPACE, NAMESPACE)                            \
-	{                                                                           \
-		auto submod = M.def_submodule(#SUBNAMESPACE);                           \
-		void add_##NAMESPACE##_##SUBNAMESPACE##_functions(pybind11::module& m); \
-		add_##NAMESPACE##_##SUBNAMESPACE##_functions(submod);                   \
+#define ADD_SUBNAMESPACE(M, SUBNAMESPACE, NAMESPACE)                             \
+	{                                                                            \
+		auto submod = M.def_submodule(#SUBNAMESPACE);                            \
+		void add_##NAMESPACE##_##SUBNAMESPACE##_functions(pybind11::module & m); \
+		add_##NAMESPACE##_##SUBNAMESPACE##_functions(submod);                    \
 	}
 
 // Used to pass parameter types by grouping a comma-separated collection of arguments to be passed

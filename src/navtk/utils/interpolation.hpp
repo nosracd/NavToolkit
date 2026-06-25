@@ -29,9 +29,9 @@ namespace utils {
  * and the error mode is ErrorMode::DIE for either case.
  */
 template <typename T>
-std::vector<Size> condition_source_data(std::vector<double> &time_source,
-                                        std::vector<T> &data_source,
-                                        std::vector<double> &time_interp);
+std::vector<Size> condition_source_data(std::vector<double>& time_source,
+                                        std::vector<T>& data_source,
+                                        std::vector<double>& time_interp);
 
 /**
  * Interpolates the source data and source time using the
@@ -46,9 +46,9 @@ std::vector<Size> condition_source_data(std::vector<double> &time_source,
  * second element is interpolated source data.
  **/
 std::pair<std::vector<Size>, std::vector<double>> linear_interpolate(
-    const std::vector<double> &time_source,
-    const std::vector<double> &data_source,
-    const std::vector<double> &time_interp);
+    const std::vector<double>& time_source,
+    const std::vector<double>& data_source,
+    const std::vector<double>& time_interp);
 
 /**
  * Interpolates using quadratic spline interpolation. If source data/time
@@ -62,9 +62,9 @@ std::pair<std::vector<Size>, std::vector<double>> linear_interpolate(
  * second element is interpolated source data.
  */
 std::pair<std::vector<Size>, std::vector<double>> quadratic_spline_interpolate(
-    const std::vector<double> &time_source,
-    const std::vector<double> &data_source,
-    const std::vector<double> &time_interp);
+    const std::vector<double>& time_source,
+    const std::vector<double>& data_source,
+    const std::vector<double>& time_interp);
 
 /** Interpolates using cubic spline interpolation. If source data/time
  * is not available to interpolate for a `time_interp` time tag, then,
@@ -77,9 +77,9 @@ std::pair<std::vector<Size>, std::vector<double>> quadratic_spline_interpolate(
  * second element is interpolated source data.
  */
 std::pair<std::vector<Size>, std::vector<double>> cubic_spline_interpolate(
-    const std::vector<double> &orig_time_source,
-    const std::vector<double> &data_source,
-    const std::vector<double> &orig_time_interp);
+    const std::vector<double>& orig_time_source,
+    const std::vector<double>& data_source,
+    const std::vector<double>& orig_time_interp);
 
 /**
  * Performs a linear interpolation.
@@ -94,7 +94,7 @@ std::pair<std::vector<Size>, std::vector<double>> cubic_spline_interpolate(
  * @return An approximation for `y = f(x)`. If `x0 == x1`, `y1` is returned.
  */
 template <typename Y>
-Y linear_interpolate(double x0, const Y &y0, double x1, const Y &y1, double x) {
+Y linear_interpolate(double x0, const Y& y0, double x1, const Y& y1, double x) {
 	if (x0 == x1) return y1;
 	double xpart = (x - x0) / (x1 - x0);
 	Y ypart      = (y1 - y0) * xpart;
@@ -114,15 +114,15 @@ Y linear_interpolate(double x0, const Y &y0, double x1, const Y &y1, double x) {
  * @return An approximation for `y = f(x)`. If `x0 == x1`, `y1` is returned.
  */
 template <typename Y>
-Y linear_interpolate(const aspn_xtensor::TypeTimestamp &x0,
-                     const Y &y0,
-                     const aspn_xtensor::TypeTimestamp &x1,
-                     const Y &y1,
-                     const aspn_xtensor::TypeTimestamp &x) {
+Y linear_interpolate(const aspn_xtensor::TypeTimestamp& x0,
+                     const Y& y0,
+                     const aspn_xtensor::TypeTimestamp& x1,
+                     const Y& y1,
+                     const aspn_xtensor::TypeTimestamp& x) {
 	if (x0 == x1) return y1;
 	double xpart = (double)(x.get_elapsed_nsec() - x0.get_elapsed_nsec()) /
 	               (x1.get_elapsed_nsec() - x0.get_elapsed_nsec());
-	Y ypart = (y1 - y0) * xpart;
+	Y ypart      = (y1 - y0) * xpart;
 	return y0 + ypart;
 }
 
@@ -140,9 +140,9 @@ Y linear_interpolate(const aspn_xtensor::TypeTimestamp &x0,
  * from the pva input with the latest time.
  */
 aspn_xtensor::MeasurementPositionVelocityAttitude linear_interp_pva(
-    const aspn_xtensor::MeasurementPositionVelocityAttitude &pva1,
-    const aspn_xtensor::MeasurementPositionVelocityAttitude &pva2,
-    const aspn_xtensor::TypeTimestamp &t);
+    const aspn_xtensor::MeasurementPositionVelocityAttitude& pva1,
+    const aspn_xtensor::MeasurementPositionVelocityAttitude& pva2,
+    const aspn_xtensor::TypeTimestamp& t);
 
 /**
  * Performs linear interpolation between two MeasurementPositionVelocityAttitude records.
@@ -160,7 +160,7 @@ aspn_xtensor::MeasurementPositionVelocityAttitude linear_interp_pva(
 not_null<std::shared_ptr<aspn_xtensor::MeasurementPositionVelocityAttitude>> linear_interp_pva(
     navtk::not_null<std::shared_ptr<aspn_xtensor::MeasurementPositionVelocityAttitude>> pva1,
     navtk::not_null<std::shared_ptr<aspn_xtensor::MeasurementPositionVelocityAttitude>> pva2,
-    const aspn_xtensor::TypeTimestamp &t);
+    const aspn_xtensor::TypeTimestamp& t);
 
 /**
  * Performs linear interpolation between or extrapolation beyond two
@@ -175,9 +175,9 @@ not_null<std::shared_ptr<aspn_xtensor::MeasurementPositionVelocityAttitude>> lin
  * copied directly from the pva input with the latest time.
  */
 aspn_xtensor::MeasurementPositionVelocityAttitude linear_extrapolate_pva(
-    const aspn_xtensor::MeasurementPositionVelocityAttitude &pva1,
-    const aspn_xtensor::MeasurementPositionVelocityAttitude &pva2,
-    const aspn_xtensor::TypeTimestamp &t);
+    const aspn_xtensor::MeasurementPositionVelocityAttitude& pva1,
+    const aspn_xtensor::MeasurementPositionVelocityAttitude& pva2,
+    const aspn_xtensor::TypeTimestamp& t);
 
 /**
  * Performs linear interpolation between or extrapolation beyond two
@@ -194,7 +194,7 @@ aspn_xtensor::MeasurementPositionVelocityAttitude linear_extrapolate_pva(
 not_null<std::shared_ptr<aspn_xtensor::MeasurementPositionVelocityAttitude>> linear_extrapolate_pva(
     navtk::not_null<std::shared_ptr<aspn_xtensor::MeasurementPositionVelocityAttitude>> pva1,
     navtk::not_null<std::shared_ptr<aspn_xtensor::MeasurementPositionVelocityAttitude>> pva2,
-    const aspn_xtensor::TypeTimestamp &t);
+    const aspn_xtensor::TypeTimestamp& t);
 
 /**
  * Linearly interpolate between two RPY (roll, pitch, yaw) attitude representations.
@@ -209,11 +209,11 @@ not_null<std::shared_ptr<aspn_xtensor::MeasurementPositionVelocityAttitude>> lin
  * `t1` and `t2` the return value will be the nearest of the inputs (constant endpoint
  * extrapolation) with a warning.
  */
-Vector3 linear_interp_rpy(const aspn_xtensor::TypeTimestamp &t1,
-                          const Vector3 &rpy1,
-                          const aspn_xtensor::TypeTimestamp &t2,
-                          const Vector3 &rpy2,
-                          const aspn_xtensor::TypeTimestamp &t);
+Vector3 linear_interp_rpy(const aspn_xtensor::TypeTimestamp& t1,
+                          const Vector3& rpy1,
+                          const aspn_xtensor::TypeTimestamp& t2,
+                          const Vector3& rpy2,
+                          const aspn_xtensor::TypeTimestamp& t);
 
 /**
  * Linearly interpolate between or extraplate beyond two RPY (roll, pitch, yaw) attitude
@@ -229,11 +229,11 @@ Vector3 linear_interp_rpy(const aspn_xtensor::TypeTimestamp &t1,
  * `t1` and `t2` the return value will be the nearest of the inputs (constant endpoint
  * extrapolation) with a warning.
  */
-Vector3 linear_extrapolate_rpy(const aspn_xtensor::TypeTimestamp &t1,
-                               const Vector3 &rpy1,
-                               const aspn_xtensor::TypeTimestamp &t2,
-                               const Vector3 &rpy2,
-                               const aspn_xtensor::TypeTimestamp &t);
+Vector3 linear_extrapolate_rpy(const aspn_xtensor::TypeTimestamp& t1,
+                               const Vector3& rpy1,
+                               const aspn_xtensor::TypeTimestamp& t2,
+                               const Vector3& rpy2,
+                               const aspn_xtensor::TypeTimestamp& t);
 
 }  // namespace utils
 }  // namespace navtk

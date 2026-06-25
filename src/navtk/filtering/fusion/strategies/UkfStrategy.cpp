@@ -12,7 +12,7 @@ using xt::transpose;
 namespace navtk {
 namespace filtering {
 
-void UkfStrategy::propagate(const StandardDynamicsModel &dynamics_model) {
+void UkfStrategy::propagate(const StandardDynamicsModel& dynamics_model) {
 	this->symmetricize_covariance();
 
 	this->validate_linearized_propagate(dynamics_model.Phi, dynamics_model.Qd);
@@ -34,7 +34,7 @@ void UkfStrategy::propagate(const StandardDynamicsModel &dynamics_model) {
 	              dynamics_model.Qd);
 }
 
-void UkfStrategy::update(const StandardMeasurementModel &measurement_model) {
+void UkfStrategy::update(const StandardMeasurementModel& measurement_model) {
 	if (ValidationResult::BAD == this->check_update_args(measurement_model)) return;
 	this->symmetricize_covariance();
 

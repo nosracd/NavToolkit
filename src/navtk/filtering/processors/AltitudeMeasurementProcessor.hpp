@@ -29,7 +29,7 @@ public:
 	 */
 	AltitudeMeasurementProcessor(
 	    std::string label,
-	    const std::string &state_block_label,
+	    const std::string& state_block_label,
 	    AspnMeasurementAltitudeReference expected_frame = ASPN_MEASUREMENT_ALTITUDE_REFERENCE_MSL);
 
 	/**

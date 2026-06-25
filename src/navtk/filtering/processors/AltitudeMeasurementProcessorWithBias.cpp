@@ -11,8 +11,8 @@ namespace filtering {
 
 AltitudeMeasurementProcessorWithBias::AltitudeMeasurementProcessorWithBias(
     std::string label,
-    const std::string &pinson_label,
-    const std::string &altitude_bias_label,
+    const std::string& pinson_label,
+    const std::string& altitude_bias_label,
     AspnMeasurementAltitudeReference expected_frame)
     : MeasurementProcessor(std::move(label),
                            std::vector<std::string>{pinson_label, altitude_bias_label}),
@@ -61,7 +61,7 @@ std::shared_ptr<StandardMeasurementModel> AltitudeMeasurementProcessorWithBias::
 	Matrix linear_meas                             = zeros(1, num_rows(xhat_p->estimate));
 	linear_meas(0, 2)                              = -1.0;
 	linear_meas(0, num_cols(xhat_p->estimate) - 1) = 1.0;
-	auto h = [linear_meas = linear_meas](const Vector &xhat) { return dot(linear_meas, xhat); };
+	auto h = [linear_meas = linear_meas](const Vector& xhat) { return dot(linear_meas, xhat); };
 
 	return std::make_shared<StandardMeasurementModel>(
 	    StandardMeasurementModel(z, h, linear_meas, Matrix{{data->get_variance()}}));

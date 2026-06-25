@@ -29,8 +29,8 @@ public:
 	 * @param bias_label The label identifying the bias StateBlock this processor will be updating.
 	 */
 	BiasedRangeProcessor(std::string label,
-	                     const std::string &position_label,
-	                     const std::string &bias_label);
+	                     const std::string& position_label,
+	                     const std::string& bias_label);
 
 	/**
 	 * Constructor for processor that updates multiple state blocks.
