@@ -7,7 +7,6 @@ ENV OPENSSL_FORCE_FIPS_MODE=0
 
 # build-essential: For compiling code
 # ccache: For CI machines to decrease compile times
-# clang-format: For formatting source code
 # doxygen: For building project documentation
 # doxygen-latex: For building project documentation
 # git: For fetching subprojects from the internet
@@ -30,7 +29,6 @@ ENV OPENSSL_FORCE_FIPS_MODE=0
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     ccache \
-    clang-format* \
     doxygen \
     doxygen-latex \
     git \
@@ -50,7 +48,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     texlive-base \
     texlive-font-utils \
     vim \
-&& rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
 # Create a venv
 RUN mkdir /venv && python3 -m venv /venv --system-site-packages

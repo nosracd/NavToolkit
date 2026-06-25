@@ -320,7 +320,7 @@ foreach src_dir : src_dirs
 endforeach
 
 clang_format_ok_versions = ['>=18.0', '<19.0']
-clang_format_dep = find_program('clang-format-18', 'clang-format',
+clang_format_dep = find_program('clang-format',
                                 required: false,
                                 version: clang_format_ok_versions)
 if clang_format_dep.found()

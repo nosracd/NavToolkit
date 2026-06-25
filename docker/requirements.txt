@@ -4,6 +4,8 @@ black==22.8.0
 breathe==4.34.0
 # Build is necessary to create Python source distributions.
 build==1.2.2.post1
+# For formatting C/C++ source code
+clang-format==18.1.0
 # Supports extracting docstrings from headers for reuse in Python docstrings.
 cxxheaderparser==1.8.1
 # docutils is a dependency of Sphinx.
