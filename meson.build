@@ -319,14 +319,13 @@ foreach src_dir : src_dirs
   endforeach
 endforeach
 
-clang_format_ok_versions = ['>=22.0', '<23.0']
-clang_format_dep = find_program('clang-format',
-                                required: false,
-                                version: clang_format_ok_versions)
-if clang_format_dep.found()
-    run_target('format', command: [clang_format_dep, '-style=file', '--verbose', '-i'] + files_to_format)
+python_with_clang_format = import('python').find_installation('python3',
+                                                        modules: ['clang_format'],
+                                                        required: false)
+if python_with_clang_format.found()
+    run_target('format', command: [python_with_clang_format, '-c', 'from clang_format import clang_format; clang_format()', '-style=file', '--verbose', '-i'] + files_to_format)
 else
-    run_target('format', command: [python, '-c', 'import sys; print("`format` is disabled because clang-format %r does not appear to be installed. Consider using docker_interface.py to format your code." % sys.argv[1:])'] + clang_format_ok_versions)
+    run_target('format', command: [python, '-c', 'import sys; print("`format` is disabled because clang-format does not appear to be installed.'])
 endif
 
 black_dep = find_program('black', required: false)
