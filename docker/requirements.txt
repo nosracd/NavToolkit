@@ -5,12 +5,14 @@ breathe==4.34.0
 # Build is necessary to create Python source distributions.
 build==1.2.2.post1
 # Supports extracting docstrings from headers for reuse in Python docstrings.
-cxxheaderparser==1.6.0
+cxxheaderparser==1.8.1
 # docutils is a dependency of Sphinx.
 # Pinned to 0.17.1 because Sphinx 4.5.0 requires <0.18
 docutils==0.17.1
 # Exhale is an automatic C++ library API documentation generator using Doxygen, Sphinx, and Breathe
 exhale==0.3.5
+# inflection is used for patterns in check_naming.py
+inflection==0.5.1
 # matplotlib is a Python plotting package used by the examples
 matplotlib==3.10.5
 # Meson is a high performance build system

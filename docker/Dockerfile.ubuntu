@@ -7,7 +7,6 @@ ENV OPENSSL_FORCE_FIPS_MODE=0
 
 # build-essential: For compiling code
 # ccache: For CI machines to decrease compile times
-# clang: For running the naming rules check
 # clang-format: For formatting source code
 # doxygen: For building project documentation
 # doxygen-latex: For building project documentation
@@ -19,8 +18,6 @@ ENV OPENSSL_FORCE_FIPS_MODE=0
 # ninja-build: For compiling code
 # openssh-client: For ssh when using this container for development
 # pkg-config: For Meson to discover installed libraries while compiling
-# python3-clang: For running the naming rules check
-# python3-inflection: For util/process_file_naming.py
 # python3-matplotlib: For displaying graphs when running Python examples
 # python3-numpy: For running the Python examples
 # python3-pip: For installing pip packages (see requirements.txt)
@@ -33,7 +30,6 @@ ENV OPENSSL_FORCE_FIPS_MODE=0
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     ccache \
-    clang \
     clang-format* \
     doxygen \
     doxygen-latex \
@@ -45,8 +41,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ninja-build \
     openssh-client \
     pkg-config \
-    python3-clang \
-    python3-inflection \
     python3-matplotlib \
     python3-numpy \
     python3-pip \

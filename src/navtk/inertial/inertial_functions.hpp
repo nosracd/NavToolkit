@@ -249,16 +249,16 @@ double apply_aiding_alt_accel(double r_zero,
  * @return The offset between NED forces and accelerations such that `forces + offset =
  * accelerations`.
  */
-template <
-    typename S1,
-    typename S2,
-    typename S3,
-    typename S4,
-    typename S5,
-    typename S6,
-    typename S7,
-    typename S8,
-    IfAllConditions<TensorsAreDim<0, S1, S2, S3, S4, S6, S7>, TensorsAreDim<1, S5, S8>>* = nullptr>
+template <typename S1,
+          typename S2,
+          typename S3,
+          typename S4,
+          typename S5,
+          typename S6,
+          typename S7,
+          typename S8,
+          IfAllConditions<TENSORS_ARE_DIM<0, S1, S2, S3, S4, S6, S7>, TENSORS_ARE_DIM<1, S5, S8>>* =
+              nullptr>
 Vector3 calc_force_and_acceleration_offset(const S1& r_e,
                                            const S2& r_n,
                                            const S3& alt0,
@@ -320,16 +320,16 @@ Vector3 calc_force_and_acceleration_offset(const S1& r_e,
  * @return The offsets between NED forces and accelerations such that `forces + offset =
  * accelerations`, shape (N, 3)
  */
-template <typename B1                                    = Vector,
-          typename B2                                    = Vector,
-          typename B3                                    = Vector,
-          typename B4                                    = Vector,
-          typename B5                                    = Matrix,
-          typename B6                                    = Vector,
-          typename B7                                    = Vector,
-          typename B8                                    = Matrix,
-          IfAnyConditions<TensorsHaveMaxDim<1, B1, B2, B3, B4, B6, B7>,
-                          TensorsHaveMaxDim<2, B5, B8>>* = nullptr>
+template <typename B1                                       = Vector,
+          typename B2                                       = Vector,
+          typename B3                                       = Vector,
+          typename B4                                       = Vector,
+          typename B5                                       = Matrix,
+          typename B6                                       = Vector,
+          typename B7                                       = Vector,
+          typename B8                                       = Matrix,
+          IfAnyConditions<TENSORS_HAVE_MAX_DIM<1, B1, B2, B3, B4, B6, B7>,
+                          TENSORS_HAVE_MAX_DIM<2, B5, B8>>* = nullptr>
 Matrix calc_force_and_acceleration_offset(const B1& r_e,
                                           const B2& r_n,
                                           const B3& alt0,

@@ -9,11 +9,6 @@ You may obtain a copy of the License at
 
 --
 
-The file util/mkdoc.py is a modified version of a file distributed by the
-pybind11 project. The original code is licensed under the terms given by the
-pybind11 project at https://github.com/pybind/pybind11_mkdoc.
-
---
 
 The file util/ghwt.py is distributed by the meson project.  The original code is
 licensed under the terms given by the project at

@@ -230,33 +230,33 @@ struct TensorMeta<
  * Check if a given type is actually a tensor.
  */
 template <typename T>
-inline constexpr bool IsValid = (TensorMeta<T>::FIXED_DIMS);
+inline constexpr bool IS_VALID = (TensorMeta<T>::FIXED_DIMS);
 
 /**
- * `TensorsAreDim` can be used as a condition in SFINAE expressions.  To evaluate to true, all
+ * `TENSORS_ARE_DIM` can be used as a condition in SFINAE expressions.  To evaluate to true, all
  * listed tensors must have Dim dimensions.
  */
 template <size_t Dim, typename... T>
-inline constexpr bool TensorsAreDim =
-    ((IsValid<T> && requires { typename std::enable_if_t<TensorMeta<T>::DIM_COUNT == Dim>; }) &&
+inline constexpr bool TENSORS_ARE_DIM =
+    ((IS_VALID<T> && requires { typename std::enable_if_t<TensorMeta<T>::DIM_COUNT == Dim>; }) &&
      ...);
 
 /**
- * `TensorsAreLessThanDim` can be used as a condition in SFINAE expressions.  To evaluate to true,
- * all listed tensors must have a dimension less than the Dim.
+ * `TENSORS_ARE_LESS_THAN_DIM` can be used as a condition in SFINAE expressions.  To evaluate to
+ * true, all listed tensors must have a dimension less than the Dim.
  */
 template <size_t Dim, typename... T>
-inline constexpr bool TensorsAreLessThanDim =
-    ((IsValid<T> && requires { typename std::enable_if_t<(TensorMeta<T>::DIM_COUNT < Dim)>; }) &&
+inline constexpr bool TENSORS_ARE_LESS_THAN_DIM =
+    ((IS_VALID<T> && requires { typename std::enable_if_t<(TensorMeta<T>::DIM_COUNT < Dim)>; }) &&
      ...);
 
 /**
- * `TensorsHaveMaxDim` can be used as a condition in SFINAE expressions.  To evaluate to true, all
- * listed tensors must have a maximum dimension of _precisely_ Dim.
+ * `TENSORS_HAVE_MAX_DIM` can be used as a condition in SFINAE expressions.  To evaluate to true,
+ * all listed tensors must have a maximum dimension of _precisely_ Dim.
  */
 template <size_t Dim, typename... T>
-inline constexpr bool TensorsHaveMaxDim =
-    TensorsAreLessThanDim<Dim + 1, T...> && !TensorsAreLessThanDim<Dim, T...>;
+inline constexpr bool TENSORS_HAVE_MAX_DIM =
+    TENSORS_ARE_LESS_THAN_DIM<Dim + 1, T...> && !TENSORS_ARE_LESS_THAN_DIM<Dim, T...>;
 
 /**
  * SFINAE tool to check against one condition.
@@ -281,14 +281,14 @@ using IfAnyConditions = IfCondition<(Condition || ...)>;
  * type T must be a Tensor type with `Dim` number of dimensions.
  */
 template <typename T, std::size_t Dim>
-using IfTensorOfDim = IfCondition<TensorsAreDim<Dim, T>>;
+using IfTensorOfDim = IfCondition<TENSORS_ARE_DIM<Dim, T>>;
 
 /**
  * `IfBothTensorsOfDim` can be used in a template definition to invalidate the template. To be
  * valid, type A and type B must both be Tensor types with `Dim` number of dimensions.
  */
 template <typename A, typename B, std::size_t Dim>
-using IfBothTensorsOfDim = IfCondition<TensorsAreDim<Dim, A, B>>;
+using IfBothTensorsOfDim = IfCondition<TENSORS_ARE_DIM<Dim, A, B>>;
 
 /**
  * `IfFirstTensorOfDim` can be used in a template definition to invalidate the template. To be
@@ -296,7 +296,7 @@ using IfBothTensorsOfDim = IfCondition<TensorsAreDim<Dim, A, B>>;
  * types (or scalars or initializer lists).
  */
 template <typename A, typename B, std::size_t Dim>
-using IfFirstTensorOfDim = IfAllConditions<TensorsAreDim<Dim, A>, !TensorsAreDim<Dim, B>>;
+using IfFirstTensorOfDim = IfAllConditions<TENSORS_ARE_DIM<Dim, A>, !TENSORS_ARE_DIM<Dim, B>>;
 
 /**
  * `IfSecondTensorOfDim` can be used in a template definition to invalidate the template. To be
@@ -304,7 +304,7 @@ using IfFirstTensorOfDim = IfAllConditions<TensorsAreDim<Dim, A>, !TensorsAreDim
  * types (or scalars or initializer lists).
  */
 template <typename A, typename B, std::size_t Dim>
-using IfSecondTensorOfDim = IfAllConditions<TensorsAreDim<Dim, B>, !TensorsAreDim<Dim, A>>;
+using IfSecondTensorOfDim = IfAllConditions<TENSORS_ARE_DIM<Dim, B>, !TENSORS_ARE_DIM<Dim, A>>;
 
 /**
  * `IfAnyTensorOfDim` can be used in a template definition to invalidate the template. To be
@@ -312,7 +312,7 @@ using IfSecondTensorOfDim = IfAllConditions<TensorsAreDim<Dim, B>, !TensorsAreDi
  * types (or scalars or initializer lists).
  */
 template <std::size_t Dim, typename... T>
-using IfAnyTensorOfDim = IfAnyConditions<TensorsAreDim<Dim, T>...>;
+using IfAnyTensorOfDim = IfAnyConditions<TENSORS_ARE_DIM<Dim, T>...>;
 
 /**
  * `IfAllTensorsOfDim` can be used in a template definition to invalidate the template. To be
@@ -320,7 +320,7 @@ using IfAnyTensorOfDim = IfAnyConditions<TensorsAreDim<Dim, T>...>;
  * types (or scalars or initializer lists).
  */
 template <std::size_t Dim, typename... T>
-using IfAllTensorsOfDim = IfCondition<TensorsAreDim<Dim, T...>>;
+using IfAllTensorsOfDim = IfCondition<TENSORS_ARE_DIM<Dim, T...>>;
 
 /**
  * `IfNoTensorsOfDim` can be used in a template definition to invalidate the template. To be
@@ -328,7 +328,7 @@ using IfAllTensorsOfDim = IfCondition<TensorsAreDim<Dim, T...>>;
  * types (or scalars or initializer lists).
  */
 template <std::size_t Dim, typename... T>
-using IfNoTensorsOfDim = IfAllConditions<!TensorsAreDim<Dim, T>...>;
+using IfNoTensorsOfDim = IfAllConditions<!TENSORS_ARE_DIM<Dim, T>...>;
 
 /**
  * `IfTensorsMaxDim` can be used in a template definition to invalidate the template. To be
@@ -336,8 +336,8 @@ using IfNoTensorsOfDim = IfAllConditions<!TensorsAreDim<Dim, T>...>;
  * types (or scalars or initializer lists).
  */
 template <std::size_t Dim, typename... T>
-using IfTensorsMaxDim =
-    IfAllConditions<TensorsAreLessThanDim<Dim + 1, T...>, !TensorsAreLessThanDim<Dim, T...>>;
+using IfTensorsMaxDim = IfAllConditions<TENSORS_ARE_LESS_THAN_DIM<Dim + 1, T...>,
+                                        !TENSORS_ARE_LESS_THAN_DIM<Dim, T...>>;
 
 /**
  * `IfEigenInterface` can be used in a template definition to invalidate the template. To be valid,

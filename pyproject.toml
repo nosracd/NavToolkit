@@ -5,7 +5,7 @@ requires = [
     'meson==1.8.4',
     'numpy',
     'pybind11-stubgen>=2.5.5',
-    'cxxheaderparser==1.6.0',
+    'cxxheaderparser==1.8.1',
 ]
 build-backend = 'mesonpy'
 
