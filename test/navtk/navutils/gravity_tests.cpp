@@ -10,6 +10,7 @@
 using navtk::dot;
 using navtk::eye;
 using navtk::Matrix3;
+using navtk::Vector;
 using navtk::Vector3;
 using navtk::zeros;
 using navtk::navutils::calculate_gravity_savage_n;
@@ -19,6 +20,7 @@ using navtk::navutils::calculate_gravity_titterton;
 using navtk::navutils::PI;
 using navtk::navutils::SEMI_MAJOR_RADIUS;
 using std::abs;
+using xt::all;
 
 /**
  * A short brief/rant on gravity modelling differences and testing parameters.
@@ -262,4 +264,23 @@ TEST_F(GravTests, wander_invariant_ned) {
 	auto savn  = calculate_gravity_savage_ned(C_n_to_e, alt);
 
 	ASSERT_ALLCLOSE(savn0, savn);
+}
+
+TEST(calculate_gravity_schwartz, BatchTest) {
+	Vector alts    = {1e3, 2e3, 3e3, 4e3};
+	Vector lats    = {0.0, 0.1, 0.2, 0.3};
+	auto gravities = calculate_gravity_schwartz(alts, lats);
+	Vector3 gravity;
+	for (size_t i = 0; i < alts.shape()[0]; i++) {
+		gravity = calculate_gravity_schwartz(alts(i), lats(i));
+		ASSERT_ALLCLOSE(view(gravities, i, all()), gravity);
+	}
+}
+
+TEST(calculate_gravity_schwartz, InitializerTest) {
+	Vector alt        = {0.0, 1.0, 2.0, 3.0};
+	double lat        = 0.0;
+	auto gravity_test = calculate_gravity_schwartz(alt, lat);
+	auto gravity      = calculate_gravity_schwartz({0.0, 1.0, 2.0, 3.0}, 0.0);
+	ASSERT_ALLCLOSE(gravity_test, gravity);
 }

@@ -26,10 +26,13 @@ using navtk::Matrix3;
 using navtk::num_rows;
 using navtk::ones;
 using navtk::Size;
+using navtk::Tensor;
 using navtk::Vector;
 using navtk::Vector3;
 using navtk::Vector4;
 using navtk::zeros;
+using navtk::navutils::PI;
+using xt::all;
 using xt::transpose;
 
 TEST(dot, Dimensionality) { ASSERT_ALLCLOSE((Vector{2, 4, 6}), dot(Vector{1, 2, 3}, eye(3) * 2)); }
@@ -62,6 +65,48 @@ TEST(meridian_radius, CompareToKnownSolution) {
 	size_t ind               = 0;
 	for (double latitude = 0.0; latitude <= 90.0; latitude += 5.0)
 		EXPECT_NEAR(meridian_radius(latitude * PI / 180.0), test_vals[ind++], 1e-4);
+}
+
+TEST(meridian_radius, BatchTest) {
+	const Vector test_vals = {6335439.3273,
+	                          6335922.6064,
+	                          6337358.1216,
+	                          6339703.2990,
+	                          6342888.4825,
+	                          6346818.8587,
+	                          6351377.1037,
+	                          6356426.6959,
+	                          6361815.8264,
+	                          6367381.8156,
+	                          6372955.9257,
+	                          6378368.4396,
+	                          6383453.8572,
+	                          6388056.0488,
+	                          6392033.1923,
+	                          6395262.3228,
+	                          6397643.3264,
+	                          6399102.2255,
+	                          6399593.6258};
+	const Vector latitudes = {0.0,
+	                          5.0,
+	                          10.0,
+	                          15.0,
+	                          20.0,
+	                          25.0,
+	                          30.0,
+	                          35.0,
+	                          40.0,
+	                          45.0,
+	                          50.0,
+	                          55.0,
+	                          60.0,
+	                          65.0,
+	                          70.0,
+	                          75.0,
+	                          80.0,
+	                          85.0,
+	                          90.0};
+	EXPECT_ALLCLOSE(meridian_radius(latitudes * PI / 180), test_vals);
 }
 
 TEST(discretize_first_order, CompareToKnownSolution) {
@@ -227,6 +272,30 @@ TEST(rpy_to_dcm, FullDOFRotation) {
 	EXPECT_MATRIX_EQUAL(dot(expected_dcm, point), dot(dcm, point), 1e-10);
 	EXPECT_MATRIX_EQUAL(dot(expected_dcm, point), dot(dcm, point), 1e-10);
 }
+
+TEST(rpy_to_dcm, BatchTest) {
+	Matrix rpys     = {{PI / 2, 0, 0}, {0, PI / 4, 0}, {0, 0, PI / 2}, {1, 1, 1}};
+	auto dcms_batch = rpy_to_dcm(rpys);
+	Matrix3 dcm;
+	for (size_t i = 0; i < rpys.shape()[0]; i++) {
+		dcm = rpy_to_dcm(view(rpys, i, all()));
+		ASSERT_ALLCLOSE(view(dcms_batch, i, all(), all()), dcm);
+	}
+}
+
+TEST(rpy_to_dcm, InitializerTest) {
+	// single test
+	Matrix dcm_test = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+	auto dcm        = rpy_to_dcm({0, 0, 0});
+	ASSERT_ALLCLOSE(dcm, dcm_test);
+
+	// batch test
+	Tensor<3> dcm_batch_test = {{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}},
+	                            {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}};
+	auto dcm_batch           = rpy_to_dcm({{0, 0, 0}, {0, 0, 0}});
+	ASSERT_ALLCLOSE(dcm_batch, dcm_batch_test);
+}
+
 TEST(transverse_radius, CompareToKnownSolution) {
 	// Check calculation against reference values found in DMA TECHNICAL REPORT TR8350.2-b - (Second
 	// Printing, 1 December 1987) Supplement to DoD WGS 84 Technical Report Part 2 - Parameters,
@@ -255,6 +324,49 @@ TEST(transverse_radius, CompareToKnownSolution) {
 	size_t ind               = 0;
 	for (double latitude = 0.0; latitude <= 90.0; latitude += 5.0)
 		EXPECT_NEAR(transverse_radius(latitude * PI / 180.0), test_vals[ind++], 1e-4);
+}
+
+TEST(transverse_radius, BatchTest) {
+	const Vector test_vals = {6378137.0000,
+	                          6378299.1746,
+	                          6378780.8437,
+	                          6379567.5820,
+	                          6380635.8071,
+	                          6381953.4572,
+	                          6383480.9177,
+	                          6385172.1749,
+	                          6386976.1657,
+	                          6388838.2901,
+	                          6390702.0442,
+	                          6392510.7274,
+	                          6394209.1738,
+	                          6395745.4533,
+	                          6397072.4882,
+	                          6398149.5323,
+	                          6398943.4599,
+	                          6399429.8215,
+	                          6399593.6258};
+	const Vector latitudes = {0.0,
+	                          5.0,
+	                          10.0,
+	                          15.0,
+	                          20.0,
+	                          25.0,
+	                          30.0,
+	                          35.0,
+	                          40.0,
+	                          45.0,
+	                          50.0,
+	                          55.0,
+	                          60.0,
+	                          65.0,
+	                          70.0,
+	                          75.0,
+	                          80.0,
+	                          85.0,
+	                          90.0};
+	auto vals              = transverse_radius(latitudes * PI / 180);
+	EXPECT_ALLCLOSE(vals, test_vals);
 }
 
 Vector3 naive_dcm_to_rpy(const Matrix3& dcm) {
@@ -320,10 +432,10 @@ TEST(dcm_to_rpy, InverseOfRpyToDcmAnother) {
 	 * 0})
 	 */
 	Matrix dcm      = Matrix3{{0, 0, 1}, {-1, 0, 0}, {0, -1, 0}};  // xt::allclose wants just Matrix
-	auto rpy_vers_1 = transpose(rpy_to_dcm({0, -PI / 2, PI / 2}));
-	auto rpy_vers_2 = transpose(rpy_to_dcm({PI / 2, -PI / 2, 0}));
+	auto rpy_vers_1 = transpose(rpy_to_dcm(Vector{0, -PI / 2, PI / 2}));
+	auto rpy_vers_2 = transpose(rpy_to_dcm(Vector{PI / 2, -PI / 2, 0}));
 	auto cen        = llh_to_cen({0, PI / 2, 0});
-	auto cse        = transpose(dot(cen, rpy_to_dcm({0, 0, 0})));
+	auto cse        = transpose(dot(cen, rpy_to_dcm(Vector{0, 0, 0})));
 	EXPECT_MATRIX_EQUAL(dcm, rpy_vers_1, 1e-10);
 	EXPECT_MATRIX_EQUAL(dcm, rpy_vers_2, 1e-10);
 	EXPECT_MATRIX_EQUAL(dcm, cse, 1e-10);
@@ -333,6 +445,29 @@ TEST(dcm_to_rpy, InverseOfRpyToDcmAnother) {
 	auto out_fail = transpose(rpy_to_dcm(naive));
 	ASSERT_FALSE(xt::allclose(dcm, out_fail));
 	EXPECT_MATRIX_EQUAL(dcm, out, 1e-10);
+}
+
+TEST(dcm_to_rpy, BatchTest) {
+	Tensor<3> dcms  = {{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}, {{1, 0, 0}, {0, 0, 1}, {0, 1, 0}}};
+	auto rpys_batch = dcm_to_rpy(dcms);
+	Vector3 rpy;
+	for (size_t i = 0; i < dcms.shape()[0]; i++) {
+		rpy = dcm_to_rpy(view(dcms, i, all(), all()));
+		ASSERT_ALLCLOSE(view(rpys_batch, i, all()), rpy);
+	}
+}
+
+TEST(dcm_to_rpy, InitializerTest) {
+	// single test
+	Vector rpy_test = {0, 0, 0};
+	auto rpy        = dcm_to_rpy({{1, 0, 0}, {0, 1, 0}, {0, 0, 1}});
+	ASSERT_ALLCLOSE(rpy, rpy_test);
+
+	// batch test
+	Matrix rpy_batch_test = {{0, 0, 0}, {0, 0, 0}};
+	auto rpy_batch =
+	    dcm_to_rpy({{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}, {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}});
+	ASSERT_ALLCLOSE(rpy_batch, rpy_batch_test);
 }
 
 TEST(ecef_to_llh, CompareToMatlabSolution) {
@@ -547,6 +682,29 @@ TEST(dcm_to_quat, CompareToManualRotation) {
 	EXPECT_MATRIX_EQUAL(rot1, rot2, 2e-9);
 }
 
+TEST(dcm_to_quat, BatchTest) {
+	Tensor<3> dcms   = {{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}, {{1, 0, 0}, {0, 0, 1}, {0, 1, 0}}};
+	auto quats_batch = dcm_to_quat(dcms);
+	Vector4 quat;
+	for (size_t i = 0; i < dcms.shape()[0]; i++) {
+		quat = dcm_to_quat(view(dcms, i, all(), all()));
+		ASSERT_ALLCLOSE(view(quats_batch, i, all()), quat);
+	}
+}
+
+TEST(dcm_to_quat, InitializerTest) {
+	// single test
+	Vector quat_test = {1, 0, 0, 0};
+	auto quat        = dcm_to_quat({{1, 0, 0}, {0, 1, 0}, {0, 0, 1}});
+	ASSERT_ALLCLOSE(quat, quat_test);
+
+	// batch test
+	Matrix quat_batch_test = {{1, 0, 0, 0}, {1, 0, 0, 0}};
+	auto quat_batch =
+	    dcm_to_quat({{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}, {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}});
+	ASSERT_ALLCLOSE(quat_batch, quat_batch_test);
+}
+
 TEST(delta_lat_to_north, CompareToEcef) {
 	Vector3 const lla1{0.7, -1.4, 100};
 	Vector3 const lla2{0.70005, -1.4, 100};
@@ -585,6 +743,43 @@ TEST(delta_lat_to_north, VerifyAltitudeCorrection) {
 	EXPECT_NEAR(delta_lat_to_north(delta_lat, latitude, altitude), expected, 1.0e-10);
 }
 
+TEST(delta_lat_to_north, BatchTest) {
+	// define test data
+	double approx_lat           = 39.0 * 180 / PI;
+	double approx_alt           = 1000;
+	Vector approx_lats          = approx_lat * ones(6);
+	Vector approx_alts          = approx_alt * ones(6);
+	Vector north_distances_test = {0.1, 2, 30, 400, 5000, 60000};
+	Vector delta_lats           = {1.56903478e-08,
+	                               3.13806956e-07,
+	                               4.70710434e-06,
+	                               6.27613911e-05,
+	                               7.84517389e-04,
+	                               9.41420867e-03};
+
+	// Batch of points
+	Vector north_distances_1 = delta_lat_to_north(delta_lats, approx_lat, approx_alt);
+	Vector north_distances_2 = delta_lat_to_north(delta_lats, approx_lats, approx_alts);
+	ASSERT_ALLCLOSE(north_distances_1, north_distances_test);
+	ASSERT_ALLCLOSE(north_distances_2, north_distances_test);
+}
+
+TEST(delta_lat_to_north, InitializerTest) {
+	// define test data
+	double approx_lat           = 39.0 * 180 / PI;
+	double approx_alt           = 1000;
+	Vector north_distances_test = {0.1, 2, 30, 400, 5000, 60000};
+	auto north_distances        = delta_lat_to_north({1.56903478e-08,
+	                                                  3.13806956e-07,
+	                                                  4.70710434e-06,
+	                                                  6.27613911e-05,
+	                                                  7.84517389e-04,
+	                                                  9.41420867e-03},
+                                              approx_lat,
+                                              approx_alt);
+	ASSERT_ALLCLOSE(north_distances, north_distances_test);
+}
+
 TEST(delta_lon_to_east, CompareToEcef) {
 	Vector3 lla1{0.7, -1.4, 100};
 	Vector3 lla2{0.7, -1.40005, 100};
@@ -609,6 +804,48 @@ TEST(delta_lon_to_east, VerifyAltitudeCorrection) {
 	EXPECT_NEAR(delta_lon_to_east(delta_lon, latitude, altitude), expected, 1.0e-10);
 }
 
+TEST(delta_lon_to_east, BatchTest) {
+	// define test data
+	double approx_lat          = 39.0 * 180 / PI;
+	double approx_alt          = 1000;
+	Vector approx_lats         = approx_lat * ones(6);
+	Vector approx_alts         = approx_alt * ones(6);
+	Vector east_distances_test = {0.1, 2, 30, 400, 5000, 60000};
+	Vector delta_lons          = {
+        -2.40651610e-08,
+        -4.81303219e-07,
+        -7.21954829e-06,
+        -9.62606439e-05,
+        -1.20325805e-03,
+        -1.44390966e-02,
+    };
+
+	// Batch of points
+	Vector east_distances_1 = delta_lon_to_east(delta_lons, approx_lat, approx_alt);
+	Vector east_distances_2 = delta_lon_to_east(delta_lons, approx_lats, approx_alts);
+	ASSERT_ALLCLOSE(east_distances_1, east_distances_test);
+	ASSERT_ALLCLOSE(east_distances_2, east_distances_test);
+}
+
+TEST(delta_lon_to_east, InitializerTest) {
+	// define test data
+	double approx_lat          = 39.0 * 180 / PI;
+	double approx_alt          = 1000;
+	Vector east_distances_test = {0.1, 2, 30, 400, 5000, 60000};
+	auto east_distances        = delta_lon_to_east(
+        {
+            -2.40651610e-08,
+            -4.81303219e-07,
+            -7.21954829e-06,
+            -9.62606439e-05,
+            -1.20325805e-03,
+            -1.44390966e-02,
+        },
+        approx_lat,
+        approx_alt);
+	ASSERT_ALLCLOSE(east_distances, east_distances_test);
+}
+
 TEST(east_to_delta_lon, CompareToEcef) {
 	Vector3 lla1{0.7, -1.4, 100};
 	Vector3 lla2{0.7, -1.40005, 100};
@@ -626,6 +863,46 @@ TEST(east_to_delta_lon, InverseFunction) {
 	double expected = 0.0000014;
 	double actual   = east_to_delta_lon(delta_lon_to_east(expected, 1.34), 1.34);
 	EXPECT_NEAR(expected, actual, 1.6e-10);
+}
+
+TEST(east_to_delta_lon, BatchTest) {
+	// define test data
+	double approx_lat     = 39.0 * 180 / PI;
+	double approx_alt     = 1000;
+	Vector approx_lats    = approx_lat * ones(6);
+	Vector approx_alts    = approx_alt * ones(6);
+	Vector east_distances = {0.1, 2, 30, 400, 5000, 60000};
+
+	Vector delta_lons_test = {
+	    -2.40651610e-08,
+	    -4.81303219e-07,
+	    -7.21954829e-06,
+	    -9.62606439e-05,
+	    -1.20325805e-03,
+	    -1.44390966e-02,
+	};
+
+	// Batch of points
+	Vector delta_lons_1 = east_to_delta_lon(east_distances, approx_lat, approx_alt);
+	Vector delta_lons_2 = east_to_delta_lon(east_distances, approx_lats, approx_alts);
+	ASSERT_ALLCLOSE(delta_lons_1, delta_lons_test);
+	ASSERT_ALLCLOSE(delta_lons_2, delta_lons_test);
+}
+
+TEST(east_to_delta_lon, InitializerTest) {
+	// define test data
+	double approx_lat      = 39.0 * 180 / PI;
+	double approx_alt      = 1000;
+	Vector delta_lons_test = {
+	    -2.40651610e-08,
+	    -4.81303219e-07,
+	    -7.21954829e-06,
+	    -9.62606439e-05,
+	    -1.20325805e-03,
+	    -1.44390966e-02,
+	};
+	auto delta_lons = east_to_delta_lon({0.1, 2, 30, 400, 5000, 60000}, approx_lat, approx_alt);
+	ASSERT_ALLCLOSE(delta_lons, delta_lons_test);
 }
 
 TEST(north_to_delta_lat, InverseFunction) {
@@ -652,6 +929,41 @@ TEST(north_to_delta_lat, PerfectEarthApprox) {
 	double actual   = north_to_delta_lat(a, 0);
 	double expected = a / 6353000.0;
 	EXPECT_NEAR(expected, actual, 1e-6);
+}
+
+TEST(north_to_delta_lat, BatchTest) {
+	// define test data
+	double approx_lat      = 39.0 * 180 / PI;
+	double approx_alt      = 1000;
+	Vector approx_lats     = approx_lat * ones(6);
+	Vector approx_alts     = approx_alt * ones(6);
+	Vector north_distances = {0.1, 2, 30, 400, 5000, 60000};
+	Vector delta_lats_test = {1.56903478e-08,
+	                          3.13806956e-07,
+	                          4.70710434e-06,
+	                          6.27613911e-05,
+	                          7.84517389e-04,
+	                          9.41420867e-03};
+
+	// Batch of points
+	Vector delta_lats_1 = north_to_delta_lat(north_distances, approx_lat, approx_alt);
+	Vector delta_lats_2 = north_to_delta_lat(north_distances, approx_lats, approx_alts);
+	ASSERT_ALLCLOSE(delta_lats_1, delta_lats_test);
+	ASSERT_ALLCLOSE(delta_lats_2, delta_lats_test);
+}
+
+TEST(north_to_delta_lat, InitializerTest) {
+	// define test data
+	double approx_lat      = 39.0 * 180 / PI;
+	double approx_alt      = 1000;
+	Vector delta_lats_test = {1.56903478e-08,
+	                          3.13806956e-07,
+	                          4.70710434e-06,
+	                          6.27613911e-05,
+	                          7.84517389e-04,
+	                          9.41420867e-03};
+	auto delta_lats = north_to_delta_lat({0.1, 2, 30, 400, 5000, 60000}, approx_lat, approx_alt);
+	ASSERT_ALLCLOSE(delta_lats, delta_lats_test);
 }
 
 TEST(correct_dcm_with_tilt, CompareToKnownSolution) {  // No tilt applied
@@ -731,6 +1043,43 @@ TEST(quat_to_dcm, InverseFunction) {
 	EXPECT_MATRIX_EQUAL(expected, actual, 2.0e-6);
 }
 
+TEST(quat_to_dcm, InitializerTest) {
+	// single test
+	Matrix dcm_test = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+	auto dcm        = quat_to_dcm({1, 0, 0, 0});
+	ASSERT_ALLCLOSE(dcm, dcm_test);
+
+	// batch test
+	Tensor<3> dcm_batch_test = {{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}},
+	                            {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}};
+	auto dcm_batch           = quat_to_dcm({{1, 0, 0, 0}, {1, 0, 0, 0}});
+	ASSERT_ALLCLOSE(dcm_batch, dcm_batch_test);
+}
+
+TEST(quat_to_rpy, BatchTest) {
+	// these are not valid rotation quaternions, but the test still demonstrates
+	// that the individual and batch versions do the exact same thing.
+	Matrix quats    = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
+	auto rpys_batch = quat_to_rpy(quats);
+	Vector3 rpy;
+	for (size_t i = 0; i < quats.shape()[0]; i++) {
+		rpy = quat_to_rpy(view(quats, i, all()));
+		ASSERT_ALLCLOSE(view(rpys_batch, i, all()), rpy);
+	}
+}
+
+TEST(quat_to_rpy, InitializerTest) {
+	// single test
+	Vector rpy_test = {0, 0, 0};
+	auto rpy        = quat_to_rpy({1, 0, 0, 0});
+	ASSERT_ALLCLOSE(rpy, rpy_test);
+
+	// batch test
+	Matrix rpy_batch_test = {{0, 0, 0}, {0, 0, 0}};
+	auto rpy_batch        = quat_to_rpy({{1, 0, 0, 0}, {1, 0, 0, 0}});
+	ASSERT_ALLCLOSE(rpy_batch, rpy_batch_test);
+}
+
 TEST(rpy_to_quat, CompareToKnownSolution) {
 	Vector3 const rpy      = {0.05, -1.20, -0.64};
 	Vector4 const expected = {
@@ -739,11 +1088,45 @@ TEST(rpy_to_quat, CompareToKnownSolution) {
 	EXPECT_MATRIX_EQUAL(expected, actual, 1.0e-9);
 }
 
+TEST(rpy_to_quat, BatchTest) {
+	Matrix rpys      = {{PI / 2, 0, 0}, {0, PI / 4, 0}, {0, 0, PI / 2}, {1, 1, 1}};
+	auto quats_batch = rpy_to_quat(rpys);
+	Vector4 quat;
+	for (size_t i = 0; i < rpys.shape()[0]; i++) {
+		quat = rpy_to_quat(view(rpys, i, all()));
+		ASSERT_ALLCLOSE(view(quats_batch, i, all()), quat);
+	}
+}
+
+TEST(rpy_to_quat, InitializerTest) {
+	// single test
+	Vector quat_test = {1, 0, 0, 0};
+	auto quat        = rpy_to_quat({0, 0, 0});
+	ASSERT_ALLCLOSE(quat, quat_test);
+
+	// batch test
+	Matrix quat_batch_test = {{1, 0, 0, 0}, {1, 0, 0, 0}};
+	auto quat_batch        = rpy_to_quat({{0, 0, 0}, {0, 0, 0}});
+	ASSERT_ALLCLOSE(quat_batch, quat_batch_test);
+}
+
 TEST(quat_to_rpy, CompareToKnownSolution) {
 	Vector4 const quat     = {0.5, 0.6, 0.7, 0.8};
 	Vector3 const expected = {1.957302631908816, -0.263022202908469, 2.225902330463252};
 	auto actual            = quat_to_rpy(quat);
 	EXPECT_MATRIX_EQUAL(expected, actual, 1.0e-9);
+}
+
+TEST(quat_to_dcm, BatchTest) {
+	// these are not valid rotation quaternions, but the test still demonstrates
+	// that the individual and batch versions do the exact same thing.
+	Matrix quats    = {{1, 0, 0, 0}, {0, 1, 0, 0}, {0, 0, 1, 0}, {0, 0, 0, 1}};
+	auto dcms_batch = quat_to_dcm(quats);
+	Matrix dcm;
+	for (size_t i = 0; i < quats.shape()[0]; i++) {
+		dcm = quat_to_dcm(view(quats, i, all()));
+		ASSERT_ALLCLOSE(view(dcms_batch, i, all(), all()), dcm);
+	}
 }
 
 TEST(rpy_to_quat, Inverse) {
@@ -1204,4 +1587,18 @@ TEST(compare_tilt_corr, comp2) {
 TEST(compare_tilt_corr, comp3) {
 	Vector3 tilt{1e-5, -2e-5, -9e-5};
 	ASSERT_ALLCLOSE(rpy_to_dcm(tilt), rot_vec_to_dcm(tilt));
+}
+
+TEST(rot_vec_to_dcm, BatchTest) {
+	Matrix rot_vecs = {{PI / 2, 0, 0}, {0, PI / 4, 0}, {0, 0, PI / 2}, {1, 1, 1}};
+	auto dcms_batch = rot_vec_to_dcm(rot_vecs);
+	Matrix3 dcm;
+	for (size_t i = 0; i < rot_vecs.shape()[0]; i++) {
+		dcm = rot_vec_to_dcm(view(rot_vecs, i, all()));
+		ASSERT_ALLCLOSE(view(dcms_batch, i, all(), all()), dcm);
+	}
+}
+
+TEST(rot_vec_to_dcm, InitializerTest) {
+	ASSERT_ALLCLOSE(rpy_to_dcm({1e-5, -2e-5, -9e-5}), rot_vec_to_dcm({1e-5, -2e-5, -9e-5}));
 }

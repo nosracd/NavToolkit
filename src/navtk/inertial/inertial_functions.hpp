@@ -1,7 +1,9 @@
 #pragma once
 
 #include <navtk/aspn.hpp>
+#include <navtk/factory.hpp>
 #include <navtk/inertial/AidingAltData.hpp>
+#include <navtk/inspect.hpp>
 #include <navtk/navutils/wgs84.hpp>
 #include <navtk/tensors.hpp>
 
@@ -223,8 +225,19 @@ double apply_aiding_alt_accel(double r_zero,
 /**
  * Calculates an offset that can be used to convert between NED forces and accelerations.
  *
- * @param r_e @see navtk::navutils::transverse_radius.
- * @param r_n @see navtk::navutils::meridian_radius.
+ * @tparam S1 Type of r_e.
+ * @tparam S2 Type of r_n.
+ * @tparam S3 Type of alt0.
+ * @tparam S4 Type of cos_l.
+ * @tparam S5 Type of g.
+ * @tparam S6 Type of sec_l.
+ * @tparam S7 Type of sin_l.
+ * @tparam S8 Type of v_ned0.
+ * @tparam std::enable_if_t<> Constrains S1, S2, S3, S4, S6, and S7 to be 0 dimensional and S5 and
+ * S8 to be 1 dimensional.
+ *
+ * @param r_e east_distances.
+ * @param r_n north_distances.
  * @param alt0 The inertial's current ellipsoidal altitude, m.
  * @param cos_l Cosine of inertial latitude.
  * @param g Estimated local gravity along North, East and Down axes, m/s^2.
@@ -236,15 +249,134 @@ double apply_aiding_alt_accel(double r_zero,
  * @return The offset between NED forces and accelerations such that `forces + offset =
  * accelerations`.
  */
-Vector3 calc_force_and_acceleration_offset(double r_e,
-                                           double r_n,
-                                           double alt0,
-                                           double cos_l,
-                                           const Vector3& g,
-                                           double sec_l,
-                                           double sin_l,
-                                           const Vector3& v_ned0,
-                                           double omega = navutils::ROTATION_RATE);
+template <
+    typename S1,
+    typename S2,
+    typename S3,
+    typename S4,
+    typename S5,
+    typename S6,
+    typename S7,
+    typename S8,
+    IfAllConditions<TensorsAreDim<0, S1, S2, S3, S4, S6, S7>, TensorsAreDim<1, S5, S8>>* = nullptr>
+Vector3 calc_force_and_acceleration_offset(const S1& r_e,
+                                           const S2& r_n,
+                                           const S3& alt0,
+                                           const S4& cos_l,
+                                           const S5& g,
+                                           const S6& sec_l,
+                                           const S7& sin_l,
+                                           const S8& v_ned0,
+                                           double omega = navutils::ROTATION_RATE) {
+	auto v_ned0_vec = to_vec(v_ned0);
+	auto g_vec      = to_vec(g);
+	auto l_dot      = v_ned0_vec(0) / (r_n + alt0);
+	auto lambda_dot = v_ned0_vec(1) * sec_l / (r_e + alt0);
+
+	return {-v_ned0_vec(1) * (2 * omega + lambda_dot) * sin_l + v_ned0_vec(2) * l_dot + g_vec(0),
+	        // Equation 3.77, pp 52, Titterton text
+	        v_ned0_vec(0) * (2 * omega + lambda_dot) * sin_l +
+	            v_ned0_vec(2) * (2 * omega + lambda_dot) * cos_l + g_vec(1),
+	        // Equation 3.78, pp 52, Titterton text
+	        -v_ned0_vec(1) * (2 * omega + lambda_dot) * cos_l - v_ned0_vec(0) * l_dot + g_vec(2)};
+}
+
+/**
+ * Batched version of `calc_force_and_acceleration_offset`.
+ *
+ * @overload
+ *
+ * @see calc_force_and_acceleration_offset
+ *
+ * @tparam B1 Type of r_e.
+ * @tparam B2 Type of r_n.
+ * @tparam B3 Type of alt0.
+ * @tparam B4 Type of cos_l.
+ * @tparam B5 Type of g.
+ * @tparam B6 Type of sec_l.
+ * @tparam B7 Type of sin_l.
+ * @tparam B8 Type of v_ned0.
+ * @tparam std::enable_if_t<> Constrains the max dimension of B1, B2, B3, B4, B6, and B7 to be 1
+ * _or_ the max dimension of B5 and B8 to be 2.
+ *
+ * @param r_e east_distances, shape (N).  Can accept initializer lists or a
+ * `double` as well.
+ * @param r_n north_distances, shape (N).  Can accept initializer lists or a
+ * `double` as well.
+ * @param alt0 The inertial's current ellipsoidal altitudes, m, shape (N).  Can accept initializer
+ * lists or a `double` as well.
+ * @param cos_l Cosines of inertial latitudes, shape (N).  Can accept initializer lists or a
+ * `double` as well.
+ * @param g Estimated local gravities along North, East and Down axes, m/s^2, shape (N, 3).  Can
+ * accept initializer lists or a `Vector` as well.
+ * @param sec_l Secants of inertial latitudes, shape (N).  Can accept initializer lists or a
+ * `double` as well.
+ * @param sin_l Sines of inertial latitudes, shape (N).  Can accept initializer lists or a
+ * `double` as well.
+ * @param v_ned0 Inertial velocities in the NED frame, m/s, shape (N, 3).  Can accept initializer
+ * lists or a `Vector` as well.
+ * @param omega Earth rotation rate, rad/s.
+ *
+ * @return The offsets between NED forces and accelerations such that `forces + offset =
+ * accelerations`, shape (N, 3)
+ */
+template <typename B1                                    = Vector,
+          typename B2                                    = Vector,
+          typename B3                                    = Vector,
+          typename B4                                    = Vector,
+          typename B5                                    = Matrix,
+          typename B6                                    = Vector,
+          typename B7                                    = Vector,
+          typename B8                                    = Matrix,
+          IfAnyConditions<TensorsHaveMaxDim<1, B1, B2, B3, B4, B6, B7>,
+                          TensorsHaveMaxDim<2, B5, B8>>* = nullptr>
+Matrix calc_force_and_acceleration_offset(const B1& r_e,
+                                          const B2& r_n,
+                                          const B3& alt0,
+                                          const B4& cos_l,
+                                          const B5& g,
+                                          const B6& sec_l,
+                                          const B7& sin_l,
+                                          const B8& v_ned0,
+                                          double omega = navutils::ROTATION_RATE) {
+	auto r_e_vec    = to_vec(r_e);
+	auto r_n_vec    = to_vec(r_n);
+	auto alt0_vec   = to_vec(alt0);
+	auto cos_l_vec  = to_vec(cos_l);
+	auto g_mat      = to_matrix(g);
+	auto sec_l_vec  = to_vec(sec_l);
+	auto sin_l_vec  = to_vec(sin_l);
+	auto v_ned0_mat = to_matrix(v_ned0);
+
+	const size_t N = std::max({r_e_vec.shape()[0],
+	                           r_n_vec.shape()[0],
+	                           alt0_vec.shape()[0],
+	                           cos_l_vec.shape()[0],
+	                           g_mat.shape()[0],
+	                           sec_l_vec.shape()[0],
+	                           sin_l_vec.shape()[0],
+	                           v_ned0_mat.shape()[0]});
+
+	Matrix offset = empty(N, 3);
+
+	Scalar l_dot, lambda_dot;
+
+	for (size_t i = 0; i < N; i++) {
+		l_dot      = v_ned0_mat(i, 0) / (r_n_vec(i) + alt0_vec(i));
+		lambda_dot = v_ned0_mat(i, 1) * sec_l_vec(i) / (r_e_vec(i) + alt0_vec(i));
+
+		offset(i, 0) = -v_ned0_mat(i, 1) * (2 * omega + lambda_dot) * sin_l_vec(i) +
+		               v_ned0_mat(i, 2) * l_dot + g_mat(i, 0);
+		// Equation 3.77, pp 52, Titterton text
+		offset(i, 1) = v_ned0_mat(i, 0) * (2 * omega + lambda_dot) * sin_l_vec(i) +
+		               v_ned0_mat(i, 2) * (2 * omega + lambda_dot) * cos_l_vec(i) + g_mat(i, 1);
+		// Equation 3.78, pp 52, Titterton text
+		offset(i, 2) = -v_ned0_mat(i, 1) * (2 * omega + lambda_dot) * cos_l_vec(i) -
+		               v_ned0_mat(i, 0) * l_dot + g_mat(i, 2);
+	}
+
+	return offset;
+}
 
 }  // namespace inertial
 }  // namespace navtk

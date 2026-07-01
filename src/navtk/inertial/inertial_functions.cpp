@@ -160,27 +160,5 @@ double apply_aiding_alt_accel(double r_zero,
 	return c1;
 }
 
-Vector3 calc_force_and_acceleration_offset(double r_e,
-                                           double r_n,
-                                           double alt0,
-                                           double cos_l,
-                                           const Vector3& g,
-                                           double sec_l,
-                                           double sin_l,
-                                           const Vector3& v_ned0,
-                                           double omega) {
-	auto l_dot      = v_ned0[0] / (r_n + alt0);
-	auto lambda_dot = v_ned0[1] * sec_l / (r_e + alt0);
-
-	Vector3 offset = zeros(3);
-	offset[0]      = -v_ned0[1] * (2 * omega + lambda_dot) * sin_l + v_ned0[2] * l_dot + g[0];
-	// Equation 3.77, pp 52, Titterton text
-	offset[1] = v_ned0[0] * (2 * omega + lambda_dot) * sin_l +
-	            v_ned0[2] * (2 * omega + lambda_dot) * cos_l + g[1];
-	// Equation 3.78, pp 52, Titterton text
-	offset[2] = -v_ned0[1] * (2 * omega + lambda_dot) * cos_l - v_ned0[0] * l_dot + g[2];
-	return offset;
-}
-
 }  // namespace inertial
 }  // namespace navtk

@@ -28,39 +28,6 @@ Vector3 calculate_gravity_titterton(double alt, double lat, double R0) {
 	return Vector3{0.0, 0.0, g};
 }
 
-Vector3 calculate_gravity_schwartz(double alt, double lat) {
-	// Apply gravity model from K.P. Schwartz ENGO 623 Course Notes (University of Calgary)
-	// This is the GRS80 gravity model from
-	// http://geoweb.mit.edu/~tah/12.221_2005/grs80_corr.pdf
-	// combined with the height variation correction given in
-	// https://archive.org/details/HeiskanenMoritz1967PhysicalGeodesy/page/n87
-	// eq 2-123
-	const double a1 = 9.7803267715;
-	const double a2 = 0.0052790414;
-	const double a3 = 0.0000232718;
-	const double a4 = -3.0876910891E-6;
-	const double a5 = 4.3977311E-9;
-	const double a6 = 7.211E-13;
-	auto sin_lat    = sin(lat);
-	auto sin2_lat   = sin_lat * sin_lat;
-	auto sin4_lat   = sin2_lat * sin2_lat;
-
-	double g = 0.0;
-	if (alt >= 0)
-		g = a1 * (1 + a2 * sin2_lat + a3 * sin4_lat) + (a4 + a5 * sin2_lat) * alt + a6 * alt * alt;
-	else {
-		// Original does not account for negative altitudes- implement
-		// linear scaling of gravity at altitude 0 as recommended in Savage
-		// 5.4-2 and done elsewhere (T+W)
-		auto g0  = a1 * (1 + a2 * sin2_lat + a3 * sin4_lat);
-		auto R_N = meridian_radius(lat);
-		auto R_E = transverse_radius(lat);
-		auto R_0 = sqrt(R_N * R_E);
-		g        = g0 * (1 + alt / R_0);
-	}
-	return Vector3{0.0, 0.0, g};
-}
-
 /*
  * Helper function for the savage n frame gravity model that calculates gravity
  * components perpendicular and parallel to the geocentric ellipsoidal position

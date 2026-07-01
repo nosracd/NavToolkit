@@ -2,6 +2,7 @@
 #include <tensor_assert.hpp>
 #include <xtensor/views/xview.hpp>
 
+#include <navtk/factory.hpp>
 #include <navtk/navutils/math.hpp>
 #include <navtk/navutils/navigation.hpp>
 #include <navtk/tensors.hpp>
@@ -17,8 +18,10 @@ using navtk::Vector3;
 using navtk::navutils::ortho_dcm;
 using navtk::navutils::PI;
 using navtk::navutils::rpy_to_dcm;
+using navtk::navutils::skew;
 using navtk::navutils::wrap_to_pi;
 using navtk::utils::repr;
+using xt::all;
 using xt::range;
 using xt::transpose;
 using xt::view;
@@ -111,4 +114,32 @@ TEST(WrapTest, wrap_stuff) {
 
 	// The one case where the raw value doesn't equal expected
 	test_wrapping(-PI, PI);
+}
+
+TEST(skew, AssignsCorrectly) {
+	Vector vec      = {1, 2, 3};
+	Matrix test_mat = {{0, -3, 2}, {3, 0, -1}, {-2, 1, 0}};
+	auto skew_mat   = skew(vec);
+	ASSERT_ALLCLOSE(skew_mat, test_mat);
+}
+
+TEST(skew, BatchTest) {
+	Matrix vecs    = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+	auto skew_mats = skew(vecs);
+	Matrix3 skew_mat;
+	for (size_t i = 0; i < vecs.shape()[0]; i++) {
+		skew_mat = skew(view(vecs, i, all()));
+		ASSERT_ALLCLOSE(view(skew_mats, i, all(), all()), skew_mat);
+	}
+}
+
+TEST(skew, InitializerTest) {
+	auto skew_mat_initializer = skew({1, 2, 3});
+	EXPECT_EQ(skew_mat_initializer.shape()[0], 3);
+	EXPECT_EQ(skew_mat_initializer.shape()[1], 3);
+
+	auto skew_mats_initializer = skew({{1, 2, 3}, {4, 5, 6}});
+	EXPECT_EQ(skew_mats_initializer.shape()[0], 2);
+	EXPECT_EQ(skew_mats_initializer.shape()[1], 3);
+	EXPECT_EQ(skew_mats_initializer.shape()[2], 3);
 }

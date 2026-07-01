@@ -32,10 +32,10 @@ namespace exampleutils {
 vector<NavSolution> constant_vel_pva(NavSolution start_pva, double dt, double stop_time) {
 	unsigned int n         = stop_time / dt;
 	double heading         = atan2(start_pva.vel[1], start_pva.vel[0]);
-	auto dcm_head          = xt::transpose(rpy_to_dcm({{0.0, 0.0, heading}}));
+	auto dcm_head          = xt::transpose(rpy_to_dcm({0.0, 0.0, heading}));
 	auto nav_vel           = dcm_head * start_pva.vel;
 	double pitch           = atan2(-nav_vel[2], nav_vel[0]);
-	auto C_nav_to_platform = xt::transpose(rpy_to_dcm({{0.0, pitch, heading}}));
+	auto C_nav_to_platform = xt::transpose(rpy_to_dcm({0.0, pitch, heading}));
 
 	vector<NavSolution> pvas;
 	for (unsigned int i = 0; i < n; i++) {

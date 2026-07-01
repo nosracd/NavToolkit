@@ -18,7 +18,7 @@ using xt::xrange;
 namespace navtk {
 namespace navutils {
 
-Matrix3 axis_angle_to_dcm(const Vector3 &axis, double angle) {
+Matrix3 axis_angle_to_dcm(const Vector3& axis, double angle) {
 	Vector ext = axis;
 	auto n_ext = navtk::norm(ext);
 	if (n_ext != 1) ext = (axis / n_ext);
@@ -76,7 +76,7 @@ Matrix calc_van_loan(const double f, const double g, const double q, const doubl
 	return Matrix{{2 * b * snh * std::exp(0.5 * k) / k}};
 }
 
-Matrix calc_van_loan(const Matrix &F, const Matrix &G, const Matrix &Q, const double dt) {
+Matrix calc_van_loan(const Matrix& F, const Matrix& G, const Matrix& Q, const double dt) {
 	auto NS = num_rows(F);
 	if (NS == 1) {
 		Matrix g_eval = dot(dot(G, Q), transpose(G));
@@ -97,7 +97,7 @@ Matrix calc_van_loan(const Matrix &F, const Matrix &G, const Matrix &Q, const do
 	return dot(B22T, B12);
 }
 
-Matrix3 correct_dcm_with_tilt(const Matrix3 &dcm, const Vector3 &tilt) {
+Matrix3 correct_dcm_with_tilt(const Matrix3& dcm, const Vector3& tilt) {
 	double sum_squares = pow(tilt[0], 2) + pow(tilt[1], 2) + pow(tilt[2], 2);
 	if (sum_squares > 0) {
 		double m  = sqrt(sum_squares);
@@ -111,72 +111,8 @@ Matrix3 correct_dcm_with_tilt(const Matrix3 &dcm, const Vector3 &tilt) {
 	return dcm;
 }
 
-Vector4 dcm_to_quat(const Matrix3 &dcm) {
-	double d0 = dcm(0, 0);
-	double d1 = dcm(1, 1);
-	double d2 = dcm(2, 2);
-
-	// Book just says max, but alternative formulation uses squares, so probably max(abs)
-	auto pa   = std::fabs(1 + d0 + d1 + d2);
-	auto pb   = std::fabs(1 + d0 - d1 - d2);
-	auto pc   = std::fabs(1 - d0 + d1 - d2);
-	auto pd   = std::fabs(1 - d0 - d1 + d2);
-	double q0 = 0.0;
-	double q1 = 0.0;
-	double q2 = 0.0;
-	double q3 = 0.0;
-
-	if (pa >= pb && pa >= pc && pa >= pd) {
-		q0        = 0.5 * sqrt(pa);
-		auto q0t4 = 4 * q0;
-		q1        = (dcm(2, 1) - dcm(1, 2)) / (q0t4);
-		q2        = (dcm(0, 2) - dcm(2, 0)) / (q0t4);
-		q3        = (dcm(1, 0) - dcm(0, 1)) / (q0t4);
-	} else if (pb >= pa && pb >= pc && pb >= pd) {
-		q1        = 0.5 * sqrt(pb);
-		auto q1t4 = 4 * q1;
-		q0        = (dcm(2, 1) - dcm(1, 2)) / (q1t4);
-		q2        = (dcm(1, 0) + dcm(0, 1)) / (q1t4);
-		q3        = (dcm(0, 2) + dcm(2, 0)) / (q1t4);
-	} else if (pc >= pa && pc >= pb && pc >= pd) {
-		q2        = 0.5 * sqrt(pc);
-		auto q2t4 = 4 * q2;
-		q0        = (dcm(0, 2) - dcm(2, 0)) / (q2t4);
-		q1        = (dcm(1, 0) + dcm(0, 1)) / (q2t4);
-		q3        = (dcm(2, 1) + dcm(1, 2)) / (q2t4);
-	} else {
-		q3        = 0.5 * sqrt(pd);
-		auto q3t4 = 4 * q3;
-		q0        = (dcm(1, 0) - dcm(0, 1)) / (q3t4);
-		q1        = (dcm(0, 2) + dcm(2, 0)) / (q3t4);
-		q2        = (dcm(2, 1) + dcm(1, 2)) / (q3t4);
-	}
-
-	if (q0 <= 0) {
-		return Vector4{-q0, -q1, -q2, -q3};
-	}
-	return Vector4{q0, q1, q2, q3};
-}
-
-Vector3 dcm_to_rpy(const Matrix3 &dcm) {
-	auto asin_arg = std::min(1.0, std::max(dcm(2, 0), -1.0));
-	auto r        = atan2(dcm(2, 1), dcm(2, 2));
-	auto p        = -asin(asin_arg);
-	auto y        = atan2(dcm(1, 0), dcm(0, 0));
-
-	if (asin_arg <= -0.999) {
-		auto y_min_r = atan2(dcm(1, 2) - dcm(0, 1), dcm(0, 2) + dcm(1, 1));
-		y            = y_min_r + r;
-	}
-	if (asin_arg >= 0.999) {
-		auto y_pls_r = atan2(dcm(1, 2) + dcm(0, 1), dcm(0, 2) - dcm(1, 1)) + PI;
-		y            = remainder((y_pls_r - r), 2.0 * PI);
-	}
-	return {r, p, y};
-}
-
 namespace {
-void validate_discretized_inputs(const Matrix &f, const Matrix &q, double dt) {
+void validate_discretized_inputs(const Matrix& f, const Matrix& q, double dt) {
 
 	if (ValidationContext validation{}) {
 		validation.add_matrix(f, "f").dim('N', 'N').add_matrix(q, "q").dim('N', 'N').validate();
@@ -187,12 +123,12 @@ void validate_discretized_inputs(const Matrix &f, const Matrix &q, double dt) {
 }
 }  // namespace
 
-std::pair<Matrix, Matrix> discretize_first_order(const Matrix &f, const Matrix &q, double dt) {
+std::pair<Matrix, Matrix> discretize_first_order(const Matrix& f, const Matrix& q, double dt) {
 	validate_discretized_inputs(f, q, dt);
 	return {xt::fma(f, dt, eye(num_cols(f))), q * dt};
 }
 
-std::pair<Matrix, Matrix> discretize_second_order(const Matrix &f, const Matrix &q, double dt) {
+std::pair<Matrix, Matrix> discretize_second_order(const Matrix& f, const Matrix& q, double dt) {
 	validate_discretized_inputs(f, q, dt);
 	Matrix Phi    = xt::fma(0.5 * dt * dt, matrix_power(f, 2), xt::fma(f, dt, eye(num_cols(f))));
 	Matrix q_prop = dot(dot(Phi, q), transpose(Phi));
@@ -200,14 +136,14 @@ std::pair<Matrix, Matrix> discretize_second_order(const Matrix &f, const Matrix 
 	return {std::move(Phi), std::move(Qd)};
 }
 
-std::pair<Matrix, Matrix> discretize_van_loan(const Matrix &f, const Matrix &q, double dt) {
+std::pair<Matrix, Matrix> discretize_van_loan(const Matrix& f, const Matrix& q, double dt) {
 	validate_discretized_inputs(f, q, dt);
 	return {expm(f * dt), calc_van_loan(f, eye(num_cols(f)), q, dt)};
 }
 
-Matrix3 ecef_to_cen(const Vector3 &Pe) { return llh_to_cen(ecef_to_llh(Pe)); }
+Matrix3 ecef_to_cen(const Vector3& Pe) { return llh_to_cen(ecef_to_llh(Pe)); }
 
-Vector3 ecef_to_llh(const Vector3 &Pe) {
+Vector3 ecef_to_llh(const Vector3& Pe) {
 	// WGS-84 Constants
 	auto a                   = SEMI_MAJOR_RADIUS;     // Semi-major radius (m)
 	auto e2                  = ECCENTRICITY_SQUARED;  // Eccentricity squared (.)
@@ -252,11 +188,11 @@ Vector3 ecef_to_llh(const Vector3 &Pe) {
 	return {phi0, lam, h0};
 }
 
-Vector3 ecef_to_local_level(const Vector3 &P0e, const Vector3 &Pe) {
+Vector3 ecef_to_local_level(const Vector3& P0e, const Vector3& Pe) {
 	return dot(transpose(ecef_to_cen(P0e)), Pe - P0e);
 }
 
-Matrix3 llh_to_cen(const Vector3 &Pwgs) {
+Matrix3 llh_to_cen(const Vector3& Pwgs) {
 	double clat = cos(Pwgs[0]);
 	double slat = sin(Pwgs[0]);
 	double clon = cos(Pwgs[1]);
@@ -265,7 +201,7 @@ Matrix3 llh_to_cen(const Vector3 &Pwgs) {
 	    {-slat * clon, -slon, -clat * clon}, {-slat * slon, clon, -clat * slon}, {clat, 0, -slat}};
 }
 
-Vector3 llh_to_ecef(const Vector3 &Pwgs) {
+Vector3 llh_to_ecef(const Vector3& Pwgs) {
 	// WGS-84 Constants
 	auto a  = SEMI_MAJOR_RADIUS;     // Semi-major radius (m)
 	auto e2 = ECCENTRICITY_SQUARED;  // Eccentricity squared (.)
@@ -281,65 +217,8 @@ Vector3 llh_to_ecef(const Vector3 &Pwgs) {
 	return {(N + h) * cosphi * cos(lam), (N + h) * cosphi * sin(lam), (N * (1 - e2) + h) * sinphi};
 }
 
-Vector3 local_level_to_ecef(const Vector3 &P0e, const Vector3 &Pn) {
+Vector3 local_level_to_ecef(const Vector3& P0e, const Vector3& Pn) {
 	return dot(ecef_to_cen(P0e), Pn) + P0e;
-}
-
-Matrix3 quat_to_dcm(const Vector4 &quat) {
-	auto q0 = quat[0];
-	auto q1 = quat[1];
-	auto q2 = quat[2];
-	auto q3 = quat[3];
-	auto a2 = pow(q0, 2);
-	auto b2 = pow(q1, 2);
-	auto c2 = pow(q2, 2);
-	auto d2 = pow(q3, 2);
-	auto ab = q0 * q1;
-	auto ac = q0 * q2;
-	auto ad = q0 * q3;
-	auto bc = q1 * q2;
-	auto bd = q1 * q3;
-	auto cd = q2 * q3;
-	return {{a2 + b2 - c2 - d2, 2 * (bc - ad), 2 * (bd + ac)},
-	        {2 * (bc + ad), a2 - b2 + c2 - d2, 2 * (cd - ab)},
-	        {2 * (bd - ac), 2 * (cd + ab), a2 - b2 - c2 + d2}};
-}
-
-Vector3 quat_to_rpy(const Vector4 &quat) {
-	auto q0   = quat[0];
-	auto q1   = quat[1];
-	auto q2   = quat[2];
-	auto q3   = quat[3];
-	auto roll = atan2(2 * (q0 * q1 + q2 * q3), 1 - 2 * (q1 * q1 + q2 * q2)),
-
-	     pitch = asin(std::min(std::max(2 * (q0 * q2 - q1 * q3), -1.0), 1.0)),
-
-	     yaw = atan2(2 * (q0 * q3 + q1 * q2), 1 - 2 * (q2 * q2 + q3 * q3));
-	return {roll, pitch, yaw};
-}
-
-Matrix3 rpy_to_dcm(const Vector3 &rpy) {
-	// Negate angles as we are performing
-	// left-handed coordinate rotations
-	double cph = cos(rpy[0]);
-	double sph = sin(rpy[0]);
-	double cth = cos(rpy[1]);
-	double sth = sin(rpy[1]);
-	double cps = cos(rpy[2]);
-	double sps = sin(rpy[2]);
-	return Matrix3{{cps * cth, -sps * cph + cps * sth * sph, sps * sph + cps * sth * cph},
-	               {sps * cth, cps * cph + sps * sth * sph, -cps * sph + sps * sth * cph},
-	               {-sth, cth * sph, cth * cph}};
-}
-
-Vector4 rpy_to_quat(const Vector3 &rpy) {
-	auto cr = cos(rpy[0] / 2), cp = cos(rpy[1] / 2), cy = cos(rpy[2] / 2), sr = sin(rpy[0] / 2),
-	     sp = sin(rpy[1] / 2), sy = sin(rpy[2] / 2);
-
-	return {cr * cp * cy + sr * sp * sy,
-	        sr * cp * cy - cr * sp * sy,
-	        cr * sp * cy + sr * cp * sy,
-	        cr * cp * sy - sr * sp * cy};
 }
 
 }  // namespace navutils

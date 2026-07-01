@@ -58,7 +58,7 @@ Matrix3 lat_lon_wander_to_C_n_to_e(double lat, double lon, double wander) {
 	return C_n_to_e;
 }
 
-Vector3 C_n_to_e_to_lat_lon_wander(const Matrix &C_n_to_e) {
+Vector3 C_n_to_e_to_lat_lon_wander(const Matrix& C_n_to_e) {
 
 	auto lat = atan2(C_n_to_e(1, 2), sqrt(pow(C_n_to_e(1, 0), 2) + pow(C_n_to_e(1, 1), 2)));
 
@@ -77,7 +77,7 @@ Vector3 C_n_to_e_to_lat_lon_wander(const Matrix &C_n_to_e) {
 }
 
 // 4.4.2.1-3 Checks out
-double C_n_to_e_to_wander(const Matrix3 &C_n_to_e) {
+double C_n_to_e_to_wander(const Matrix3& C_n_to_e) {
 	// Assuming same latitude based checks apply here as in C_n_to_e_to_lat_lon_wander
 	double deg_by_10 = 0.00174533;
 	double wander    = 0.0;
@@ -86,19 +86,19 @@ double C_n_to_e_to_wander(const Matrix3 &C_n_to_e) {
 	return wander;
 }
 
-std::pair<Matrix3, double> ecef_wander_to_C_n_to_e_h(const Vector3 &ecef_pos, double wander) {
+std::pair<Matrix3, double> ecef_wander_to_C_n_to_e_h(const Vector3& ecef_pos, double wander) {
 	Vector3 llh      = ecef_to_llh(ecef_pos);
 	Matrix3 C_n_to_e = lat_lon_wander_to_C_n_to_e(llh[0], llh[1], wander);
 	return {C_n_to_e, llh[2]};
 }
 
-Vector3 C_n_to_e_h_to_llh(const Matrix3 &C_n_to_e, double h) {
+Vector3 C_n_to_e_h_to_llh(const Matrix3& C_n_to_e, double h) {
 	Vector3 ll = C_n_to_e_to_lat_lon_wander(C_n_to_e);
 	ll[2]      = h;
 	return ll;
 }
 
-Vector3 C_n_to_e_h_to_ecef(const Matrix3 &C_n_to_e, double h) {
+Vector3 C_n_to_e_h_to_ecef(const Matrix3& C_n_to_e, double h) {
 	// Eqn 5.1-10 in Savage - slightly modified as u_U_p_E = CEN * [0; 0; 1];
 	// in other words the last column of CEN
 	auto rs_prime = SEMI_MAJOR_RADIUS / sqrt(1.0 + C_n_to_e(1, 2) * C_n_to_e(1, 2) * (OMF2 - 1.0));
@@ -113,34 +113,6 @@ Vector3 C_n_to_e_h_to_ecef(const Matrix3 &C_n_to_e, double h) {
 }
 
 Matrix3 C_ecef_to_e() { return Matrix3{{0, 1, 0}, {0, 0, 1}, {1, 0, 0}}; }
-
-Matrix3 rot_vec_to_dcm(const Vector3 &phi) {
-
-	/*
-	// 'Normal' implementation. Long chains of xtensor related operations can cause large slowdowns,
-	// especially w/ ASAN testing, so actual implementation does math 'manually' to achieve speed.
-	 double phi_mag   = xt::norm_l2(phi)[0];
-	 double phi_mag2  = phi_mag * phi_mag;
-	 double phi_mag4  = phi_mag2 * phi_mag2;
-	 double term1     = 1 - phi_mag2 / 6 + phi_mag4 / 120;
-	 double term2     = 0.5 - phi_mag2 / 24 + phi_mag4 / 720;
-	 auto phi_cross = skew(phi);
-	 return eye(3) + term1 * phi_cross + term2 * dot(phi_cross, phi_cross);
-	 */
-
-	auto p0         = phi[0];
-	auto p1         = phi[1];
-	auto p2         = phi[2];
-	double phi_mag  = sqrt(p0 * p0 + p1 * p1 + p2 * p2);
-	double phi_mag2 = phi_mag * phi_mag;
-	double phi_mag4 = phi_mag2 * phi_mag2;
-	double t1       = 1 - phi_mag2 / 6 + phi_mag4 / 120;
-	double t2       = 0.5 - phi_mag2 / 24 + phi_mag4 / 720;
-
-	return {{1.0 + t2 * (-p2 * p2 - p1 * p1), -t1 * p2 + t2 * p1 * p0, t1 * p1 + t2 * p0 * p2},
-	        {t1 * p2 + t2 * p0 * p1, 1.0 + t2 * (-p2 * p2 - p0 * p0), -t1 * p0 + t2 * p1 * p2},
-	        {-t1 * p1 + t2 * p0 * p2, t1 * p0 + t2 * p1 * p2, 1.0 + t2 * (-p1 * p1 - p0 * p0)}};
-}
 
 }  // namespace navutils
 }  // namespace navtk

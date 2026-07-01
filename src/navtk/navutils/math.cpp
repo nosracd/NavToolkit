@@ -11,11 +11,6 @@ const double PI      = 3.14159265358979323846264338327950288;
 const double DEG2RAD = PI / 180.0;
 const double RAD2DEG = 180.0 / PI;
 
-
-Matrix3 skew(const Vector3& angles) {
-	return {{0, -angles[2], angles[1]}, {angles[2], 0, -angles[0]}, {-angles[1], angles[0], 0}};
-}
-
 Matrix3 ortho_dcm(const Matrix3& dcm) {
 	Matrix3 out(dcm);
 	Matrix3 delta_mat = eye(3);

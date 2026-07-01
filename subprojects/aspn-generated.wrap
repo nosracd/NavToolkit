@@ -2,6 +2,6 @@
 directory = aspn-generated
 
 url = https://github.com/is4s/aspn-generated.git
-# main branch - committed 21 April 2026
-revision = 7e1f35bc84b90c6d361e690601448f8087e1a626
+# main branch - committed 22 June 2026
+revision = 6abb7f84f1552232b97b05ca77eb6beca6149515
 depth = 1

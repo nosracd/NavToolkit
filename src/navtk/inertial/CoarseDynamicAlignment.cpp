@@ -108,7 +108,7 @@ CoarseDynamicAlignment::CoarseDynamicAlignment(const filtering::ImuModel& model,
 		dtheta_integrator = [](const Vector3& meas) { return eye(3) + navutils::skew(meas); };
 		break;
 	case DcmIntegrationMethods::SIXTH_ORDER:
-		dtheta_integrator = navutils::rot_vec_to_dcm;
+		dtheta_integrator = navutils::rot_vec_to_dcm<const Vector3&>;
 		break;
 	case DcmIntegrationMethods::EXPONENTIAL:
 		dtheta_integrator = [](const Vector3& meas) { return expm(navutils::skew(meas)); };

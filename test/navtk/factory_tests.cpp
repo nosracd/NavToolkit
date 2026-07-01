@@ -1,9 +1,11 @@
 #include <gtest/gtest.h>
 #include <error_mode_assert.hpp>
+#include <initializer_list>
 #include <tensor_assert.hpp>
 
 #include <navtk/factory.hpp>
 #include <navtk/tensors.hpp>
+#include "navtk/inspect.hpp"
 
 using namespace navtk;
 
@@ -191,6 +193,258 @@ TEST(TensorsTests, BlockDiagonalMalformedEmptyMatrix) {
 	ASSERT_ALLCLOSE(eye(3), block_diag(Matrix({1, 0}), eye(3)));
 }
 
+TEST(TensorsTests, Tensor0toTensor3DTest) {
+	auto original = Tensor<0>{1.0};
+
+	{
+		auto converted = to_tensor_3d(original);
+		EXPECT_EQ(3, converted.dimension());
+		EXPECT_EQ(1, converted.shape()[0]);
+		EXPECT_EQ(1, converted.shape()[1]);
+		EXPECT_EQ(1, converted.shape()[2]);
+	}
+
+	// R-value references
+	auto rv_converted = to_tensor_3d(std::move(original));
+	EXPECT_EQ(3, rv_converted.dimension());
+	EXPECT_EQ(1, rv_converted.shape()[0]);
+	EXPECT_EQ(1, rv_converted.shape()[1]);
+	EXPECT_EQ(1, rv_converted.shape()[2]);
+}
+
+TEST(TensorsTests, ScalarToTensor3DTest) {
+	Scalar a = 5.0;
+	auto b   = to_tensor_3d(a);
+	EXPECT_EQ(b.dimension(), 3);
+	EXPECT_DOUBLE_EQ(b(0, 0, 0), a);
+}
+
+TEST(TensorsTests, VectorToTensor3DTest) {
+	auto original = Vector{1.0, 2.0, 3.0};
+
+	{
+		auto converted1 = to_tensor_3d(original, 0);
+		EXPECT_EQ(3, converted1.dimension());
+		EXPECT_EQ(3, converted1.shape()[0]);
+		EXPECT_EQ(1, converted1.shape()[1]);
+		EXPECT_EQ(1, converted1.shape()[2]);
+
+		auto converted2 = to_tensor_3d(original, 1);
+		EXPECT_EQ(3, converted2.dimension());
+		EXPECT_EQ(1, converted2.shape()[0]);
+		EXPECT_EQ(3, converted2.shape()[1]);
+		EXPECT_EQ(1, converted2.shape()[2]);
+
+		auto converted3 = to_tensor_3d(original, 2);
+		EXPECT_EQ(3, converted3.dimension());
+		EXPECT_EQ(1, converted3.shape()[0]);
+		EXPECT_EQ(1, converted3.shape()[1]);
+		EXPECT_EQ(3, converted3.shape()[2]);
+	}
+
+	// R-value references
+	auto rv_converted = to_tensor_3d(std::move(original));
+	EXPECT_EQ(3, rv_converted.dimension());
+	EXPECT_EQ(1, rv_converted.shape()[0]);
+	EXPECT_EQ(1, rv_converted.shape()[1]);
+	EXPECT_EQ(3, rv_converted.shape()[2]);
+}
+
+TEST(TensorsTests, MatrixToTensor3DTest) {
+	auto original1 = Matrix{{1.0, 2.0}, {3.0, 4.0}};
+	auto original2 = Matrix{{9.5}};
+	auto original3 = Matrix{{10.6}, {11.7}};
+	auto original4 = Matrix{{10.6, 11.7}};
+
+	{
+		auto converted1 = to_tensor_3d(original1, 0);
+		EXPECT_EQ(3, converted1.dimension());
+		EXPECT_EQ(1, converted1.shape()[0]);
+		EXPECT_EQ(2, converted1.shape()[1]);
+		EXPECT_EQ(2, converted1.shape()[2]);
+
+		auto converted2 = to_tensor_3d(original2, 0);
+		EXPECT_EQ(3, converted2.dimension());
+		EXPECT_EQ(1, converted2.shape()[0]);
+		EXPECT_EQ(1, converted2.shape()[1]);
+		EXPECT_EQ(1, converted2.shape()[2]);
+
+		auto converted3 = to_tensor_3d(original3, 2);
+		EXPECT_EQ(3, converted3.dimension());
+		EXPECT_EQ(2, converted3.shape()[0]);
+		EXPECT_EQ(1, converted3.shape()[1]);
+		EXPECT_EQ(1, converted3.shape()[2]);
+
+		auto converted4 = to_tensor_3d(original4, 1);
+		EXPECT_EQ(3, converted4.dimension());
+		EXPECT_EQ(1, converted4.shape()[0]);
+		EXPECT_EQ(1, converted4.shape()[1]);
+		EXPECT_EQ(2, converted4.shape()[2]);
+	}
+
+	auto rv_converted1 = to_tensor_3d(std::move(original1), 0);
+	EXPECT_EQ(3, rv_converted1.dimension());
+	EXPECT_EQ(1, rv_converted1.shape()[0]);
+	EXPECT_EQ(2, rv_converted1.shape()[1]);
+	EXPECT_EQ(2, rv_converted1.shape()[2]);
+
+	auto rv_converted2 = to_tensor_3d(std::move(original2), 0);
+	EXPECT_EQ(3, rv_converted2.dimension());
+	EXPECT_EQ(1, rv_converted2.shape()[0]);
+	EXPECT_EQ(1, rv_converted2.shape()[1]);
+	EXPECT_EQ(1, rv_converted2.shape()[2]);
+
+	auto rv_converted3 = to_tensor_3d(std::move(original3), 2);
+	EXPECT_EQ(3, rv_converted3.dimension());
+	EXPECT_EQ(2, rv_converted3.shape()[0]);
+	EXPECT_EQ(1, rv_converted3.shape()[1]);
+	EXPECT_EQ(1, rv_converted3.shape()[2]);
+
+	auto rv_converted4 = to_tensor_3d(std::move(original4), 1);
+	EXPECT_EQ(3, rv_converted4.dimension());
+	EXPECT_EQ(1, rv_converted4.shape()[0]);
+	EXPECT_EQ(1, rv_converted4.shape()[1]);
+	EXPECT_EQ(2, rv_converted4.shape()[2]);
+}
+
+TEST(TensorsTests, Tensor3ToTensor3DTest) {
+
+	auto original1 =
+	    Tensor<3>{{{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}}, {{7.0, 8.0, 9.0}, {10.0, 11.0, 12.0}}};
+	auto original2 = Tensor<3>{{{1.0}, {4.0}}, {{7.0}, {10.0}}};
+	auto original3 = Tensor<3>{{{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}}};
+	auto original4 = Tensor<3>{{{1.0, 2.0, 3.0}}, {{7.0, 8.0, 9.0}}};
+	auto original5 = Tensor<3>{{{1.0}}};
+
+	{
+		auto converted1 = to_tensor_3d(original1);
+		EXPECT_EQ(3, converted1.dimension());
+		EXPECT_EQ(2, converted1.shape()[0]);
+		EXPECT_EQ(2, converted1.shape()[1]);
+		EXPECT_EQ(3, converted1.shape()[2]);
+
+		auto converted2 = to_tensor_3d(original2);
+		EXPECT_EQ(3, converted2.dimension());
+		EXPECT_EQ(2, converted2.shape()[0]);
+		EXPECT_EQ(2, converted2.shape()[1]);
+		EXPECT_EQ(1, converted2.shape()[2]);
+
+		auto converted3 = to_tensor_3d(original3);
+		EXPECT_EQ(3, converted3.dimension());
+		EXPECT_EQ(1, converted3.shape()[0]);
+		EXPECT_EQ(2, converted3.shape()[1]);
+		EXPECT_EQ(3, converted3.shape()[2]);
+
+		auto converted4 = to_tensor_3d(original4);
+		EXPECT_EQ(3, converted4.dimension());
+		EXPECT_EQ(2, converted4.shape()[0]);
+		EXPECT_EQ(1, converted4.shape()[1]);
+		EXPECT_EQ(3, converted4.shape()[2]);
+
+		auto converted5 = to_tensor_3d(original5);
+		EXPECT_EQ(3, converted5.dimension());
+		EXPECT_EQ(1, converted5.shape()[0]);
+		EXPECT_EQ(1, converted5.shape()[1]);
+		EXPECT_EQ(1, converted5.shape()[2]);
+	}
+
+	auto rv_converted1 = to_tensor_3d(std::move(original1));
+	EXPECT_EQ(3, rv_converted1.dimension());
+	EXPECT_EQ(2, rv_converted1.shape()[0]);
+	EXPECT_EQ(2, rv_converted1.shape()[1]);
+	EXPECT_EQ(3, rv_converted1.shape()[2]);
+
+	auto rv_converted2 = to_tensor_3d(std::move(original2));
+	EXPECT_EQ(3, rv_converted2.dimension());
+	EXPECT_EQ(2, rv_converted2.shape()[0]);
+	EXPECT_EQ(2, rv_converted2.shape()[1]);
+	EXPECT_EQ(1, rv_converted2.shape()[2]);
+
+	auto rv_converted3 = to_tensor_3d(std::move(original3));
+	EXPECT_EQ(3, rv_converted3.dimension());
+	EXPECT_EQ(1, rv_converted3.shape()[0]);
+	EXPECT_EQ(2, rv_converted3.shape()[1]);
+	EXPECT_EQ(3, rv_converted3.shape()[2]);
+
+	auto rv_converted4 = to_tensor_3d(std::move(original4));
+	EXPECT_EQ(3, rv_converted4.dimension());
+	EXPECT_EQ(2, rv_converted4.shape()[0]);
+	EXPECT_EQ(1, rv_converted4.shape()[1]);
+	EXPECT_EQ(3, rv_converted4.shape()[2]);
+
+	auto rv_converted5 = to_tensor_3d(std::move(original5));
+	EXPECT_EQ(3, rv_converted5.dimension());
+	EXPECT_EQ(1, rv_converted5.shape()[0]);
+	EXPECT_EQ(1, rv_converted5.shape()[1]);
+	EXPECT_EQ(1, rv_converted5.shape()[2]);
+}
+
+TEST(TensorsTests, Matrix3ToTensor3DTest) {
+	auto original = Matrix3{{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+
+	{
+		auto converted = to_tensor_3d(original, 0);
+		EXPECT_EQ(3, converted.dimension());
+		EXPECT_EQ(1, converted.shape()[0]);
+		EXPECT_EQ(3, converted.shape()[1]);
+		EXPECT_EQ(3, converted.shape()[2]);
+	}
+
+	auto rv_converted = to_tensor_3d(std::move(original), 0);
+	EXPECT_EQ(3, rv_converted.dimension());
+	EXPECT_EQ(1, rv_converted.shape()[0]);
+	EXPECT_EQ(3, rv_converted.shape()[1]);
+	EXPECT_EQ(3, rv_converted.shape()[2]);
+}
+
+TEST(TensorsTests, Vector3ToTensor3Test) {
+	auto original = Vector3{1, 2, 3};
+
+	{
+		auto converted = to_tensor_3d(original, 2);
+		EXPECT_EQ(3, converted.dimension());
+		EXPECT_EQ(1, converted.shape()[0]);
+		EXPECT_EQ(1, converted.shape()[1]);
+		EXPECT_EQ(3, converted.shape()[2]);
+	}
+
+	auto rv_converted = to_tensor_3d(std::move(original), 2);
+	EXPECT_EQ(3, rv_converted.dimension());
+	EXPECT_EQ(1, rv_converted.shape()[0]);
+	EXPECT_EQ(1, rv_converted.shape()[1]);
+	EXPECT_EQ(3, rv_converted.shape()[2]);
+}
+
+TEST(TensorsTests, toTensor3DCopyTest) {
+	auto original  = Tensor<3>{{{1.0, 2.0}, {3.0, 4.0}}, {{5.0, 6.0}, {7.0, 8.0}}};
+	auto copy      = original;
+	auto converted = to_tensor_3d(original);
+
+	// Change converted, confirm original doesn't change
+	converted(0, 0, 0) = 5555.0;
+
+	EXPECT_EQ(original, copy);
+	EXPECT_NE(converted, original);
+}
+
+TEST(TensorsTests, XFunctionToTensor3D) {
+	Tensor<3> a{{{1, 1}, {1, 1}}, {{1, 1}, {1, 1}}};
+	Tensor<3> b{{{2, 2}, {2, 2}}, {{2, 2}, {2, 2}}};
+	auto xfunction = a + b;
+
+	auto converted = to_tensor_3d(xfunction);
+	EXPECT_EQ(3, converted.dimension());
+	EXPECT_EQ(2, converted.shape()[0]);
+	EXPECT_EQ(2, converted.shape()[1]);
+	EXPECT_EQ(2, converted.shape()[2]);
+}
+
+TEST(TensorsTests, InitializerListToTensor3D) {
+	Tensor<3> a{{{1, 2, 3, 4}, {5, 6, 7, 8}}};
+	auto b = to_matrix(Initializer<3, Scalar>{{{1, 2, 3, 4}, {5, 6, 7, 8}}});
+	ASSERT_ALLCLOSE(a, b);
+}
+
 TEST(TensorsTests, Tensor0toMatrixTest) {
 	auto original = Tensor<0>{1.0};
 
@@ -206,6 +460,13 @@ TEST(TensorsTests, Tensor0toMatrixTest) {
 	EXPECT_EQ(2, rv_converted.dimension());
 	EXPECT_EQ(1, rv_converted.shape()[0]);
 	EXPECT_EQ(1, rv_converted.shape()[1]);
+}
+
+TEST(TensorsTests, ScalarToMatrixTest) {
+	Scalar a = 5.0;
+	auto b   = to_matrix(a);
+	EXPECT_EQ(b.dimension(), 2);
+	EXPECT_DOUBLE_EQ(b(0, 0), a);
 }
 
 TEST(TensorsTests, VectorToMatrixTest) {
@@ -445,6 +706,12 @@ TEST(TensorsTests, XFunctionToMatrix) {
 	EXPECT_EQ(2, converted.shape()[1]);
 }
 
+TEST(TensorsTests, InitializerListToMatrix) {
+	Matrix a{{1, 2, 3, 4}, {5, 6, 7, 8}};
+	auto b = to_matrix(Initializer<2, Scalar>{{1, 2, 3, 4}, {5, 6, 7, 8}});
+	ASSERT_ALLCLOSE(a, b);
+}
+
 TEST(TensorsTests, Tensor0ToVecTest) {
 	auto original = Tensor<0>{1.0};
 
@@ -458,6 +725,13 @@ TEST(TensorsTests, Tensor0ToVecTest) {
 	auto rv_converted = to_vec(std::move(original));
 	EXPECT_EQ(1, rv_converted.dimension());
 	EXPECT_EQ(1, rv_converted.shape()[0]);
+}
+
+TEST(TensorsTests, ScalarToVecTest) {
+	Scalar a = 5.0;
+	auto b   = to_vec(a);
+	EXPECT_EQ(b.dimension(), 1);
+	EXPECT_DOUBLE_EQ(b(0), a);
 }
 
 TEST(TensorsTests, VectorToVecTest) {
@@ -659,6 +933,12 @@ TEST(TensorsTests, XFunctionToVector) {
 	auto converted = to_vec(xfunction);
 	EXPECT_EQ(1, converted.dimension());
 	EXPECT_EQ(4, converted.shape()[0]);
+}
+
+TEST(TensorsTests, InitializerListToVector) {
+	Vector a{1, 2, 3, 4};
+	auto b = to_vec(Initializer<1, Scalar>{1, 2, 3, 4});
+	ASSERT_ALLCLOSE(a, b);
 }
 
 class EigenLikeClass {
