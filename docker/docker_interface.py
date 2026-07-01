@@ -33,6 +33,7 @@ from os import (
     chown,
     stat,
 )
+from shlex import quote
 from subprocess import check_call, CalledProcessError
 import argparse
 
@@ -589,7 +590,17 @@ def main():
         args = parser.parse_args(['--help'])
 
     # Call the function in this file that user specified as an argument
-    args.func(args)
+    try:
+        args.func(args)
+    except CalledProcessError as cpe:
+        print(flush=True)
+        print(
+            f'Subcommand `{" ".join(quote(x) for x in cpe.cmd)}` '
+            f'returned non-zero exit status {cpe.returncode}',
+            file=sys.stderr,
+            flush=True,
+        )
+        sys.exit(cpe.returncode)
 
 
 if __name__ == '__main__':
