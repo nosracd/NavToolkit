@@ -47,6 +47,15 @@ else
         # Get path to ASPN-C headers vendored by ASPN-C++ Python module
         aspn_include_dir = aspn_install_dir.replace('lib', 'include/site').replace('site-packages/', '')
 
+        # Check if there is a virtual environment active
+        result = run_command(python_with_aspn_cpp, '-c', 'import os; print("VIRTUAL_ENV" in os.environ)', check: true)
+        in_venv = result.stdout().strip() == 'True'
+
+        # If there is not a virtual environment active, the include path to the ASPN-C headers changes
+        if not in_venv
+            aspn_include_dir = aspn_include_dir.replace('include/site', 'include')
+        endif
+
         aspn_xtensor_py_dep = declare_dependency(
             include_directories: include_directories(aspn_install_dir, aspn_include_dir),
             link_args: ['-L' + aspn_install_dir_abs, '-laspn_xtensor_py'])
