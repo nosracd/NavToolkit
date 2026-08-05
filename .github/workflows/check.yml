@@ -26,10 +26,7 @@ jobs:
           uses: ./.github/actions/setup
 
         - name: Run flake8
-          run: |
-            set -xe
-            docker/docker_interface.py debug ubuntu-noble "ruff check"
-            docker/docker_interface.py debug ubuntu-noble "ruff format --diff"
+          run: docker/docker_interface.py ruff_check
 
     copyright-year:
         runs-on: ubuntu-24.04

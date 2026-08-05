@@ -327,6 +327,25 @@ def platforms(args):
         print(i)
 
 
+def env(args):
+    """
+    Called when `docker_interface.py env` is executed.
+    Prints a platform's configuration as shell export commands.
+
+    This allows CI or local users to load the platform-specific Docker image,
+    Dockerfile, build directory, and cache settings without duplicating those
+    values outside this script.
+    """
+    platform = PLATFORMS[args.platform_name]
+
+    base_img_name, base_img_tag = platform.base.rsplit(':', 1)
+    print(f'export BASE_IMG="{platform.base}"')
+    print(f'export DOCKERFILE="{platform.dockerfile}"')
+    print(f'export BUILDDIR="{platform.build_directory}"')
+    print(f'export BASE_IMG_NAME="{base_img_name}"')
+    print(f'export BASE_IMG_TAG="{base_img_tag}"')
+
+
 def docker_build(args):
     """
     Called when `docker_interface.py docker_build [platform]` is executed.
@@ -341,12 +360,6 @@ def docker_build(args):
     """
     platform = PLATFORMS[args.platform_name]
     docker_pull_cmd = ['docker', 'pull', platform.base]
-    if CI_USER:
-        # The CI will easily exceed the Docker Hub rate limit.  The servers
-        # have a script `rate_limit` which will prevent issuing a pull request
-        # unless a particular time period has elapsed since the last request.
-        # 6 hours = 60 * 60 * 6 seconds = 21600 seconds
-        docker_pull_cmd = ['rate_limit', '21600'] + docker_pull_cmd
     call(docker_pull_cmd)
 
     if not path.isdir(IIDFILE_PATH):
@@ -357,11 +370,22 @@ def docker_build(args):
     # -f docker/<dockerfile>: specifies which dockerfile to use
     # --build-arg BASE=<base>: sets the BASE variable inside the dockerfile
     # docker: the folder for the docker build context
-    build_cmd = [
-        'docker',
-        'build',
-        '--iidfile',
-        platform.iid_file,
+    build_cmd = ['docker', 'build', '--iidfile', platform.iid_file]
+
+    cache_tag = environ.get('LOCAL_REGISTRY_CACHE_TAG')
+    if cache_tag:
+        call(['docker', 'pull', cache_tag])
+
+        build_cmd += [
+            '--build-arg',
+            'BUILDKIT_INLINE_CACHE=1',
+            '--cache-from',
+            cache_tag,
+            '--tag',
+            cache_tag,
+        ]
+
+    build_cmd += [
         '-f',
         'docker/{}'.format(platform.dockerfile),
         '--build-arg',
@@ -494,7 +518,7 @@ def ruff_check(args):
     """
     platform = PLATFORMS[DEFAULT_PLATFORM_NAME]
     args.platform_name = platform.platform_name
-    command = 'ruff check --fix src test util docs examples optional'
+    command = 'ruff check src test util docs examples optional'
     docker_run(args, command)
 
 
@@ -505,7 +529,27 @@ def check_documentation(args):
     """
     platform = PLATFORMS[DEFAULT_PLATFORM_NAME]
     args.platform_name = platform.platform_name
-    run_with_build_dir(args, 'docs/check_documentation.py')
+
+    command = (
+        'bash -eo pipefail -c '
+        "'./docs/check_documentation.py && "
+        'ninja -C {} docs && '
+        'status=0; '
+        'linkchecker -r 3 "{}/docs/index.html" || status=1; '
+        'grep -Fr doxygenfuncton: "{}/docs/api-exhale" && status=1 || true; '
+        'grep -FR "... doxygenfunction" "{}/docs/_sources" '
+        '| cut -d: -f2- '
+        '| perl -ne "print if s/x\\&\\&_//" '
+        '| grep . && status=1 || true;'
+        "exit $status'"
+    ).format(
+        platform.build_directory,
+        platform.build_directory,
+        platform.build_directory,
+        platform.build_directory,
+    )
+
+    run_with_build_dir(args, command)
 
 
 def debug(args):
@@ -537,18 +581,28 @@ def main():
                     that NavToolkit is ready to build on one platform. Will
                     run "docker_build".""",
         'build': """Builds NavToolkit on one platform, will run "setup" if
-                    needed.""",
+                    needed""",
         'test': """Execute tests for NavToolkit on one platform, will run
-                   "build" if needed.""",
-        'test_all': 'Run "test" on all platforms.',
-        'format': 'Format C++ and Python source code.',
-        'ruff_check': 'Run ruff check --fix on Python source code.',
-        'check_documentation': 'Run Doxygen and check for warnings.',
+                   "build" if needed""",
+        'test_all': 'Run "test" on all platforms',
+        'format': 'Format C++ and Python source code',
+        'ruff_check': 'Run ruff check --fix on Python source code',
+        'check_documentation': 'Run Doxygen and check for warnings',
         'debug': """Runs [arguments] as a command in the docker container.
                     Defaults to opening a shell in the container.""",
+        'env': """Prints shell environment variables. Use this for debugging 
+                    platform configurations, running Docker commands locally 
+                    the same as CI, etc.""",
     }
 
-    can_specify_platform = {'docker_build', 'setup', 'build', 'test', 'debug'}
+    can_specify_platform = {
+        'docker_build',
+        'setup',
+        'build',
+        'test',
+        'debug',
+        'env',
+    }
 
     can_specify_cores = {'build', 'test', 'test_all', 'format', 'ruff'}
 
