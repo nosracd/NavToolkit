@@ -233,6 +233,11 @@ void add_navutils_functions(pybind11::module& m) {
 	NAMESPACE_FUNCTIONT(rot_vec_to_dcm, nav, PARAMS(Vector), , "phi"_a)
 	NAMESPACE_FUNCTIONT(rot_vec_to_dcm, nav, PARAMS(Matrix), _2, "phi"_a)
 
+	NAMESPACE_FUNCTION(llh_to_ned, nav, "llh"_a, "llh0"_a)
+	NAMESPACE_FUNCTION(ned_to_llh, nav, "ned"_a, "llh0"_a)
+	NAMESPACE_FUNCTION(ned_sigma_to_llh_sigma, nav, "ned_sigma"_a, "llh0"_a)
+	NAMESPACE_FUNCTION(llh_sigma_to_ned_sigma, nav, "llh_sigma"_a, "llh0"_a)
+
 	NAMESPACE_FUNCTION(calculate_gravity_titterton, nav, "alt"_a, "lat"_a, "R0"_a)
 	NAMESPACE_FUNCTIONT(calculate_gravity_schwartz, nav, PARAMS(double, double), , "alt"_a, "lat"_a)
 	NAMESPACE_FUNCTIONT(

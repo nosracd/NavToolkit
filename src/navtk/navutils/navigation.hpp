@@ -15,6 +15,8 @@ namespace navtk {
  */
 namespace navutils {
 
+using std::size_t;
+
 /**
  * Calculate the meridian radius of curvature (termed \f$R_N\f$ in Titterton and Weston, sometimes
  * called \f$R_M\f$, where "M" stands for meridian). This is the radius of curvature in the
@@ -1693,16 +1695,52 @@ std::pair<bool, double> hae_to_msl(double hae,
                                    const std::string& path = "WW15MGH.GRD");
 
 /**
- * Convert from Mean Sea Level (MSL) to Height Above Ellipsoid (HAE) elevation, using the difference
- * between the two at the given coordinates.
+ * Convert from latitude, longitude, and height (LLH) to north, east, down (NED).
+ *
+ * @param llh Matrix of latitude, longitude, and height values, dim: (N, 3)
+ * @param llh0 Reference latitude, longitude, and height vector.
+ * @return Matrix of north, east, and down values, dim: (N, 3)
+ */
+Matrix llh_to_ned(const Matrix& llh, const Vector3& llh0);
+
+/**
+ * Convert from north, east, down (NED) to latitude, longitude, height (LLH).
+ *
+ * @param ned Matrix of north, east, and down values, dim: (N, 3)
+ * @param llh0 Reference latitude, longitude, and height vector.
+ * @return Matrix of latitude, longitude, and height values, dim: (N, 3)
+ */
+Matrix ned_to_llh(const Matrix& ned, const Vector3& llh0);
+
+/**
+ * Convert NED standard-deviation matrix to LLH standard deviations.
+ *
+ * @param ned_sigma Matrix of north, east, and down standard deviations, dim: (N, 3)
+ * @param llh0 Reference latitude, longitude, and height vector.
+ * @return Matrix of latitude, longitude, and height standard deviations, dim: (N, 3)
+ */
+Matrix ned_sigma_to_llh_sigma(const Matrix& ned_sigma, const Vector3& llh0);
+
+/**
+ * Convert LLH standard-deviation Matrix to NED standard deviations.
+ *
+ * @param llh_sigma Matrix of latitude, longitude, and height standard deviations, dim: (N, 3)
+ * @param llh0 Reference latitude, longitude, and height vector.
+ * @return Matrix of north, east, and down standard deviations, dim: (N, 3)
+ */
+Matrix llh_sigma_to_ned_sigma(const Matrix& llh_sigma, const Vector3& llh0);
+
+/**
+ * Convert from Mean Sea Level (MSL) to Height Above Ellipsoid (HAE) elevation, using the
+ * difference between the two at the given coordinates.
  *
  * @param msl The MSL elevation in meters at the given coordinates.
  * @param latitude The latitude in radians at which to get the elevation.
  * @param longitude The longitude in radians at which to get the elevation.
  * @param path the path to the geoid undulation file for converting between HAE and
  * MSL. The default path of this variable requires setting the NAVTK_DATA_DIR environment
- * variable to the folder containing the undulation file, or setting the NAVTK_GEOID_UNDULATION_PATH
- * environment variable to the path of the file itself.
+ * variable to the folder containing the undulation file, or setting the
+ * NAVTK_GEOID_UNDULATION_PATH environment variable to the path of the file itself.
  * @return The HAE elevation in meters.
  */
 std::pair<bool, double> msl_to_hae(double msl,

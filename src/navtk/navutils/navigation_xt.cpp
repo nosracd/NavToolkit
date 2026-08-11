@@ -221,5 +221,74 @@ Vector3 local_level_to_ecef(const Vector3& P0e, const Vector3& Pn) {
 	return dot(ecef_to_cen(P0e), Pn) + P0e;
 }
 
+Matrix llh_to_ned(const Matrix& llh, const Vector3& llh0) {
+	const size_t rows = llh.shape()[0];
+	auto out          = empty(rows, 3);
+
+	const double lat0 = llh0(0);
+	const double lon0 = llh0(1);
+	const double alt0 = llh0(2);
+
+	xt::view(out, xt::all(), 0) =
+	    delta_lat_to_north(xt::view(llh, xt::all(), 0) - lat0, lat0, alt0);
+	xt::view(out, xt::all(), 1) = delta_lon_to_east(xt::view(llh, xt::all(), 1) - lon0, lat0, alt0);
+	xt::view(out, xt::all(), 2) = alt0 - xt::view(llh, xt::all(), 2);
+
+	return out;
+}
+
+Matrix ned_to_llh(const Matrix& ned, const Vector3& llh0) {
+	const size_t rows = ned.shape()[0];
+	auto out          = empty(rows, 3);
+
+	const double lat0 = llh0(0);
+	const double lon0 = llh0(1);
+	const double alt0 = llh0(2);
+
+	xt::view(out, xt::all(), 0) =
+	    lat0 + north_to_delta_lat(xt::view(ned, xt::all(), 0), lat0, alt0);
+	xt::view(out, xt::all(), 1) = lon0 + east_to_delta_lon(xt::view(ned, xt::all(), 1), lat0, alt0);
+
+	xt::view(out, xt::all(), 2) = alt0 - xt::view(ned, xt::all(), 2);
+
+	return out;
+}
+
+Matrix ned_sigma_to_llh_sigma(const Matrix& ned_sigma, const Vector3& llh0) {
+	const size_t rows = ned_sigma.shape()[0];
+
+	auto out_sigma = empty(rows, 3);
+
+	double lat0 = llh0(0);
+	double alt0 = llh0(2);
+
+	xt::view(out_sigma, xt::all(), 0) =
+	    north_to_delta_lat(xt::view(ned_sigma, xt::all(), 0), lat0, alt0);
+
+	xt::view(out_sigma, xt::all(), 1) =
+	    east_to_delta_lon(xt::view(ned_sigma, xt::all(), 1), lat0, alt0);
+
+	xt::view(out_sigma, xt::all(), 2) = xt::view(ned_sigma, xt::all(), 2);
+
+	return out_sigma;
+}
+
+Matrix llh_sigma_to_ned_sigma(const Matrix& llh_sigma, const Vector3& llh0) {
+	const size_t rows = llh_sigma.shape()[0];
+
+	auto out_sigma = empty(rows, 3);
+
+	const double lat0 = llh0(0);
+	const double alt0 = llh0(2);
+
+	xt::view(out_sigma, xt::all(), 0) =
+	    delta_lat_to_north(xt::view(llh_sigma, xt::all(), 0), lat0, alt0);
+	xt::view(out_sigma, xt::all(), 1) =
+	    delta_lon_to_east(xt::view(llh_sigma, xt::all(), 1), lat0, alt0);
+	xt::view(out_sigma, xt::all(), 2) = xt::view(llh_sigma, xt::all(), 2);
+
+	return out_sigma;
+}
+
 }  // namespace navutils
 }  // namespace navtk

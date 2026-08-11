@@ -109,6 +109,98 @@ TEST(meridian_radius, BatchTest) {
 	EXPECT_ALLCLOSE(meridian_radius(latitudes * PI / 180), test_vals);
 }
 
+TEST(llh_to_ned_B, BatchTest) {
+	const Vector llh0 = {
+	    40 * PI / 180,
+	    -86 * PI / 180,
+	    200,
+	};
+
+	Matrix llh = {
+	    {40.0000 * PI / 180, -86.0000 * PI / 180, 200.0},
+	    {40.0001 * PI / 180, -86.002 * PI / 180, 205.0},
+	    {39.9999 * PI / 180, -85.9998 * PI / 180, 195.0},
+	};
+
+	Matrix expected = {
+	    {0.0, 0.0, 0.0},
+	    {11.1035, -170.788, -5.0},
+	    {-11.1035, 17.0788, 5.0},
+	};
+
+	const Matrix actual = llh_to_ned(llh, llh0);
+	EXPECT_MATRIX_EQUAL(expected, actual, 1e-1);
+}
+
+TEST(ned_to_llh_B, BatchTest) {
+	const Vector llh0 = {
+	    40 * PI / 180,
+	    -86 * PI / 180,
+	    200,
+	};
+
+	Matrix ned = {
+	    {0.0, 0.0, 0.0},
+	    {11.1035, -170.788, -5.0},
+	    {-11.1035, 17.0788, 5.0},
+	};
+
+	Matrix expected = {
+	    {40.0000 * PI / 180, -86.0000 * PI / 180, 200.0},
+	    {40.0001 * PI / 180, -86.002 * PI / 180, 205.0},
+	    {39.9999 * PI / 180, -85.9998 * PI / 180, 195.0},
+	};
+
+	const Matrix actual = ned_to_llh(ned, llh0);
+	EXPECT_MATRIX_EQUAL(expected, actual, 1e-1);
+}
+
+TEST(llh_sigma_to_ned_sigma_B, BatchTest) {
+	const Vector llh0 = {
+	    40 * PI / 180.0,
+	    -86 * PI / 180,
+	    200,
+	};
+
+	const Matrix llh_sigma = {
+	    {1e-6, 2e-6, 3},
+	    {2e-6, 1e-6, 4},
+	    {1.5e-6, 1.5e-6, 5},
+	};
+	const Matrix expected = {
+	    {6.362016, 9.78572, 3},
+	    {12.72403, 4.89286, 4},
+	    {9.54302, 7.33929, 5},
+	};
+
+	const Matrix actual = llh_sigma_to_ned_sigma(llh_sigma, llh0);
+
+	EXPECT_MATRIX_EQUAL(actual, expected, 1e-4);
+}
+
+TEST(ned_sigma_to_llh_sigma_B, BatchTest) {
+	const Vector llh0 = {
+	    40 * PI / 180.0,
+	    -86 * PI / 180,
+	    200,
+	};
+
+	const Matrix ned_sigma = {
+	    {6.362016, 9.78572, 3},
+	    {12.72403, 4.89286, 4},
+	    {9.54302, 7.33929, 5},
+	};
+	const Matrix expected = {
+	    {1e-6, 2e-6, 3},
+	    {2e-6, 1e-6, 4},
+	    {1.5e-6, 1.5e-6, 5},
+	};
+
+	const Matrix actual = ned_sigma_to_llh_sigma(ned_sigma, llh0);
+
+	EXPECT_MATRIX_EQUAL(actual, expected, 1e-4);
+}
+
 TEST(discretize_first_order, CompareToKnownSolution) {
 	// TODO: This test is based on existing behavior in other languages, and therefore requires
 	// validation by someone with domain knowledge.
