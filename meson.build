@@ -239,9 +239,7 @@ navtoolkit_hpp = custom_target('navtoolkit.hpp',
 
 
 ## Logging Library
-spdlog_dep = dependency('spdlog',
-    version: ['>=1.13.0', '<2.0.0'],
-    include_type: 'system')
+spdlog_dep = subproject('spdlog').get_variable('spdlog_dep')
 deps += spdlog_dep
 
 cpp_compiler = meson.get_compiler('cpp')
