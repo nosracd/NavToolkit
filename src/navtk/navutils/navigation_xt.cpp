@@ -141,81 +141,58 @@ std::pair<Matrix, Matrix> discretize_van_loan(const Matrix& f, const Matrix& q, 
 	return {expm(f * dt), calc_van_loan(f, eye(num_cols(f)), q, dt)};
 }
 
-Matrix3 ecef_to_cen(const Vector3& Pe) { return llh_to_cen(ecef_to_llh(Pe)); }
+Matrix3 ecef_to_cen(const Vector3& p_e) { return llh_to_cen(ecef_to_llh(p_e)); }
 
-Vector3 ecef_to_llh(const Vector3& Pe) {
-	// WGS-84 Constants
-	auto a                   = SEMI_MAJOR_RADIUS;     // Semi-major radius (m)
-	auto e2                  = ECCENTRICITY_SQUARED;  // Eccentricity squared (.)
-	double pm0               = sqrt(pow(Pe[0], 2) + pow(Pe[1], 2));
-	double pm1               = Pe[2];
-	double phi0              = atan2(pm1, pm0);
-	double h0                = 0;
-	double dp0               = a;
-	double dp1               = a;
-	int count                = 0;
-	const int max_iterations = 5;
 
-	while ((std::abs(dp0) > 7e-6 || std::abs(dp1) > 1e-6) && count <= max_iterations) {
-		double slat  = sin(phi0);
-		double clat  = cos(phi0);
-		double s2lat = slat * slat;
-		double Nden  = 1 - e2 * s2lat;
-		double N     = a / sqrt(Nden);
-
-		// Calculate residual by subtracting initial position in meridianal plane (meters)
-		dp0 = pm0 - (N + h0) * clat;
-		dp1 = pm1 - (N * (1 - e2) + h0) * slat;
-		// Calculate inverse Jacobian (transformation from residual to lat and alt)
-		double k1 = 1 - e2 * s2lat;
-		double k2 = sqrt(k1);
-
-		double A11  = slat * (e2 * a * clat * clat / k1 / k2 - a / k2 - h0);
-		double A12  = clat;
-		double A21  = clat * (a * (1 - e2) / k2 + h0 + a * e2 * (1 - e2) * s2lat / k1 / k2);
-		double A22  = slat;
-		double Adet = A11 * A22 - A21 * A12;
-		double dHa  = (A22 * dp0 - A12 * dp1) / Adet;
-		double dHb  = (-A21 * dp0 + A11 * dp1) / Adet;
-
-		phi0 += dHa;
-		h0 += dHb;
-
-		++count;
-	}
-
-	double lam = atan2(Pe[1], Pe[0]);
-	return {phi0, lam, h0};
+Vector3 ecef_to_local_level(const Vector3& P0e, const Vector3& p_e) {
+	return dot(transpose(ecef_to_cen(P0e)), p_e - P0e);
 }
 
-Vector3 ecef_to_local_level(const Vector3& P0e, const Vector3& Pe) {
-	return dot(transpose(ecef_to_cen(P0e)), Pe - P0e);
-}
-
-Matrix3 llh_to_cen(const Vector3& Pwgs) {
-	double clat = cos(Pwgs[0]);
-	double slat = sin(Pwgs[0]);
-	double clon = cos(Pwgs[1]);
-	double slon = sin(Pwgs[1]);
+Matrix3 llh_to_cen(const Vector3& p_wgs) {
+	double clat = cos(p_wgs[0]);
+	double slat = sin(p_wgs[0]);
+	double clon = cos(p_wgs[1]);
+	double slon = sin(p_wgs[1]);
 	return Matrix{
 	    {-slat * clon, -slon, -clat * clon}, {-slat * slon, clon, -clat * slon}, {clat, 0, -slat}};
 }
 
-Vector3 llh_to_ecef(const Vector3& Pwgs) {
-	// WGS-84 Constants
-	auto a  = SEMI_MAJOR_RADIUS;     // Semi-major radius (m)
-	auto e2 = ECCENTRICITY_SQUARED;  // Eccentricity squared (.)
+Matrix dcm_to_rot_vec(const Tensor<3, double>& dcms) {
+	auto rot_vec = empty(dcms.shape()[0], 3);
 
-	auto lam    = Pwgs[1];
-	auto phi    = Pwgs[0];
-	auto h      = Pwgs[2];
-	auto cosphi = cos(phi);
-	auto sinphi = sin(phi);
+	const auto trace = xt::view(dcms, xt::all(), 0, 0) + xt::view(dcms, xt::all(), 1, 1) +
+	                   xt::view(dcms, xt::all(), 2, 2);
 
-	auto N = a / sqrt(1 - e2 * pow(sinphi, 2));
+	const auto cos_angle = xt::clip((trace - 1) / 2, -1, 1);
+	const auto angle     = xt::acos(cos_angle);
+	const auto sin_angle = xt::sin(angle);
 
-	return {(N + h) * cosphi * cos(lam), (N + h) * cosphi * sin(lam), (N * (1 - e2) + h) * sinphi};
+	const auto scale = xt::where(xt::abs(angle) < 1e-8, .5, angle / (2.0 * sin_angle));
+
+	xt::view(rot_vec, xt::all(), 0) =
+	    scale * (xt::view(dcms, xt::all(), 2, 1) - xt::view(dcms, xt::all(), 1, 2));
+
+	xt::view(rot_vec, xt::all(), 1) =
+	    scale * (xt::view(dcms, xt::all(), 0, 2) - xt::view(dcms, xt::all(), 2, 0));
+
+	xt::view(rot_vec, xt::all(), 2) =
+	    scale * (xt::view(dcms, xt::all(), 1, 0) - xt::view(dcms, xt::all(), 0, 1));
+
+	return rot_vec;
 }
+
+Vector pressure_to_altitude(const Vector& pressure,
+                            double ref_alt,
+                            double ref_pressure,
+                            double ref_temp) {
+	double R          = 8314.32;
+	double G          = 9.80665;
+	double MOLAR_MASS = 28.9644;
+
+	return ref_alt + -(ref_temp / .0065) *
+	                     (xt::pow(pressure / ref_pressure, (R * .0065) / (G * MOLAR_MASS)) - 1.0);
+}
+
 
 Vector3 local_level_to_ecef(const Vector3& P0e, const Vector3& Pn) {
 	return dot(ecef_to_cen(P0e), Pn) + P0e;

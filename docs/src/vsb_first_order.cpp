@@ -30,5 +30,5 @@ int main() {
 
 // CREATE_VSB2
 auto vsb = navtk::filtering::FirstOrderVirtualStateBlock(
-    "llh_pos", "ecef_pos", navtk::navutils::llh_to_ecef);
+    "llh_pos", "ecef_pos", navtk::navutils::llh_to_ecef<navtk::Vector3>);
 // END

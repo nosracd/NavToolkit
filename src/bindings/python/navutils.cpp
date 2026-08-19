@@ -181,11 +181,20 @@ void add_navutils_functions(pybind11::module& m) {
 	                    "east_distance"_a,
 	                    "approx_lat"_a,
 	                    "altitude"_a)
-	NAMESPACE_FUNCTION(ecef_to_cen, nav, "Pe"_a)
-	NAMESPACE_FUNCTION(ecef_to_llh, nav, "Pe"_a)
-	NAMESPACE_FUNCTION(ecef_to_local_level, nav, "P0e"_a, "Pe"_a)
-	NAMESPACE_FUNCTION(llh_to_cen, nav, "Pwgs"_a)
-	NAMESPACE_FUNCTION(llh_to_ecef, nav, "Pwgs"_a)
+	NAMESPACE_FUNCTION(ecef_to_cen, nav, "p_e"_a)
+	NAMESPACE_FUNCTIONT(ecef_to_llh, nav, PARAMS(Vector3), , "p_e"_a)
+	NAMESPACE_FUNCTIONT(ecef_to_llh, nav, PARAMS(Matrix), , "ecef"_a)
+	NAMESPACE_FUNCTION(ecef_to_local_level, nav, "P0e"_a, "p_e"_a)
+	NAMESPACE_FUNCTION(llh_to_cen, nav, "p_wgs"_a)
+	NAMESPACE_FUNCTIONT(llh_to_ecef, nav, PARAMS(Vector3), , "p_wgs"_a)
+	NAMESPACE_FUNCTIONT(llh_to_ecef, nav, PARAMS(Matrix), , "llh"_a)
+	NAMESPACE_FUNCTION(pressure_to_altitude,
+	                   nav,
+	                   "pressure"_a,
+	                   "ref_alt"_a      = 0,
+	                   "ref_pressure"_a = 101325,
+	                   "ref_temp"_a     = 288.15)
+	NAMESPACE_FUNCTION(dcm_to_rot_vec, nav, "dcm"_a)
 	NAMESPACE_FUNCTION(local_level_to_ecef, nav, "P0e"_a, "Pn"_a)
 	NAMESPACE_FUNCTIONT(meridian_radius, nav, PARAMS(double), , "latitude"_a)
 	NAMESPACE_FUNCTIONT(meridian_radius, nav, PARAMS(Vector), _2, "latitude"_a)

@@ -797,12 +797,12 @@ auto east_to_delta_lon(const A& east_distance, const B& approx_lat) {
  * ECEF and NED frames.
  * @see llh_to_cen()
  *
- * @param Pe ECEF Position Vector at which \f$\textbf{C}_\text{NED}^\text{ECEF}\f$ is desired: [x y
+ * @param p_e ECEF Position Vector at which \f$\textbf{C}_\text{NED}^\text{ECEF}\f$ is desired: [x y
  * z] (meters)
  *
  * @return NED-to-ECEF DCM (\f$\textbf{C}_\text{NED}^\text{ECEF}\f$).
  */
-Matrix3 ecef_to_cen(const Vector3& Pe);
+Matrix3 ecef_to_cen(const Vector3& p_e);
 
 /**
  * Converts a position expressed in Earth-Centered
@@ -813,7 +813,7 @@ Matrix3 ecef_to_cen(const Vector3& Pe);
  * ECEF and latitude, longitude, height representations of position.
  * @see llh_to_ecef()
  *
- * @param Pe ECEF Position: [x y z] (meters)
+ * @param p_e ECEF Position: [x y z] (meters)
  *
  * @return Geodetic position defined relative to WGS-84 ellipsoid: length three vector consisting
  * of latitude, longitude, and ellipsoidal altitude (radians, radians, meters).
@@ -821,7 +821,130 @@ Matrix3 ecef_to_cen(const Vector3& Pe);
  * REFERENCE: [WGS-84 Reference System (NIMA report TR
  * 8350.2)](https://nga-rescue.is4s.us/wgs84fin.pdf)
  */
-Vector3 ecef_to_llh(const Vector3& Pe);
+template <typename S = Vector3, IfTensorOfDim<S, 1>* = nullptr>
+Vector3 ecef_to_llh(const S& p_e) {
+	// WGS-84 Constants
+	auto a                   = SEMI_MAJOR_RADIUS;     // Semi-major radius (m)
+	auto e2                  = ECCENTRICITY_SQUARED;  // Eccentricity squared (.)
+	double pm0               = sqrt(pow(p_e[0], 2) + pow(p_e[1], 2));
+	double pm1               = p_e[2];
+	double phi0              = atan2(pm1, pm0);
+	double h0                = 0;
+	double dp0               = a;
+	double dp1               = a;
+	int count                = 0;
+	const int max_iterations = 5;
+
+	while ((std::abs(dp0) > 7e-6 || std::abs(dp1) > 1e-6) && count <= max_iterations) {
+		double slat  = sin(phi0);
+		double clat  = cos(phi0);
+		double s2lat = slat * slat;
+		double Nden  = 1 - e2 * s2lat;
+		double N     = a / sqrt(Nden);
+
+		// Calculate residual by subtracting initial position in meridianal plane (meters)
+		dp0 = pm0 - (N + h0) * clat;
+		dp1 = pm1 - (N * (1 - e2) + h0) * slat;
+		// Calculate inverse Jacobian (transformation from residual to lat and alt)
+		double k1 = 1 - e2 * s2lat;
+		double k2 = sqrt(k1);
+
+		double A11  = slat * (e2 * a * clat * clat / k1 / k2 - a / k2 - h0);
+		double A12  = clat;
+		double A21  = clat * (a * (1 - e2) / k2 + h0 + a * e2 * (1 - e2) * s2lat / k1 / k2);
+		double A22  = slat;
+		double Adet = A11 * A22 - A21 * A12;
+		double dHa  = (A22 * dp0 - A12 * dp1) / Adet;
+		double dHb  = (-A21 * dp0 + A11 * dp1) / Adet;
+
+		phi0 += dHa;
+		h0 += dHb;
+
+		++count;
+	}
+
+	double lam = atan2(p_e[1], p_e[0]);
+	return {phi0, lam, h0};
+}
+
+/**
+ * Batched version of `ecef_to_llh`.
+ *
+ * @warning For simplicity, this version uses the closed-form Rey-Jer You method of computing the
+ * ECEF to LLH transformation, rather than the iterative approach used by the non-batch version.
+ * This may be slightly less accurate for very large or sub-surface altitudes, but otherwise yields
+ * millimeter-level accuracy. For guaranteed accuracy, use the non-batched overload of this
+ * function.
+ *
+ * @see ecef_to_llh
+ * @overload
+ *
+ * @param ecef Matrix of ECEF x, y, and z coordinates in meters, dim: (N, 3)
+ * @return Matrix of latitude, longitude, and height values, dim: (N, 3), type: (radians, radians,
+ * meters)
+ */
+template <typename B = Matrix, IfTensorOfDim<B, 2>* = nullptr>
+Matrix ecef_to_llh(const B& ecef) {
+	auto out = empty(ecef.shape()[0], 3);
+
+	const auto x = xt::view(ecef, xt::all(), 0);
+	const auto y = xt::view(ecef, xt::all(), 1);
+	const auto z = xt::view(ecef, xt::all(), 2);
+
+	const double a  = SEMI_MAJOR_RADIUS;
+	const double e2 = ECCENTRICITY_SQUARED;
+	const double b  = a * std::sqrt(1 - e2);
+	const double E2 = a * a - b * b;
+	// const double E = std::sqrt(E2);
+
+	const auto r2 = x * x + y * y + z * z;
+
+	const auto u = xt::sqrt(.5 * (r2 - E2) + .5 * xt::sqrt((r2 - E2) * (r2 - E2) + 4 * E2 * z * z));
+
+	const auto p   = xt::sqrt(x * x + y * y);
+	const auto huE = xt::sqrt(u * u + E2);
+
+	const auto beta0 = xt::atan2(huE * z, u * p);
+
+	// first order correction
+	const auto sin_beta = xt::sin(beta0);
+	const auto cos_beta = xt::cos(beta0);
+
+	const auto eps = ((b * u - a * huE + E2) * sin_beta) / (a * huE / cos_beta - E2 * cos_beta);
+
+	const auto beta = beta0 + eps;
+
+	const auto lat = xt::atan((a / b) * xt::tan(beta));
+
+	const auto lon = xt::atan2(y, x);
+
+	const auto inside = x * x / (a * a) + y * y / (a * a) + z * z / (b * b) < 1;
+
+	const auto alt =
+	    xt::sqrt(xt::square(z - b * xt::sin(beta)) + xt::square(p - a * xt::cos(beta)));
+
+	const auto alt_signed = xt::where(inside, -alt, alt);
+
+	xt::view(out, xt::all(), 0) = lat;
+	xt::view(out, xt::all(), 1) = lon;
+	xt::view(out, xt::all(), 2) = alt_signed;
+
+	return out;
+}
+
+/**
+ * Convert atmospheric pressure values to altitude.
+ *
+ * @param pressure Vector of pressure values in pascals, dim: (N)
+ * @param ref_alt Reference MSL altitude in meters. Defaults to 0 (sea level).
+ * @param ref_pressure Reference pressure at \p ref_alt in Pascals. Defaults to 101325.
+ * @param ref_temp Temperature at \p ref_alt in Kelvin. Defaults to 288.15 (15 degrees Celsius)
+ * @return Vector of MSL altitudes in meters, dim: (N)
+ */
+Vector pressure_to_altitude(const Vector& pressure,
+                            double ref_alt      = 0,
+                            double ref_pressure = 101325,
+                            double ref_temp     = 288.15);
 
 /**
  * Convert ECEF location to fixed local-level NED frame location.
@@ -844,12 +967,12 @@ Vector3 ecef_to_llh(const Vector3& Pe);
  *
  * @param P0e \f$\text{NED}_{\textbf{p}_0}\f$ frame origin expressed in ECEF coordinates (meters) =
  * \f$\textbf{p}_0^{\text{ECEF}}\f$
- * @param Pe Location of point in ECEF frame (meters) = \f$\textbf{p}^{\text{ECEF}}\f$
+ * @param p_e Location of point in ECEF frame (meters) = \f$\textbf{p}^{\text{ECEF}}\f$
  *
- * @return Location of `Pe` expressed in the fixed local-level \f$\text{NED}_{\textbf{p}_0}\f$ frame
- * (meters).
+ * @return Location of `p_e` expressed in the fixed local-level \f$\text{NED}_{\textbf{p}_0}\f$
+ * frame (meters).
  */
-Vector3 ecef_to_local_level(const Vector3& P0e, const Vector3& Pe);
+Vector3 ecef_to_local_level(const Vector3& P0e, const Vector3& p_e);
 
 /**
  * Computes the DCM that rotates a vector from the NED frame to the ECEF frame
@@ -860,12 +983,12 @@ Vector3 ecef_to_local_level(const Vector3& P0e, const Vector3& Pe);
  * ECEF frames.
  * @see ecef_to_cen()
  *
- * @param Pwgs Geodetic position defined relative to WGS-84 ellipsoid: length three vector
+ * @param p_wgs Geodetic position defined relative to WGS-84 ellipsoid: length three vector
  * consisting of latitude, longitude, and ellipsoidal height (radians, radians, meters)
  *
  * @return NED-to-ECEF DCM (\f$\textbf{C}_\text{NED}^\text{ECEF}\f$).
  */
-Matrix3 llh_to_cen(const Vector3& Pwgs);
+Matrix3 llh_to_cen(const Vector3& p_wgs);
 
 /**
  * Converts a position expressed in WGS-84 latitude, longitude, height above
@@ -876,7 +999,7 @@ Matrix3 llh_to_cen(const Vector3& Pwgs);
  * ECEF and latitude, longitude, and height expressions of position.
  * @see ecef_to_llh() for the companion function that converts in the opposite direction.
  *
- * @param Pwgs Geodetic position defined relative to WGS-84 ellipsoid, expressed as a length three
+ * @param p_wgs Geodetic position defined relative to WGS-84 ellipsoid, expressed as a length three
  * vector of latitude, longitude, and ellipsoidal altitude (radians, radians, meters)
  *
  * @return ECEF Position: [x y z] (meters).
@@ -884,7 +1007,56 @@ Matrix3 llh_to_cen(const Vector3& Pwgs);
  * REFERENCE: [WGS-84 Reference System (NIMA report TR
  * 8350.2)](https://nga-rescue.is4s.us/wgs84fin.pdf)
  */
-Vector3 llh_to_ecef(const Vector3& Pwgs);
+
+template <typename S = Vector3, IfTensorOfDim<S, 1>* = nullptr>
+Vector3 llh_to_ecef(const S& p_wgs) {
+	// WGS-84 Constants
+	auto a  = SEMI_MAJOR_RADIUS;     // Semi-major radius (m)
+	auto e2 = ECCENTRICITY_SQUARED;  // Eccentricity squared (.)
+
+	auto lam    = p_wgs[1];
+	auto phi    = p_wgs[0];
+	auto h      = p_wgs[2];
+	auto cosphi = cos(phi);
+	auto sinphi = sin(phi);
+
+	auto N = a / sqrt(1 - e2 * pow(sinphi, 2));
+
+	return {(N + h) * cosphi * cos(lam), (N + h) * cosphi * sin(lam), (N * (1 - e2) + h) * sinphi};
+}
+
+/**
+ * Batched version of `llh_to_ecef`
+ *
+ * @see llh_to_ecef
+ * @overload
+ *
+ * @param llh Matrix of latitude, longitude, and height values, dim: (N, 3), type: (radians,
+ * radians, meters)
+ * @return Matrix of ECEF x, y, and z coordinates in meters, dim: (N, 3)
+ */
+template <typename B = Matrix, IfTensorOfDim<B, 2>* = nullptr>
+Matrix llh_to_ecef(const B& llh) {
+	Matrix out = empty(llh.shape()[0], 3);
+
+	const auto lat = xt::view(llh, xt::all(), 0);
+	const auto lon = xt::view(llh, xt::all(), 1);
+	const auto alt = xt::view(llh, xt::all(), 2);
+
+	const auto sin_lat = xt::sin(lat);
+	const auto cos_lat = xt::cos(lat);
+
+	const auto radius =
+	    SEMI_MAJOR_RADIUS / xt::sqrt(1.0 - ECCENTRICITY_SQUARED * xt::square(sin_lat));
+
+	xt::view(out, xt::all(), 0) = (radius + alt) * cos_lat * xt::cos(lon);
+
+	xt::view(out, xt::all(), 1) = (radius + alt) * cos_lat * xt::sin(lon);
+
+	xt::view(out, xt::all(), 2) = (radius * (1.0 - ECCENTRICITY_SQUARED) + alt) * sin_lat;
+
+	return out;
+}
 
 /**
  * Convert fixed local-level NED frame location to ECEF location.
@@ -1655,6 +1827,15 @@ Tensor<3> rot_vec_to_dcm(const B& phi) {
 	}
 	return dcms;
 }
+
+/**
+ * Batched inverse of `rot_vec_to_dcm`, converts direction cosine matrices (DCMs) to rotation
+ * vectors.
+ *
+ * @param dcms Tensor of direction cosine matrices, dim: (N, 3, 3)
+ * @return Matrix of rotation vectors in radians, dim: (N, 3)
+ */
+Matrix dcm_to_rot_vec(const Tensor<3, double>& dcms);
 
 /**
  * Get geoid undulation, equal to Mean Sea Level (MSL) elevation minus Height Above Ellipsoid (HAE),

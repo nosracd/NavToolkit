@@ -109,7 +109,7 @@ TEST(meridian_radius, BatchTest) {
 	EXPECT_ALLCLOSE(meridian_radius(latitudes * PI / 180), test_vals);
 }
 
-TEST(llh_to_ned_B, BatchTest) {
+TEST(llh_to_ned, BatchTest) {
 	const Vector llh0 = {
 	    40 * PI / 180,
 	    -86 * PI / 180,
@@ -132,7 +132,7 @@ TEST(llh_to_ned_B, BatchTest) {
 	EXPECT_MATRIX_EQUAL(expected, actual, 1e-1);
 }
 
-TEST(ned_to_llh_B, BatchTest) {
+TEST(ned_to_llh, BatchTest) {
 	const Vector llh0 = {
 	    40 * PI / 180,
 	    -86 * PI / 180,
@@ -155,7 +155,7 @@ TEST(ned_to_llh_B, BatchTest) {
 	EXPECT_MATRIX_EQUAL(expected, actual, 1e-1);
 }
 
-TEST(llh_sigma_to_ned_sigma_B, BatchTest) {
+TEST(llh_sigma_to_ned_sigma, BatchTest) {
 	const Vector llh0 = {
 	    40 * PI / 180.0,
 	    -86 * PI / 180,
@@ -178,7 +178,7 @@ TEST(llh_sigma_to_ned_sigma_B, BatchTest) {
 	EXPECT_MATRIX_EQUAL(actual, expected, 1e-4);
 }
 
-TEST(ned_sigma_to_llh_sigma_B, BatchTest) {
+TEST(ned_sigma_to_llh_sigma, BatchTest) {
 	const Vector llh0 = {
 	    40 * PI / 180.0,
 	    -86 * PI / 180,
@@ -558,11 +558,84 @@ TEST(dcm_to_rpy, InitializerTest) {
 	// NOTE: batched calls to dcm_to_rpy do not support initializer lists
 }
 
+TEST(pressure_to_altitude, BatchTest) {
+	const Vector pressure = {
+	    101325,
+	    89874.5705,
+	    79495.2155,
+	    54019.9121,
+	};
+
+	const Vector expected = {
+	    0,
+	    1000,
+	    2000,
+	    5000,
+	};
+
+	auto actual = pressure_to_altitude(pressure);
+
+	EXPECT_MATRIX_EQUAL(actual, expected, 1e-5);
+}
+
+TEST(dcm_to_rot_vec, BatchTest) {
+	const xt::xtensor<double, 3> dcm = {
+	    {
+	        {1, 0, 0},
+	        {0, 0, -1},
+	        {0, 1, 0},
+	    },
+	    {
+	        {0, -1, 0},
+	        {1, 0, 0},
+	        {0, 0, 1},
+	    },
+	};
+
+	const Matrix expected = {
+	    {PI / 2, 0, 0},
+	    {0, 0, PI / 2},
+	};
+
+	const auto actual = dcm_to_rot_vec(dcm);
+
+	EXPECT_MATRIX_EQUAL(actual, expected, 1e-5);
+}
+
+
 TEST(ecef_to_llh, CompareToMatlabSolution) {
-	Vector3 Pe{4510731, 4510731, 0};
-	auto Pwgs     = ecef_to_llh(Pe);
+	Vector3 p_e{4510731, 4510731, 0};
+	auto p_wgs    = ecef_to_llh(p_e);
 	auto expected = Vector3{0, 45 * PI / 180, 999.9564};
-	EXPECT_MATRIX_EQUAL(expected, Pwgs, 1e-4);
+	EXPECT_MATRIX_EQUAL(expected, p_wgs, 1e-4);
+}
+
+
+TEST(ecef_to_llh, BatchTest) {
+	// Points taken from GoldData_v6.3, https://nga-rescue.is4s.us/gold/GoldData_v6.3.zip
+	Matrix ecef = {
+	    {152701.349483, 0.000000, 8705419.710257},
+	    {-2246552.197953, -2246552.197953, -5465836.117787},
+	    {0.000000, -3177104.586924, -5465836.117787},
+	    {-3197104.586924, 0.000000, -5500477.133939},
+	    {-2267765.401388, -2267765.401388, -5517797.642014},
+	};
+
+	Matrix expected = {
+	    {89 * PI / 180.0, 0.0, 2350000},
+	    {-60 * PI / 180.0, -135 * PI / 180.0, -40000.0},
+	    {-60 * PI / 180.0, -90 * PI / 180.0, -40000.0},
+	    {-60 * PI / 180.0, PI, 0.0},
+	    {-60.0 * PI / 180.0, -135.0 * PI / 180.0, 20000.0},
+	};
+
+	auto actual = ecef_to_llh(ecef);
+
+	for (std::size_t i = 0; i < actual.shape()[0]; ++i) {
+		EXPECT_NEAR(actual(i, 0), expected(i, 0), 1e-8);
+		EXPECT_NEAR(actual(i, 1), expected(i, 1), 1e-8);
+		EXPECT_NEAR(actual(i, 2), expected(i, 2), 1e-5);
+	}
 }
 
 // navtk#757
@@ -574,53 +647,53 @@ TEST(ecef_to_llh, HangCheck) {
 
 TEST(ecef_to_llh, CompareToGoldStandard) {
 	// Points taken from GoldData_v6.3, https://nga-rescue.is4s.us/gold/GoldData_v6.3.zip
-	Vector3 Pe;
+	Vector3 p_e;
 	Vector3 diff;
 
-	Pe               = {6285924.886408, 0.000000, 6040538.783023};
-	auto Pwgs        = ecef_to_llh(Pe);
+	p_e              = {6285924.886408, 0.000000, 6040538.783023};
+	auto p_wgs       = ecef_to_llh(p_e);
 	Vector3 expected = {44.0 * PI / 180.0, 0.0, 2350000};
-	diff             = Pwgs - expected;
+	diff             = p_wgs - expected;
 	EXPECT_NEAR(diff[0], 0, 1e-12);
 	EXPECT_NEAR(diff[1], 0, 1e-12);
 	EXPECT_NEAR(diff[2], 0, 1e-6);
 
-	Pe       = {152701.349483, 0.000000, 8705419.710257};
-	Pwgs     = ecef_to_llh(Pe);
+	p_e      = {152701.349483, 0.000000, 8705419.710257};
+	p_wgs    = ecef_to_llh(p_e);
 	expected = {89 * PI / 180.0, 0.0, 2350000};
-	diff     = Pwgs - expected;
+	diff     = p_wgs - expected;
 	EXPECT_NEAR(diff[0], 0, 1e-12);
 	EXPECT_NEAR(diff[1], 0, 1e-12);
 	EXPECT_NEAR(diff[2], 0, 1e-6);
 
-	Pe       = {-2246552.197953, -2246552.197953, -5465836.117787};
-	Pwgs     = ecef_to_llh(Pe);
+	p_e      = {-2246552.197953, -2246552.197953, -5465836.117787};
+	p_wgs    = ecef_to_llh(p_e);
 	expected = Vector3{-60 * PI / 180.0, -135 * PI / 180.0, -40000.0};
-	diff     = Pwgs - expected;
+	diff     = p_wgs - expected;
 	EXPECT_NEAR(diff[0], 0, 1e-12);
 	EXPECT_NEAR(diff[1], 0, 1e-12);
 	EXPECT_NEAR(diff[2], 0, 1e-6);
 
-	Pe       = {0.000000, -3177104.586924, -5465836.117787};
-	Pwgs     = ecef_to_llh(Pe);
+	p_e      = {0.000000, -3177104.586924, -5465836.117787};
+	p_wgs    = ecef_to_llh(p_e);
 	expected = {-60 * PI / 180.0, -90 * PI / 180.0, -40000.0};
-	diff     = Pwgs - expected;
+	diff     = p_wgs - expected;
 	EXPECT_NEAR(diff[0], 0, 1e-12);
 	EXPECT_NEAR(diff[1], 0, 1e-12);
 	EXPECT_NEAR(diff[2], 0, 1e-6);
 
-	Pe       = {-3197104.586924, 0.000000, -5500477.133939};
-	Pwgs     = ecef_to_llh(Pe);
+	p_e      = {-3197104.586924, 0.000000, -5500477.133939};
+	p_wgs    = ecef_to_llh(p_e);
 	expected = {-60 * PI / 180.0, PI, 0.0};
-	diff     = Pwgs - expected;
+	diff     = p_wgs - expected;
 	EXPECT_NEAR(diff[0], 0, 1e-12);
 	EXPECT_NEAR(diff[1], 0, 1e-12);
 	EXPECT_NEAR(diff[2], 0, 1e-6);
 
-	Pe       = {-2267765.401388, -2267765.401388, -5517797.642014};
-	Pwgs     = ecef_to_llh(Pe);
+	p_e      = {-2267765.401388, -2267765.401388, -5517797.642014};
+	p_wgs    = ecef_to_llh(p_e);
 	expected = {-60.0 * PI / 180.0, -135.0 * PI / 180.0, 20000.0};
-	diff     = Pwgs - expected;
+	diff     = p_wgs - expected;
 	EXPECT_NEAR(diff[0], 0, 1e-12);
 	EXPECT_NEAR(diff[1], 0, 1e-12);
 	EXPECT_NEAR(diff[2], 0, 1e-6);
@@ -689,32 +762,59 @@ TEST(axis_angle_to_dcm, CheckNonNormalizedAxis) {
 }
 
 TEST(llh_to_ecef, InverseOfEcefToLlh) {
-	Vector3 Pwgs{1, 2, 3};
-	auto Pe  = llh_to_ecef(Pwgs);
-	auto out = ecef_to_llh(Pe);
-	EXPECT_MATRIX_EQUAL(Pwgs, out, 1e-6);
+	Vector3 p_wgs{1, 2, 3};
+	auto p_e = llh_to_ecef(p_wgs);
+	auto out = ecef_to_llh(p_e);
+	EXPECT_MATRIX_EQUAL(p_wgs, out, 1e-6);
+}
+
+TEST(llh_to_ecef, BatchTest) {
+	// Points taken from GoldData_v6.3, https://nga-rescue.is4s.us/gold/GoldData_v6.3.zip
+	const Matrix llh = {
+	    {89 * PI / 180.0, 0.0, 2350000},
+	    {-60 * PI / 180.0, -135 * PI / 180.0, -40000.0},
+	    {-60 * PI / 180.0, -90 * PI / 180.0, -40000.0},
+	    {-60 * PI / 180.0, PI, 0.0},
+	    {-60.0 * PI / 180.0, -135.0 * PI / 180.0, 20000.0},
+	};
+
+	const Matrix expected = {
+	    {152701.349483, 0.000000, 8705419.710257},
+	    {-2246552.197953, -2246552.197953, -5465836.117787},
+	    {0.000000, -3177104.586924, -5465836.117787},
+	    {-3197104.586924, 0.000000, -5500477.133939},
+	    {-2267765.401388, -2267765.401388, -5517797.642014},
+	};
+
+	auto actual = llh_to_ecef(llh);
+
+	for (std::size_t i = 0; i < actual.shape()[0]; ++i) {
+		EXPECT_NEAR(actual(i, 0), expected(i, 0), 1e-6);
+		EXPECT_NEAR(actual(i, 1), expected(i, 1), 1e-6);
+		EXPECT_NEAR(actual(i, 2), expected(i, 2), 1e-5);
+	}
 }
 
 TEST(ecef_to_local_level, CompareToKnownSolution) {
 	Vector3 P0e{10000, 10000, 0};
-	Vector3 Pe{10001, 10001, 0};
+	Vector3 p_e{10001, 10001, 0};
 	Vector3 expected{0, 0, -sqrt(2)};
-	auto out = ecef_to_local_level(P0e, Pe);
+	auto out = ecef_to_local_level(P0e, p_e);
 	EXPECT_MATRIX_EQUAL(expected, out, 1e-6);
 }
 
 TEST(local_level_to_ecef, InverseOfEcefToLocalLevel) {
 	Vector3 P0e{10000, 10000, 0};
-	Vector3 Pe{10001, 10001, 0};
-	auto ll  = ecef_to_local_level(P0e, Pe);
+	Vector3 p_e{10001, 10001, 0};
+	auto ll  = ecef_to_local_level(P0e, p_e);
 	auto out = local_level_to_ecef(P0e, ll);
-	EXPECT_MATRIX_EQUAL(Pe, out, 1e-6);
+	EXPECT_MATRIX_EQUAL(p_e, out, 1e-6);
 }
 
 TEST(llh_to_cen, CompareToKnownSolution) {
-	Vector3 Pwgs{0, PI / 4, sqrt(sqrt(2) + sqrt(2))};
+	Vector3 p_wgs{0, PI / 4, sqrt(sqrt(2) + sqrt(2))};
 	Matrix3 expected = ecef_to_cen(Vector3{1, 1, 0});
-	Matrix3 out      = llh_to_cen(Pwgs);
+	Matrix3 out      = llh_to_cen(p_wgs);
 	EXPECT_MATRIX_EQUAL(expected, out, 1e-6);
 }
 
@@ -722,23 +822,23 @@ TEST(DISABLED_llhToCen, CompareToKnownSolutionThreeAxis) {  // TODO: Geodetic so
 }
 
 TEST(ecef_to_cen, CompareToKnownSolution) {
-	Vector3 Pe{10001, 0, 0};
+	Vector3 p_e{10001, 0, 0};
 	// clang-format off
 	Matrix3 expected = {{0, 0, -1},
 	                    {0, 1,  0},
 	                    {1, 0,  0}};
 	// clang-format on
-	auto out = ecef_to_cen(Pe);
+	auto out = ecef_to_cen(p_e);
 	EXPECT_MATRIX_EQUAL(expected, out, 1e-6);
 }
 TEST(ecef_to_cen, CompareToKnownSolutionTwoAxis) {
-	Vector3 Pe{300, 300, 0};
+	Vector3 p_e{300, 300, 0};
 	// clang-format off
 	Matrix3 expected = {{0, -sin(PI/4), -sin(PI/4)},
 	                    {0,  sin(PI/4), -sin(PI/4)},
 	                    {1,          0,          0}};
 	// clang-format on
-	auto out = ecef_to_cen(Pe);
+	auto out = ecef_to_cen(p_e);
 	EXPECT_MATRIX_EQUAL(expected, out, 1e-6);
 }
 
