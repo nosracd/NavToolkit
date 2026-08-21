@@ -176,8 +176,8 @@ namespace py = pybind11;
 // alias can be defined and passed as an argument instead.
 #define NAMESPACE_FUNCTION(NAME, NS, ...) m.def(#NAME, &NS::NAME, PROCESS_DOC(NAME), __VA_ARGS__);
 // Same as NAMESPACE_FUNCTION but for templated functions.
-#define NAMESPACE_FUNCTIONT(NAME, NS, TYPES, ...) \
-	m.def(#NAME, &NS::NAME<TYPES>, PROCESS_DOC(NAME), __VA_ARGS__);
+#define NAMESPACE_FUNCTIONT(NAME, NS, TYPES, DOC_SUFFIX, ...) \
+	m.def(#NAME, &NS::NAME<TYPES>, PROCESS_DOC(NAME##DOC_SUFFIX), __VA_ARGS__);
 // Same as NAMESPACE_FUNCTION but for functions that are multiply defined.
 #define NAMESPACE_FUNCTION_OVERLOAD(NAME, NS, CASTTYPE, DOC_SUFFIX, ...) \
 	m.def(#NAME,                                                         \

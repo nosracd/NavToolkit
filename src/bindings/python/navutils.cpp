@@ -101,8 +101,8 @@ void add_navutils_functions(pybind11::module& m) {
 	                   "C_platform_to_sensor"_a,
 	                   "C_k_to_j"_a = navtk::eye(3))
 
-	NAMESPACE_FUNCTIONT(skew, nav, PARAMS(Vector), "angles"_a)
-	NAMESPACE_FUNCTIONT(skew, nav, PARAMS(Matrix), "angles"_a)
+	NAMESPACE_FUNCTIONT(skew, nav, PARAMS(Vector), , "angles"_a)
+	NAMESPACE_FUNCTIONT(skew, nav, PARAMS(Matrix), _2, "angles"_a)
 
 	NAMESPACE_FUNCTION(ortho_dcm, nav, "dcm"_a)
 	NAMESPACE_FUNCTION(wrap_to_pi, nav, "orig"_a)
@@ -111,43 +111,49 @@ void add_navutils_functions(pybind11::module& m) {
 	NAMESPACE_FUNCTION(axis_angle_to_dcm, nav, "axis"_a, "angle"_a)
 	NAMESPACE_FUNCTION(calc_van_loan, nav, "F"_a, "G"_a, "Q"_a, "dt"_a)
 	NAMESPACE_FUNCTION(correct_dcm_with_tilt, nav, "dcm"_a, "tilt"_a)
-	NAMESPACE_FUNCTIONT(dcm_to_quat, nav, PARAMS(Matrix), "dcm"_a)
-	NAMESPACE_FUNCTIONT(dcm_to_quat, nav, PARAMS(Tensor<3>), "dcm"_a)
-	NAMESPACE_FUNCTIONT(dcm_to_rpy, nav, PARAMS(Matrix), "dcm"_a)
-	NAMESPACE_FUNCTIONT(dcm_to_rpy, nav, PARAMS(Tensor<3>), "dcm"_a)
+	NAMESPACE_FUNCTIONT(dcm_to_quat, nav, PARAMS(Matrix), , "dcm"_a)
+	NAMESPACE_FUNCTIONT(dcm_to_quat, nav, PARAMS(Tensor<3>), _2, "dcm"_a)
+	NAMESPACE_FUNCTIONT(dcm_to_rpy, nav, PARAMS(Matrix), , "dcm"_a)
+	NAMESPACE_FUNCTIONT(dcm_to_rpy, nav, PARAMS(Tensor<3>), _2, "dcm"_a)
 	NAMESPACE_FUNCTIONT(delta_lat_to_north,
 	                    nav,
 	                    PARAMS(double, double, double),
+	                    ,
 	                    "delta_lat"_a,
 	                    "approx_lat"_a,
 	                    "altitude"_a)
 	NAMESPACE_FUNCTIONT(delta_lat_to_north,
 	                    nav,
 	                    PARAMS(Vector, double, double),
+	                    _2,
 	                    "delta_lat"_a,
 	                    "approx_lat"_a,
 	                    "altitude"_a)
 	NAMESPACE_FUNCTIONT(delta_lat_to_north,
 	                    nav,
 	                    PARAMS(Vector, Vector, Vector),
+	                    _2,
 	                    "delta_lat"_a,
 	                    "approx_lat"_a,
 	                    "altitude"_a)
 	NAMESPACE_FUNCTIONT(delta_lon_to_east,
 	                    nav,
 	                    PARAMS(double, double, double),
+	                    ,
 	                    "delta_lon"_a,
 	                    "approx_lat"_a,
 	                    "altitude"_a)
 	NAMESPACE_FUNCTIONT(delta_lon_to_east,
 	                    nav,
 	                    PARAMS(Vector, double, double),
+	                    _2,
 	                    "delta_lon"_a,
 	                    "approx_lat"_a,
 	                    "altitude"_a)
 	NAMESPACE_FUNCTIONT(delta_lon_to_east,
 	                    nav,
 	                    PARAMS(Vector, Vector, Vector),
+	                    _2,
 	                    "delta_lon"_a,
 	                    "approx_lat"_a,
 	                    "altitude"_a)
@@ -157,18 +163,21 @@ void add_navutils_functions(pybind11::module& m) {
 	NAMESPACE_FUNCTIONT(east_to_delta_lon,
 	                    nav,
 	                    PARAMS(double, double, double),
+	                    ,
 	                    "east_distance"_a,
 	                    "approx_lat"_a,
 	                    "altitude"_a)
 	NAMESPACE_FUNCTIONT(east_to_delta_lon,
 	                    nav,
 	                    PARAMS(Vector, double, double),
+	                    _2,
 	                    "east_distance"_a,
 	                    "approx_lat"_a,
 	                    "altitude"_a)
 	NAMESPACE_FUNCTIONT(east_to_delta_lon,
 	                    nav,
 	                    PARAMS(Vector, Vector, Vector),
+	                    _2,
 	                    "east_distance"_a,
 	                    "approx_lat"_a,
 	                    "altitude"_a)
@@ -178,36 +187,39 @@ void add_navutils_functions(pybind11::module& m) {
 	NAMESPACE_FUNCTION(llh_to_cen, nav, "Pwgs"_a)
 	NAMESPACE_FUNCTION(llh_to_ecef, nav, "Pwgs"_a)
 	NAMESPACE_FUNCTION(local_level_to_ecef, nav, "P0e"_a, "Pn"_a)
-	NAMESPACE_FUNCTIONT(meridian_radius, nav, PARAMS(double), "latitude"_a)
-	NAMESPACE_FUNCTIONT(meridian_radius, nav, PARAMS(Vector), "latitude"_a)
+	NAMESPACE_FUNCTIONT(meridian_radius, nav, PARAMS(double), , "latitude"_a)
+	NAMESPACE_FUNCTIONT(meridian_radius, nav, PARAMS(Vector), _2, "latitude"_a)
 	NAMESPACE_FUNCTIONT(north_to_delta_lat,
 	                    nav,
 	                    PARAMS(double, double, double),
+	                    ,
 	                    "north_distance"_a,
 	                    "approx_lat"_a,
 	                    "altitude"_a)
 	NAMESPACE_FUNCTIONT(north_to_delta_lat,
 	                    nav,
 	                    PARAMS(Vector, double, double),
+	                    _2,
 	                    "north_distance"_a,
 	                    "approx_lat"_a,
 	                    "altitude"_a)
 	NAMESPACE_FUNCTIONT(north_to_delta_lat,
 	                    nav,
 	                    PARAMS(Vector, Vector, Vector),
+	                    _2,
 	                    "north_distance"_a,
 	                    "approx_lat"_a,
 	                    "altitude"_a)
-	NAMESPACE_FUNCTIONT(quat_to_dcm, nav, PARAMS(Vector), "quat"_a)
-	NAMESPACE_FUNCTIONT(quat_to_dcm, nav, PARAMS(Matrix), "quat"_a)
-	NAMESPACE_FUNCTIONT(quat_to_rpy, nav, PARAMS(Vector), "quat"_a)
-	NAMESPACE_FUNCTIONT(quat_to_rpy, nav, PARAMS(Matrix), "quat"_a)
-	NAMESPACE_FUNCTIONT(rpy_to_dcm, nav, PARAMS(Vector), "rpy"_a)
-	NAMESPACE_FUNCTIONT(rpy_to_dcm, nav, PARAMS(Matrix), "rpy"_a)
-	NAMESPACE_FUNCTIONT(rpy_to_quat, nav, PARAMS(Vector), "rpy"_a)
-	NAMESPACE_FUNCTIONT(rpy_to_quat, nav, PARAMS(Matrix), "rpy"_a)
-	NAMESPACE_FUNCTIONT(transverse_radius, nav, PARAMS(double), "latitude"_a)
-	NAMESPACE_FUNCTIONT(transverse_radius, nav, PARAMS(Vector), "latitude"_a)
+	NAMESPACE_FUNCTIONT(quat_to_dcm, nav, PARAMS(Vector), , "quat"_a)
+	NAMESPACE_FUNCTIONT(quat_to_dcm, nav, PARAMS(Matrix), _2, "quat"_a)
+	NAMESPACE_FUNCTIONT(quat_to_rpy, nav, PARAMS(Vector), , "quat"_a)
+	NAMESPACE_FUNCTIONT(quat_to_rpy, nav, PARAMS(Matrix), _2, "quat"_a)
+	NAMESPACE_FUNCTIONT(rpy_to_dcm, nav, PARAMS(Vector), , "rpy"_a)
+	NAMESPACE_FUNCTIONT(rpy_to_dcm, nav, PARAMS(Matrix), _2, "rpy"_a)
+	NAMESPACE_FUNCTIONT(rpy_to_quat, nav, PARAMS(Vector), , "rpy"_a)
+	NAMESPACE_FUNCTIONT(rpy_to_quat, nav, PARAMS(Matrix), _2, "rpy"_a)
+	NAMESPACE_FUNCTIONT(transverse_radius, nav, PARAMS(double), , "latitude"_a)
+	NAMESPACE_FUNCTIONT(transverse_radius, nav, PARAMS(Vector), _2, "latitude"_a)
 	NAMESPACE_FUNCTION(wander_to_C_enu_to_n, nav, "wander"_a)
 	NAMESPACE_FUNCTION(wander_to_C_ned_to_n, nav, "wander"_a)
 	NAMESPACE_FUNCTION(wander_to_C_ned_to_l, nav, "wander"_a)
@@ -218,12 +230,13 @@ void add_navutils_functions(pybind11::module& m) {
 	NAMESPACE_FUNCTION(C_n_to_e_h_to_llh, nav, "C_n_to_e"_a, "h"_a)
 	NAMESPACE_FUNCTION(C_n_to_e_h_to_ecef, nav, "C_n_to_e"_a, "h"_a)
 	NAMESPACE_FUNCTION_VOID(C_ecef_to_e, nav)
-	NAMESPACE_FUNCTIONT(rot_vec_to_dcm, nav, PARAMS(Vector), "phi"_a)
-	NAMESPACE_FUNCTIONT(rot_vec_to_dcm, nav, PARAMS(Matrix), "phi"_a)
+	NAMESPACE_FUNCTIONT(rot_vec_to_dcm, nav, PARAMS(Vector), , "phi"_a)
+	NAMESPACE_FUNCTIONT(rot_vec_to_dcm, nav, PARAMS(Matrix), _2, "phi"_a)
 
 	NAMESPACE_FUNCTION(calculate_gravity_titterton, nav, "alt"_a, "lat"_a, "R0"_a)
-	NAMESPACE_FUNCTIONT(calculate_gravity_schwartz, nav, PARAMS(double, double), "alt"_a, "lat"_a)
-	NAMESPACE_FUNCTIONT(calculate_gravity_schwartz, nav, PARAMS(Vector, Vector), "alt"_a, "lat"_a)
+	NAMESPACE_FUNCTIONT(calculate_gravity_schwartz, nav, PARAMS(double, double), , "alt"_a, "lat"_a)
+	NAMESPACE_FUNCTIONT(
+	    calculate_gravity_schwartz, nav, PARAMS(Vector, Vector), _2, "alt"_a, "lat"_a)
 	NAMESPACE_FUNCTION(calculate_gravity_savage_n, nav, "C_n_to_e"_a, "h"_a)
 	NAMESPACE_FUNCTION(calculate_gravity_savage_ned, nav, "C_n_to_e"_a, "h"_a)
 
