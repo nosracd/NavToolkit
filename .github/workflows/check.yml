@@ -3,7 +3,7 @@ name: Check
 on: [push, pull_request]
 
 jobs:
-    format:
+    clang-format:
         runs-on: ubuntu-24.04
         steps:
         - uses: actions/checkout@v4
@@ -11,13 +11,13 @@ jobs:
         - name: Set up
           uses: ./.github/actions/setup
 
-        - name: Run formatters
+        - name: Run C++ formatter
           run: |
               set -xe
               docker/docker_interface.py format
               git diff --exit-code
 
-    flake8:
+    ruff:
         runs-on: ubuntu-24.04
         steps:
         - uses: actions/checkout@v4
@@ -26,7 +26,10 @@ jobs:
           uses: ./.github/actions/setup
 
         - name: Run flake8
-          run: docker/docker_interface.py flake8
+          run: |
+            set -xe
+            docker/docker_interface.py debug ubuntu-noble "ruff check src test util docs examples optional"
+            docker/docker_interface.py debug ubuntu-noble "ruff format --diff"
 
     copyright-year:
         runs-on: ubuntu-24.04

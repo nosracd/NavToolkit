@@ -89,9 +89,11 @@ def redirected_outputs():
     err_fd = stderr.fileno()
 
     # First, open our temporary file, and copies of the file descriptors
-    with TemporaryFile() as dest, fdopen(dup(out_fd), 'wb') as out_bak, fdopen(
-        dup(err_fd), 'wb'
-    ) as err_bak:
+    with (
+        TemporaryFile() as dest,
+        fdopen(dup(out_fd), 'wb') as out_bak,
+        fdopen(dup(err_fd), 'wb') as err_bak,
+    ):
         flush(stdout, stderr)
         fas = FileAsString(dest)
         try:

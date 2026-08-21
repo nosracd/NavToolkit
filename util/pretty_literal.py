@@ -13,7 +13,6 @@ For example, `Matrix foo{{10.2,4},{-30,1.34}};` becomes:
 Enter your matrix literals on stdin and press Ctrl+D when you're done.
 """
 
-
 import sys
 from buildkit.parsing import (
     advance_to,

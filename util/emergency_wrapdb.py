@@ -39,7 +39,6 @@ SUBPROJECTS = (('gtest', '1.8.0'),)
 def main():
 
     for subproject, branch in SUBPROJECTS:
-
         # Get subproject's "directory" entry from .wrap file, then use
         # that to see if the subproject already exists.
 
@@ -60,7 +59,7 @@ def main():
             print(
                 'Subproject',
                 subproject,
-                'already appears to be installed.' '  Skipping.',
+                'already appears to be installed.  Skipping.',
             )
         else:
             retcode = ghwt(['install', subproject, branch])

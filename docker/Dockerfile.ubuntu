@@ -53,11 +53,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Create a venv
 RUN mkdir /venv && python3 -m venv /venv --system-site-packages
 
-# flake8: For Python style checking
 # linkchecker: For CI verifying hyperlinks are valid in project documentation
-RUN /venv/bin/pip install \
-    flake8 \
-    linkchecker
+RUN /venv/bin/pip install linkchecker
 
 # Install pip packages, excluding any that were already installed by apt
 COPY requirements.txt /

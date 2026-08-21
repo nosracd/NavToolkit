@@ -312,7 +312,6 @@ def run_monte_carlo_simulation(location_2d, topology_source, run_time):
     # run the experiment through the filter
     delta_p = [0, 0]
     for cur_time in range(run_time):
-
         # simulate delta_p measurements by calculate delta_p from truth state
         # and adding gaussian white noise
         if cur_time > 0:
@@ -327,9 +326,9 @@ def run_monte_carlo_simulation(location_2d, topology_source, run_time):
 
         filter.propagate(to_type_timestamp(cur_time))
 
-        state_propagate_particles_history[
-            cur_time
-        ] = filter_strategy.get_state_particles()
+        state_propagate_particles_history[cur_time] = (
+            filter_strategy.get_state_particles()
+        )
 
         if cur_time % UPDATE_PERIOD == 0:
             filter.update(
@@ -346,9 +345,9 @@ def run_monte_carlo_simulation(location_2d, topology_source, run_time):
 
         state_covariance_history[cur_time] = state_covariance
 
-        state_particles_history[
-            cur_time
-        ] = filter_strategy.get_state_particles()
+        state_particles_history[cur_time] = (
+            filter_strategy.get_state_particles()
+        )
 
         state_results[cur_time] = state_estimate
 
@@ -475,7 +474,6 @@ def make_plots(
 
     print("Generating plots...")
     for state_idx in range(NUM_STATES):
-
         # make one plot with the state of each filter overlayed with true state
         fig, ax = plt.subplots(2, sharex=True)
         fig.suptitle(state_naming[state_idx])

@@ -328,29 +328,6 @@ else
     run_target('format', command: [python, '-c', 'import sys; print("`format` is disabled because clang-format does not appear to be installed.'])
 endif
 
-black_dep = find_program('black', required: false)
-if black_dep.found()
-    run_target('format_py', command: [black_dep,
-                                      '@CURRENT_SOURCE_DIR@',
-                                      '--skip-string-normalization',
-                                      '--skip-magic-trailing-comma',
-                                      '--line-length', '79'])
-else
-    run_target('format_py', command: [python,'-c', 'print("black not found - consider using `docker_interface.py`."); import sys; sys.exit(1)'])
-endif
-
-flake8_dep = find_program('flake8', required: false)
-if flake8_dep.found()
-    run_target('flake8', command: [flake8_dep,
-                                      '@CURRENT_SOURCE_DIR@src',
-                                      '@CURRENT_SOURCE_DIR@test',
-                                      '@CURRENT_SOURCE_DIR@util',
-                                      '@CURRENT_SOURCE_DIR@docs',
-                                      '@CURRENT_SOURCE_DIR@examples',
-                                      '@CURRENT_SOURCE_DIR@optional'])
-else
-    run_target('flake8', command: [python,'-c', 'print("flake8 not found - consider using `docker_interface.py`."); import sys; sys.exit(1)'])
-endif
 
 if get_option('main_library')
     subdir('install')

@@ -46,10 +46,8 @@ code.
 
 Python code contributed to NavToolkit should conform to:
 
-- PEP8, which can be verified by `ninja -C build flake8` if `flake8` has been installed or via
-  `docker/docker_interface.py flake8` otherwise.
-- `black`, which can be called via the `format_py` target in meson on bare metal or the `format`
-  command in docker via `docker_interface.py`.
+- linting, which can be verified by (and some things fixed with) `ruff check --fix`
+- formatting, which can be done via `ruff format`
 
 ## Contributing to Generated Documentation
 

@@ -470,35 +470,31 @@ def test_all(args):
 
 
 def format(args):
-    '''
+    """
     Called when `docker_interface.py format` is executed.
     Format the code so it conforms to the standard.  The format command will
     be run on the default platform.
-    '''
+    """
     platform = PLATFORMS[DEFAULT_PLATFORM_NAME]
     args.platform_name = platform.platform_name
     command = 'ninja -C {} -j {} format'.format(
         platform.build_directory, args.j
     )
     run_with_build_dir(args, command)
-    command = 'ninja -C {} -j {} format_py'.format(
-        platform.build_directory, args.j
-    )
-    run_with_build_dir(args, command)
+    command = 'ruff format'
+    docker_run(args, command)
 
 
-def flake8(args):
-    '''
-    Called when `docker_interface.py flake8` is executed. Runs flake8 to check
+def ruff_check(args):
+    """
+    Called when `docker_interface.py ruff_check` is executed. Runs ruff to check
     for compliance against PEP8. The command will be run on the default
     platform.
-    '''
+    """
     platform = PLATFORMS[DEFAULT_PLATFORM_NAME]
     args.platform_name = platform.platform_name
-    command = 'ninja -C {} -j {} flake8'.format(
-        platform.build_directory, args.j
-    )
-    run_with_build_dir(args, command)
+    command = 'ruff check --fix src test util docs examples optional'
+    docker_run(args, command)
 
 
 def check_documentation(args):
@@ -545,7 +541,7 @@ def main():
                    "build" if needed''',
         'test_all': 'Run "test" on all platforms',
         'format': 'Format C++ and Python source code',
-        'flake8': 'Run flake8 on Python source code',
+        'ruff_check': 'Run ruff check --fix on Python source code',
         'check_documentation': 'Run Doxygen and check for warnings',
         'debug': '''Runs [arguments] as a command in the docker container.
                     Defaults to opening a shell in the container.''',
@@ -553,7 +549,7 @@ def main():
 
     can_specify_platform = {'docker_build', 'setup', 'build', 'test', 'debug'}
 
-    can_specify_cores = {'build', 'test', 'test_all', 'format', 'flake8'}
+    can_specify_cores = {'build', 'test', 'test_all', 'format', 'ruff'}
 
     subparsers = parser.add_subparsers()
 

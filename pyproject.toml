@@ -9,6 +9,22 @@ requires = [
 ]
 build-backend = 'mesonpy'
 
+[tool.ruff]
+line-length=79
+required-version = ">=0.15.16"
+
+
+[tool.ruff.lint]
+preview = true
+select = ['E', 'F', 'W']
+ignore = [
+    "E741",  # Ignores error from math-variables, like "I".
+]
+
+[tool.ruff.format]
+quote-style="preserve"
+skip-magic-trailing-comma = true
+
 [tool.meson-python.args]
 setup = [
     '-Dbuild_docs_tests_examples=false',
@@ -46,3 +62,8 @@ before-all = """
 
 [tool.pytest.ini_options]
 norecursedirs = ["subprojects"]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15.16",
+]

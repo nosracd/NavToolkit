@@ -255,7 +255,6 @@ def straight_flight_example():
                 )
 
             if POS_ENABLED and abs(time % POS_INTERVAL) < 0.0001:
-
                 time_validity = to_type_timestamp(time)
                 delta_llh = pos_meas[0:3, i] - ref_pva[i].pos
                 measurement_data = [

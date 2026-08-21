@@ -1,5 +1,5 @@
-# Black is the uncompromising Python code formatter
-black==22.8.0
+# Ruff is a python linter and formatter.
+ruff==0.15.16
 # Breathe is an extension to reStructuredText and Sphinx to be able to read and render Doxygen xml output.
 breathe==4.34.0
 # Build is necessary to create Python source distributions.
