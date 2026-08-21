@@ -338,7 +338,7 @@ def main() -> None:
         )
     out_str += POSTFACE
 
-    with open(f'{build_directory}/navtk_generated.hpp', 'w') as output_file:
+    with open(f'{build_directory}/navtk_generated.hpp', 'w', encoding='utf-8') as output_file:
         output_file.write(out_str)
 
 

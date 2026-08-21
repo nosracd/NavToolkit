@@ -39,6 +39,19 @@ looking_for = {
 detected_blas_deps = []
 dependency_names = []
 
+fs = import('fs')
+vendored_openblas = meson.global_source_root() / '.openblas'
+if host_machine.system() == 'windows' and fs.is_dir(vendored_openblas / 'lib')
+    vendored_openblas_lib = cpp_compiler.find_library('openblas',
+        dirs: [vendored_openblas / 'lib'],
+        required: false)
+    if vendored_openblas_lib.found()
+        detected_blas_deps += [declare_dependency(
+            dependencies: [vendored_openblas_lib],
+            compile_args: ['-I' + vendored_openblas / 'include'])]
+    endif
+endif
+
 foreach symbol, depnames : looking_for
     found_function = cpp_compiler.has_function(symbol, dependencies: detected_blas_deps)
     if not found_function

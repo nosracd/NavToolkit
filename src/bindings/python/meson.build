@@ -92,7 +92,15 @@ run_target('python_bindings', depends: python_bindings_lib, command: [python, '-
 # This can be added to PYTHONPATH to be able to import the module
 python_bindings_lib_location = meson.current_build_dir()
 
-python_path =  python_bindings_lib_location + ':' + aspn_xtensor_python_lib_location
+pathsep = build_machine.system() == 'windows' ? ';' : ':'
+python_path =  python_bindings_lib_location + pathsep + aspn_xtensor_python_lib_location
+
+vendored_openblas_dll = meson.global_source_root() / '.openblas' / 'bin' / 'libopenblas.dll'
+if host_machine.system() == 'windows' and fs.exists(vendored_openblas_dll)
+    configure_file(input: vendored_openblas_dll,
+                   output: 'libopenblas.dll',
+                   copy: true)
+endif
 
 ### Stubgen
 

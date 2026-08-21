@@ -445,7 +445,7 @@ public:
 	 * @param rhs iterator to compare to
 	 * @return `true` if iterators are equal
 	 */
-	bool operator==(const RingBufferIterator& rhs) {
+	bool operator==(const RingBufferIterator& rhs) const {
 		return rhs.buffer == buffer && rhs.offset == offset;
 	}
 
@@ -454,7 +454,7 @@ public:
 	 * @param rhs iterator to compare to
 	 * @return `true` if iterators are not equal
 	 */
-	bool operator!=(const RingBufferIterator& rhs) { return !(*this == rhs); }
+	bool operator!=(const RingBufferIterator& rhs) const { return !(*this == rhs); }
 
 	/**
 	 * Prefix increment operator

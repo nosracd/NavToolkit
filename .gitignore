@@ -28,6 +28,8 @@ docs/doxygen_output
 # Local Python virtual environment
 .venv/
 
+/.openblas/
+
 # Miscellaneous
 .vscode
 __pycache__
