@@ -279,8 +279,8 @@ TEST(calculate_gravity_schwartz, BatchTest) {
 
 TEST(calculate_gravity_schwartz, InitializerTest) {
 	Vector alt        = {0.0, 1.0, 2.0, 3.0};
-	double lat        = 0.0;
+	Vector lat        = {0.0, 1.0, 2.0, 3.0};
 	auto gravity_test = calculate_gravity_schwartz(alt, lat);
-	auto gravity      = calculate_gravity_schwartz({0.0, 1.0, 2.0, 3.0}, 0.0);
+	auto gravity      = calculate_gravity_schwartz({0.0, 1.0, 2.0, 3.0}, {0.0, 1.0, 2.0, 3.0});
 	ASSERT_ALLCLOSE(gravity_test, gravity);
 }

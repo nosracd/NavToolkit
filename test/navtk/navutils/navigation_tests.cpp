@@ -463,11 +463,7 @@ TEST(dcm_to_rpy, InitializerTest) {
 	auto rpy        = dcm_to_rpy({{1, 0, 0}, {0, 1, 0}, {0, 0, 1}});
 	ASSERT_ALLCLOSE(rpy, rpy_test);
 
-	// batch test
-	Matrix rpy_batch_test = {{0, 0, 0}, {0, 0, 0}};
-	auto rpy_batch =
-	    dcm_to_rpy({{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}, {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}});
-	ASSERT_ALLCLOSE(rpy_batch, rpy_batch_test);
+	// NOTE: batched calls to dcm_to_rpy do not support initializer lists
 }
 
 TEST(ecef_to_llh, CompareToMatlabSolution) {
@@ -698,11 +694,7 @@ TEST(dcm_to_quat, InitializerTest) {
 	auto quat        = dcm_to_quat({{1, 0, 0}, {0, 1, 0}, {0, 0, 1}});
 	ASSERT_ALLCLOSE(quat, quat_test);
 
-	// batch test
-	Matrix quat_batch_test = {{1, 0, 0, 0}, {1, 0, 0, 0}};
-	auto quat_batch =
-	    dcm_to_quat({{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}, {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}}});
-	ASSERT_ALLCLOSE(quat_batch, quat_batch_test);
+	// NOTE: batched calls to dcm_to_quat do not support initializer lists
 }
 
 TEST(delta_lat_to_north, CompareToEcef) {

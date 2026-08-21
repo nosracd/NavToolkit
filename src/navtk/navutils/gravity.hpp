@@ -88,28 +88,24 @@ Vector3 calculate_gravity_schwartz(const S1& alt, const S2& lat) {
  *
  * @see calculate_gravity_schwartz
  *
- * @tparam B1 Type of alt.
- * @tparam B2 Type of lat.
- * @tparam std::enable_if_t<> Constrains B1 and B2 to have a maximum dimension of precisely 1.
+ * @tparam B1 Type of alt, Vector by default.
+ * @tparam B2 Type of lat, Vector by default.
+ * @tparam std::enable_if_t<> Constrains B1 and B2 to have a dimension of precisely 1.
  *
- * @param alt Ellipsoidal altitudes (meters), shape (N).  Can accept initializer lists or a
- * `double` as well.
- * @param lat Latitudes (radians), shape (N).  Can accept initializer lists or a
- * `double` as well.
+ * @param alt Ellipsoidal altitudes (meters), shape (N).  Can accept initializer lists.
+ * @param lat Latitudes (radians), shape (N).  Can accept initializer lists.
  *
  * @return Gravities at the given latitude and altitude, shape (N, 3)
  */
-template <typename B1 = Vector, typename B2 = Vector, IfTensorsMaxDim<1, B1, B2>* = nullptr>
+template <typename B1 = Vector, typename B2 = Vector, IfAllTensorsOfDim<1, B1, B2>* = nullptr>
 Matrix calculate_gravity_schwartz(const B1& alt, const B2& lat) {
-	auto alt_vec = to_vec(alt);
-	auto lat_vec = to_vec(lat);
 	// Apply gravity model from K.P. Schwartz ENGO 623 Course Notes (University of Calgary)
 	// This is the GRS80 gravity model from
 	// http://geoweb.mit.edu/~tah/12.221_2005/grs80_corr.pdf
 	// combined with the height variation correction given in
 	// https://archive.org/details/HeiskanenMoritz1967PhysicalGeodesy/page/n87
 	// eq 2-123
-	const size_t N = std::max(alt_vec.shape()[0], lat_vec.shape()[0]);
+	const size_t N = alt.shape()[0];
 
 	Matrix gravity = empty(N, 3);
 
@@ -124,16 +120,16 @@ Matrix calculate_gravity_schwartz(const B1& alt, const B2& lat) {
 	// is it better to run these in a batch, or call with the single versions
 	// of `meridian_radius` and `transverse_radius`, since they won't always
 	// be needed?
-	auto R_Ns = meridian_radius(lat_vec);
-	auto R_Es = transverse_radius(lat_vec);
+	auto R_Ns = meridian_radius(lat);
+	auto R_Es = transverse_radius(lat);
 
 	for (size_t i = 0; i < N; i++) {
 		gravity(i, 0) = 0;
 		gravity(i, 1) = 0;
 
-		altitude = alt_vec(i);
+		altitude = alt(i);
 
-		sin_lat  = sin(lat_vec(i));
+		sin_lat  = sin(lat(i));
 		sin2_lat = sin_lat * sin_lat;
 		sin4_lat = sin2_lat * sin2_lat;
 

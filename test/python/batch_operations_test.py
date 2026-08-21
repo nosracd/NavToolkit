@@ -337,10 +337,23 @@ class BatchOperationsTests(unittest.TestCase):
             gravity = calculate_gravity_schwartz(alts[idx], lats[idx])
             assert np.allclose(gravities[idx], gravity)
 
+        truth = np.linspace(0, 1, num=40).reshape((10, 4))
+        alts = truth[:, 0]
+        lats = truth[:, 2]
+        gravities = calculate_gravity_schwartz(alts, lats)
+        for idx in range(alts.shape[0]):
+            gravity = calculate_gravity_schwartz(alts[idx], lats[idx])
+            assert np.allclose(gravities[idx], gravity)
+
     def test_calc_force_and_acceleration_offset(self) -> None:
         lats = np.array([0.1, 0.2, 0.3])
         alts = np.array([1000, 500, 2000])
+
+        # this will be transposed to ensure that the stride metadata from the
+        # velocity_ned matrix makes it into the
+        # `calc_force_and_acceleration_offset` function untampered
         velocity_ned = np.array([[0, 0, 0], [50, 0, 0], [2, 1, 3]])
+
         sin_lats = np.sin(lats)
         cos_lats = np.cos(lats)
         sec_lats = 1 / cos_lats
@@ -350,7 +363,14 @@ class BatchOperationsTests(unittest.TestCase):
         r_e = transverse_radius(lats)
 
         offset_batch = calc_force_and_acceleration_offset(
-            r_n, r_e, alts, cos_lats, gravity, sec_lats, sin_lats, velocity_ned
+            r_n,
+            r_e,
+            alts,
+            cos_lats,
+            gravity,
+            sec_lats,
+            sin_lats,
+            velocity_ned.T,
         )
         for idx in range(r_n.shape[0]):
             offset_single = calc_force_and_acceleration_offset(
@@ -361,7 +381,7 @@ class BatchOperationsTests(unittest.TestCase):
                 gravity[idx, :],
                 sec_lats[idx],
                 sin_lats[idx],
-                velocity_ned[idx, :],
+                velocity_ned[:, idx],
             )
             assert np.allclose(offset_single, offset_batch[idx])
 

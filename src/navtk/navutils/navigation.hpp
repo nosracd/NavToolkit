@@ -58,9 +58,9 @@ double meridian_radius(const S& latitude) {
  */
 template <typename B, IfTensorOfDim<B, 1>* = nullptr>
 Vector meridian_radius(const B& latitude) {
-	auto sin_lat = sin(latitude);
+	auto sin_lat = xt::sin(latitude);
 	return SEMI_MAJOR_RADIUS * (1 - ECCENTRICITY_SQUARED) /
-	       pow(1 - ECCENTRICITY_SQUARED * sin_lat * sin_lat, 1.5);
+	       xt::pow(1 - ECCENTRICITY_SQUARED * sin_lat * sin_lat, 1.5);
 }
 
 /**
@@ -105,8 +105,8 @@ double transverse_radius(const S& latitude) {
  */
 template <typename B, IfTensorOfDim<B, 1>* = nullptr>
 Vector transverse_radius(const B& latitude) {
-	auto sin_lat = sin(latitude);
-	return SEMI_MAJOR_RADIUS / pow(1 - ECCENTRICITY_SQUARED * sin_lat * sin_lat, 0.5);
+	auto sin_lat = xt::sin(latitude);
+	return SEMI_MAJOR_RADIUS / xt::pow(1 - ECCENTRICITY_SQUARED * sin_lat * sin_lat, 0.5);
 }
 
 /**
@@ -245,19 +245,18 @@ Matrix3 correct_dcm_with_tilt(const Matrix3& dcm, const Vector3& tilt);
  * @see quat_to_dcm() for the companion function that converts in the opposite direction.
  * @see dcm_to_rpy()
  *
- * @tparam S Type of input, initializer list by default.
+ * @tparam S Type of input, Matrix by default.
  * @tparam std::enable_if_t<> Constrains S to be 2 dimensional.
  *
  * @param dcm Direction cosine matrix.  Can accept initializer lists.
  *
  * @return The equivalent quaternion.
  */
-template <typename S = Initializer<2, Scalar>, IfTensorOfDim<S, 2>* = nullptr>
+template <typename S = Matrix, IfTensorOfDim<S, 2>* = nullptr>
 Vector4 dcm_to_quat(const S& dcm) {
-	auto dcm_mat = to_matrix(dcm);
-	auto d0      = dcm_mat(0, 0);
-	auto d1      = dcm_mat(1, 1);
-	auto d2      = dcm_mat(2, 2);
+	auto d0 = dcm(0, 0);
+	auto d1 = dcm(1, 1);
+	auto d2 = dcm(2, 2);
 
 	// Book just says max, but alternative formulation uses squares, so probably max(abs)
 	auto pa = std::fabs(1 + d0 + d1 + d2);
@@ -270,27 +269,27 @@ Vector4 dcm_to_quat(const S& dcm) {
 	if (pa >= pb && pa >= pc && pa >= pd) {
 		q0        = 0.5 * sqrt(pa);
 		auto q0t4 = 4 * q0;
-		q1        = (dcm_mat(2, 1) - dcm_mat(1, 2)) / (q0t4);
-		q2        = (dcm_mat(0, 2) - dcm_mat(2, 0)) / (q0t4);
-		q3        = (dcm_mat(1, 0) - dcm_mat(0, 1)) / (q0t4);
+		q1        = (dcm(2, 1) - dcm(1, 2)) / (q0t4);
+		q2        = (dcm(0, 2) - dcm(2, 0)) / (q0t4);
+		q3        = (dcm(1, 0) - dcm(0, 1)) / (q0t4);
 	} else if (pb >= pa && pb >= pc && pb >= pd) {
 		q1        = 0.5 * sqrt(pb);
 		auto q1t4 = 4 * q1;
-		q0        = (dcm_mat(2, 1) - dcm_mat(1, 2)) / (q1t4);
-		q2        = (dcm_mat(1, 0) + dcm_mat(0, 1)) / (q1t4);
-		q3        = (dcm_mat(0, 2) + dcm_mat(2, 0)) / (q1t4);
+		q0        = (dcm(2, 1) - dcm(1, 2)) / (q1t4);
+		q2        = (dcm(1, 0) + dcm(0, 1)) / (q1t4);
+		q3        = (dcm(0, 2) + dcm(2, 0)) / (q1t4);
 	} else if (pc >= pa && pc >= pb && pc >= pd) {
 		q2        = 0.5 * sqrt(pc);
 		auto q2t4 = 4 * q2;
-		q0        = (dcm_mat(0, 2) - dcm_mat(2, 0)) / (q2t4);
-		q1        = (dcm_mat(1, 0) + dcm_mat(0, 1)) / (q2t4);
-		q3        = (dcm_mat(2, 1) + dcm_mat(1, 2)) / (q2t4);
+		q0        = (dcm(0, 2) - dcm(2, 0)) / (q2t4);
+		q1        = (dcm(1, 0) + dcm(0, 1)) / (q2t4);
+		q3        = (dcm(2, 1) + dcm(1, 2)) / (q2t4);
 	} else {
 		q3        = 0.5 * sqrt(pd);
 		auto q3t4 = 4 * q3;
-		q0        = (dcm_mat(1, 0) - dcm_mat(0, 1)) / (q3t4);
-		q1        = (dcm_mat(0, 2) + dcm_mat(2, 0)) / (q3t4);
-		q2        = (dcm_mat(2, 1) + dcm_mat(1, 2)) / (q3t4);
+		q0        = (dcm(1, 0) - dcm(0, 1)) / (q3t4);
+		q1        = (dcm(0, 2) + dcm(2, 0)) / (q3t4);
+		q2        = (dcm(2, 1) + dcm(1, 2)) / (q3t4);
 	}
 
 	// use of sign bit is because -0.0 and 0.0 are technically both <= 0 and neither are < 0.
@@ -308,26 +307,25 @@ Vector4 dcm_to_quat(const S& dcm) {
  *
  * @see dcm_to_quat
  *
- * @tparam B Type of input, initializer list by default.
+ * @tparam B Type of input.
  * @tparam std::enable_if_t<> Constrains B to be 3 dimensional.
  *
- * @param dcm Direction cosine matrices, shape (N, 3, 3).  Can accept initializer lists.
+ * @param dcm Direction cosine matrices, shape (N, 3, 3).
  *
  * @return The equivalent quaternions, shape (N, 4).
  */
-template <typename B = Initializer<3, Scalar>, IfTensorOfDim<B, 3>* = nullptr>
+template <typename B, IfTensorOfDim<B, 3>* = nullptr>
 Matrix dcm_to_quat(const B& dcm) {
-	auto dcm_tensor = to_tensor_3d(dcm);
-	const size_t N  = dcm_tensor.shape()[0];
+	const size_t N = dcm.shape()[0];
 
 	Matrix quats = empty(N, 4);
 
 	Scalar d0, d1, d2, pa, pb, pc, pd, q0, q1, q2, q3, q0t4, q1t4, q2t4, q3t4;
 
 	for (size_t i = 0; i < N; i++) {
-		d0 = dcm_tensor(i, 0, 0);
-		d1 = dcm_tensor(i, 1, 1);
-		d2 = dcm_tensor(i, 2, 2);
+		d0 = dcm(i, 0, 0);
+		d1 = dcm(i, 1, 1);
+		d2 = dcm(i, 2, 2);
 
 		// Book just says max, but alternative formulation uses squares, so probably max(abs)
 		pa = std::fabs(1 + d0 + d1 + d2);
@@ -342,27 +340,27 @@ Matrix dcm_to_quat(const B& dcm) {
 		if (pa >= pb && pa >= pc && pa >= pd) {
 			q0   = 0.5 * sqrt(pa);
 			q0t4 = 4 * q0;
-			q1   = (dcm_tensor(i, 2, 1) - dcm_tensor(i, 1, 2)) / (q0t4);
-			q2   = (dcm_tensor(i, 0, 2) - dcm_tensor(i, 2, 0)) / (q0t4);
-			q3   = (dcm_tensor(i, 1, 0) - dcm_tensor(i, 0, 1)) / (q0t4);
+			q1   = (dcm(i, 2, 1) - dcm(i, 1, 2)) / (q0t4);
+			q2   = (dcm(i, 0, 2) - dcm(i, 2, 0)) / (q0t4);
+			q3   = (dcm(i, 1, 0) - dcm(i, 0, 1)) / (q0t4);
 		} else if (pb >= pa && pb >= pc && pb >= pd) {
 			q1   = 0.5 * sqrt(pb);
 			q1t4 = 4 * q1;
-			q0   = (dcm_tensor(i, 2, 1) - dcm_tensor(i, 1, 2)) / (q1t4);
-			q2   = (dcm_tensor(i, 1, 0) + dcm_tensor(i, 0, 1)) / (q1t4);
-			q3   = (dcm_tensor(i, 0, 2) + dcm_tensor(i, 2, 0)) / (q1t4);
+			q0   = (dcm(i, 2, 1) - dcm(i, 1, 2)) / (q1t4);
+			q2   = (dcm(i, 1, 0) + dcm(i, 0, 1)) / (q1t4);
+			q3   = (dcm(i, 0, 2) + dcm(i, 2, 0)) / (q1t4);
 		} else if (pc >= pa && pc >= pb && pc >= pd) {
 			q2   = 0.5 * sqrt(pc);
 			q2t4 = 4 * q2;
-			q0   = (dcm_tensor(i, 0, 2) - dcm_tensor(i, 2, 0)) / (q2t4);
-			q1   = (dcm_tensor(i, 1, 0) + dcm_tensor(i, 0, 1)) / (q2t4);
-			q3   = (dcm_tensor(i, 2, 1) + dcm_tensor(i, 1, 2)) / (q2t4);
+			q0   = (dcm(i, 0, 2) - dcm(i, 2, 0)) / (q2t4);
+			q1   = (dcm(i, 1, 0) + dcm(i, 0, 1)) / (q2t4);
+			q3   = (dcm(i, 2, 1) + dcm(i, 1, 2)) / (q2t4);
 		} else {
 			q3   = 0.5 * sqrt(pd);
 			q3t4 = 4 * q3;
-			q0   = (dcm_tensor(i, 1, 0) - dcm_tensor(i, 0, 1)) / (q3t4);
-			q1   = (dcm_tensor(i, 0, 2) + dcm_tensor(i, 2, 0)) / (q3t4);
-			q2   = (dcm_tensor(i, 2, 1) + dcm_tensor(i, 1, 2)) / (q3t4);
+			q0   = (dcm(i, 1, 0) - dcm(i, 0, 1)) / (q3t4);
+			q1   = (dcm(i, 0, 2) + dcm(i, 2, 0)) / (q3t4);
+			q2   = (dcm(i, 2, 1) + dcm(i, 1, 2)) / (q3t4);
 		}
 
 		// use of sign bit is because -0.0 and 0.0 are technically both <= 0.
@@ -401,28 +399,28 @@ Matrix dcm_to_quat(const B& dcm) {
  * @see rpy_to_dcm() for the companion function that converts in the opposite direction.
  * @see dcm_to_quat()
  *
- * @tparam S Type of input, initializer list by default.
+ * @tparam S Type of input, Matrix by default.
  * @tparam std::enble_if_t<> Constrains S to be 2 dimensional.
  *
- * @param dcm Direction cosine matrix (\f$\textbf{C}_\text{B}^\text{A}\f$)
+ * @param dcm Direction cosine matrix (\f$\textbf{C}_\text{B}^\text{A}\f$), can accept initializer
+ * lists.
  *
  * @return Equivalent Euler angles [roll pitch yaw] (radians) that describe a frame rotation from
  * frame A to frame B.
  */
-template <typename S = Initializer<2, Scalar>, IfTensorOfDim<S, 2>* = nullptr>
+template <typename S = Matrix, IfTensorOfDim<S, 2>* = nullptr>
 Vector3 dcm_to_rpy(const S& dcm) {
-	auto dcm_mat  = to_matrix(dcm);
-	auto asin_arg = std::min(1.0, std::max(dcm_mat(2, 0), -1.0));
-	auto r        = atan2(dcm_mat(2, 1), dcm_mat(2, 2));
+	auto asin_arg = std::min(1.0, std::max(dcm(2, 0), -1.0));
+	auto r        = atan2(dcm(2, 1), dcm(2, 2));
 	auto p        = -asin(asin_arg);
-	auto y        = atan2(dcm_mat(1, 0), dcm_mat(0, 0));
+	auto y        = atan2(dcm(1, 0), dcm(0, 0));
 
 	if (asin_arg <= -1 + 1e-12) {
-		auto y_min_r = atan2(dcm_mat(1, 2) - dcm_mat(0, 1), dcm_mat(0, 2) + dcm_mat(1, 1));
+		auto y_min_r = atan2(dcm(1, 2) - dcm(0, 1), dcm(0, 2) + dcm(1, 1));
 		y            = y_min_r + r;
 	}
 	if (asin_arg >= 1 - 1e-12) {
-		auto y_pls_r = atan2(dcm_mat(1, 2) + dcm_mat(0, 1), dcm_mat(0, 2) - dcm_mat(1, 1)) + PI;
+		auto y_pls_r = atan2(dcm(1, 2) + dcm(0, 1), dcm(0, 2) - dcm(1, 1)) + PI;
 		y            = remainder((y_pls_r - r), 2.0 * PI);
 	}
 	return {r, p, y};
@@ -435,17 +433,16 @@ Vector3 dcm_to_rpy(const S& dcm) {
  *
  * @see dcm_to_rpy
  *
- * @tparam B Type of input, initializer list by default.
+ * @tparam B Type of input.
  * @tparam std::enable_if_t<> Constrains B to be 3 dimensional.
  *
- * @param dcm Direction cosine matrices, shape (N, 3, 3).  Can accept initializer lists.
+ * @param dcm Direction cosine matrices, shape (N, 3, 3).
  *
  * @return The equivalent Euler angle vectors, shape (N, 3).
  */
-template <typename B = Initializer<3, Scalar>, IfTensorOfDim<B, 3>* = nullptr>
+template <typename B, IfTensorOfDim<B, 3>* = nullptr>
 Matrix dcm_to_rpy(const B& dcm) {
-	auto dcm_tensor = to_tensor_3d(dcm);
-	const size_t N  = dcm_tensor.shape()[0];
+	const size_t N = dcm.shape()[0];
 
 	Matrix rpys = empty(N, 3);
 
@@ -453,20 +450,17 @@ Matrix dcm_to_rpy(const B& dcm) {
 
 	for (size_t i = 0; i < N; i++) {
 
-		asin_arg   = std::min(1.0, std::max(dcm_tensor(i, 2, 0), -1.0));
-		rpys(i, 0) = atan2(dcm_tensor(i, 2, 1), dcm_tensor(i, 2, 2));
+		asin_arg   = std::min(1.0, std::max(dcm(i, 2, 0), -1.0));
+		rpys(i, 0) = atan2(dcm(i, 2, 1), dcm(i, 2, 2));
 		rpys(i, 1) = -asin(asin_arg);
-		rpys(i, 2) = atan2(dcm_tensor(i, 1, 0), dcm_tensor(i, 0, 0));
+		rpys(i, 2) = atan2(dcm(i, 1, 0), dcm(i, 0, 0));
 
 		if (asin_arg <= -1 + 1e-12) {
-			auto y_min_r = atan2(dcm_tensor(i, 1, 2) - dcm_tensor(i, 0, 1),
-			                     dcm_tensor(i, 0, 2) + dcm_tensor(i, 1, 1));
+			auto y_min_r = atan2(dcm(i, 1, 2) - dcm(i, 0, 1), dcm(i, 0, 2) + dcm(i, 1, 1));
 			rpys(i, 2)   = y_min_r + rpys(i, 0);
 		}
 		if (asin_arg >= 1 - 1e-12) {
-			auto y_pls_r = atan2(dcm_tensor(i, 1, 2) + dcm_tensor(i, 0, 1),
-			                     dcm_tensor(i, 0, 2) - dcm_tensor(i, 1, 1)) +
-			               PI;
+			auto y_pls_r = atan2(dcm(i, 1, 2) + dcm(i, 0, 1), dcm(i, 0, 2) - dcm(i, 1, 1)) + PI;
 			rpys(i, 2)   = remainder((y_pls_r - rpys(i, 0)), 2.0 * PI);
 		}
 	}
@@ -998,30 +992,29 @@ auto north_to_delta_lat(const A& north_distance, const B& approx_lat) {
  * quaternion and DCM expressions of attitude.
  * @see dcm_to_quat() for the companion function that converts in the opposite direction.
  *
- * @tparam S Type of quat, initializer list by default.
+ * @tparam S Type of quat, Vector by default.
  * @tparam std::enable_if_t<> Constrains S to be 1 dimensional.
  *
- * @param quat The input quaternion, shape (4)
+ * @param quat The input quaternion, shape (4).  Can accept initializer lists.
  *
  * @return The equivalent DCM, shape (3, 3)
  */
 template <typename S = Vector, IfTensorOfDim<S, 1>* = nullptr>
 Matrix3 quat_to_dcm(const S& quat) {
-	auto quat_vec = to_vec(quat);
-	auto q0       = quat_vec(0);
-	auto q1       = quat_vec(1);
-	auto q2       = quat_vec(2);
-	auto q3       = quat_vec(3);
-	auto a2       = pow(q0, 2);
-	auto b2       = pow(q1, 2);
-	auto c2       = pow(q2, 2);
-	auto d2       = pow(q3, 2);
-	auto ab       = q0 * q1;
-	auto ac       = q0 * q2;
-	auto ad       = q0 * q3;
-	auto bc       = q1 * q2;
-	auto bd       = q1 * q3;
-	auto cd       = q2 * q3;
+	auto q0 = quat(0);
+	auto q1 = quat(1);
+	auto q2 = quat(2);
+	auto q3 = quat(3);
+	auto a2 = pow(q0, 2);
+	auto b2 = pow(q1, 2);
+	auto c2 = pow(q2, 2);
+	auto d2 = pow(q3, 2);
+	auto ab = q0 * q1;
+	auto ac = q0 * q2;
+	auto ad = q0 * q3;
+	auto bc = q1 * q2;
+	auto bd = q1 * q3;
+	auto cd = q2 * q3;
 
 	return {{a2 + b2 - c2 - d2, 2 * (bc - ad), 2 * (bd + ac)},
 	        {2 * (bc + ad), a2 - b2 + c2 - d2, 2 * (cd - ab)},
@@ -1035,7 +1028,7 @@ Matrix3 quat_to_dcm(const S& quat) {
  *
  * @see quat_to_dcm
  *
- * @tparam B Type of quat, initializer list by default.
+ * @tparam B Type of quat, Matrix by default.
  * @tparam std::enable_if_t<> Constrains B to be 2 dimensional.
  *
  * @param quat The input quaternions, shape (N, 4).  Can accept initializer lists.
@@ -1044,18 +1037,17 @@ Matrix3 quat_to_dcm(const S& quat) {
  */
 template <typename B = Matrix, IfTensorOfDim<B, 2>* = nullptr>
 Tensor<3> quat_to_dcm(const B& quat) {
-	auto quat_mat  = to_matrix(quat);
-	const size_t N = quat_mat.shape()[0];
+	const size_t N = quat.shape()[0];
 
 	Tensor<3> dcms = empty(N, 3, 3);
 
 	Scalar q0, q1, q2, q3, a2, b2, c2, d2, ab, ac, ad, bc, bd, cd;
 
 	for (size_t i = 0; i < N; i++) {
-		q0 = quat_mat(i, 0);
-		q1 = quat_mat(i, 1);
-		q2 = quat_mat(i, 2);
-		q3 = quat_mat(i, 3);
+		q0 = quat(i, 0);
+		q1 = quat(i, 1);
+		q2 = quat(i, 2);
+		q3 = quat(i, 3);
 		a2 = pow(q0, 2);
 		b2 = pow(q1, 2);
 		c2 = pow(q2, 2);
@@ -1099,22 +1091,21 @@ Tensor<3> quat_to_dcm(const B& quat) {
  * quaternion and Euler angle expressions of attitude.
  * @see rpy_to_quat()  for the companion function that converts in the opposite direction.
  *
- * @tparam S Type of quat, initializer list by default.
+ * @tparam S Type of quat, Vector by default.
  * @tparam std::enable_if_t<> Constrains S to be 1 dimensional.
  *
- * @param quat Quaternion (\f$\textbf{q}_\text{B}^\text{A}\f$)
+ * @param quat Quaternion (\f$\textbf{q}_\text{B}^\text{A}\f$).  Can accept initializer lists.
  *
  * @return The equivalent Euler angles [roll pitch yaw] (radians) that define a frame rotation from
  * frame A to frame B.
  */
 template <typename S = Vector, IfTensorOfDim<S, 1>* = nullptr>
 Vector3 quat_to_rpy(const S& quat) {
-	auto quat_vec = to_vec(quat);
-	auto q0       = quat_vec[0];
-	auto q1       = quat_vec[1];
-	auto q2       = quat_vec[2];
-	auto q3       = quat_vec[3];
-	auto roll     = atan2(2 * (q0 * q1 + q2 * q3), 1 - 2 * (q1 * q1 + q2 * q2)),
+	auto q0   = quat[0];
+	auto q1   = quat[1];
+	auto q2   = quat[2];
+	auto q3   = quat[3];
+	auto roll = atan2(2 * (q0 * q1 + q2 * q3), 1 - 2 * (q1 * q1 + q2 * q2)),
 
 	     pitch = asin(std::min(std::max(2 * (q0 * q2 - q1 * q3), -1.0), 1.0)),
 
@@ -1129,7 +1120,7 @@ Vector3 quat_to_rpy(const S& quat) {
  *
  * @see quat_to_rpy
  *
- * @tparam B Type of quat, initializer list by default.
+ * @tparam B Type of quat, Matrix by default.
  * @tparam std::enable_if_t<> Constrains B to be 2 dimensional.
  *
  * @param quat The input quaternions, shape (N, 4).  Can accept initializer lists.
@@ -1138,8 +1129,7 @@ Vector3 quat_to_rpy(const S& quat) {
  */
 template <typename B = Matrix, IfTensorOfDim<B, 2>* = nullptr>
 Matrix quat_to_rpy(const B& quat) {
-	auto quat_mat  = to_matrix(quat);
-	const size_t N = quat_mat.shape()[0];
+	const size_t N = quat.shape()[0];
 
 	// allocate return Matrix
 	Matrix rpys = empty(N, 3);
@@ -1147,10 +1137,10 @@ Matrix quat_to_rpy(const B& quat) {
 	Scalar q0, q1, q2, q3;
 
 	for (size_t i = 0; i < N; i++) {
-		q0 = quat_mat(i, 0);
-		q1 = quat_mat(i, 1);
-		q2 = quat_mat(i, 2);
-		q3 = quat_mat(i, 3);
+		q0 = quat(i, 0);
+		q1 = quat(i, 1);
+		q2 = quat(i, 2);
+		q3 = quat(i, 3);
 
 		// roll, pitch, and yaw
 		rpys(i, 0) = atan2(2 * (q0 * q1 + q2 * q3), 1 - 2 * (q1 * q1 + q2 * q2));
@@ -1190,23 +1180,22 @@ Matrix quat_to_rpy(const B& quat) {
  * DCM and Euler angle expressions of attitude.
  * @see dcm_to_rpy() for the companion function that converts in the opposite direction.
  *
- * @tparam S Type of rpy, initializer list by default.
+ * @tparam S Type of rpy, Vector by default.
  * @tparam std::enable_if_t<> Constrains S to be 1 dimensional.
  *
  * @param rpy Euler angles [roll pitch yaw] (radians) that describe a frame rotation from frame A to
- * frame B
+ * frame B.  Can accept initializer lists.
  *
  * @return Direction cosine matrix (\f$\textbf{C}_\text{B}^\text{A}\f$).
  */
 template <typename S = Vector, IfTensorOfDim<S, 1>* = nullptr>
 Matrix3 rpy_to_dcm(const S& rpy) {
-	auto rpy_vec = to_vec(rpy);
-	Scalar cph   = cos(rpy_vec[0]);
-	Scalar sph   = sin(rpy_vec[0]);
-	Scalar cth   = cos(rpy_vec[1]);
-	Scalar sth   = sin(rpy_vec[1]);
-	Scalar cps   = cos(rpy_vec[2]);
-	Scalar sps   = sin(rpy_vec[2]);
+	Scalar cph = cos(rpy[0]);
+	Scalar sph = sin(rpy[0]);
+	Scalar cth = cos(rpy[1]);
+	Scalar sth = sin(rpy[1]);
+	Scalar cps = cos(rpy[2]);
+	Scalar sps = sin(rpy[2]);
 	return Matrix{{cps * cth, -sps * cph + cps * sth * sph, sps * sph + cps * sth * cph},
 	              {sps * cth, cps * cph + sps * sth * sph, -cps * sph + sps * sth * cph},
 	              {-sth, cth * sph, cth * cph}};
@@ -1219,7 +1208,7 @@ Matrix3 rpy_to_dcm(const S& rpy) {
  *
  * @see rpy_to_dcm
  *
- * @tparam B Type of rpy, initializer list by default.
+ * @tparam B Type of rpy, Matrix by default.
  * @tparam std::enable_if_t<> Constrains B to be 2 dimensional.
  *
  * @param rpy The Euler angle vectors, shape (N, 3).  Can accept initializer lists.
@@ -1228,8 +1217,7 @@ Matrix3 rpy_to_dcm(const S& rpy) {
  */
 template <typename B = Matrix, IfTensorOfDim<B, 2>* = nullptr>
 Tensor<3> rpy_to_dcm(const B& rpy) {
-	auto rpy_mat   = to_matrix(rpy);
-	const size_t N = rpy_mat.shape()[0];
+	const size_t N = rpy.shape()[0];
 
 	Tensor<3> dcms = empty(N, 3, 3);
 
@@ -1239,12 +1227,12 @@ Tensor<3> rpy_to_dcm(const B& rpy) {
 
 		// Negate angles as we are performing
 		// left-handed coordinate rotations
-		cph = cos(rpy_mat(i, 0));
-		sph = sin(rpy_mat(i, 0));
-		cth = cos(rpy_mat(i, 1));
-		sth = sin(rpy_mat(i, 1));
-		cps = cos(rpy_mat(i, 2));
-		sps = sin(rpy_mat(i, 2));
+		cph = cos(rpy(i, 0));
+		sph = sin(rpy(i, 0));
+		cth = cos(rpy(i, 1));
+		sth = sin(rpy(i, 1));
+		cps = cos(rpy(i, 2));
+		sps = sin(rpy(i, 2));
 
 
 		dcms(i, 0, 0) = cps * cth;
@@ -1272,19 +1260,18 @@ Tensor<3> rpy_to_dcm(const B& rpy) {
  * quaternion and Euler angle expressions of attitude.
  * @see quat_to_rpy() for the companion function that converts in the opposite direction.
  *
- * @tparam S Type of rpy, initializer list by default.
+ * @tparam S Type of rpy, Vector by default.
  * @tparam std::enable_if_t<> Constrains S to be 1 dimensional.
  *
  * @param rpy Euler angles [roll pitch yaw] (radians) that describe a frame rotation from frame A to
- * frame B
+ * frame B.  Can accept initializer lists.
  *
  * @return Quaternion (\f$\textbf{q}_\text{B}^\text{A}\f$)
  */
 template <typename S = Vector, IfTensorOfDim<S, 1>* = nullptr>
 Vector4 rpy_to_quat(const S& rpy) {
-	auto rpy_vec = to_vec(rpy);
-	auto cr = cos(rpy_vec[0] / 2), cp = cos(rpy_vec[1] / 2), cy = cos(rpy_vec[2] / 2),
-	     sr = sin(rpy_vec[0] / 2), sp = sin(rpy_vec[1] / 2), sy = sin(rpy_vec[2] / 2);
+	auto cr = cos(rpy[0] / 2), cp = cos(rpy[1] / 2), cy = cos(rpy[2] / 2), sr = sin(rpy[0] / 2),
+	     sp = sin(rpy[1] / 2), sy = sin(rpy[2] / 2);
 
 	return {cr * cp * cy + sr * sp * sy,
 	        sr * cp * cy - cr * sp * sy,
@@ -1299,7 +1286,7 @@ Vector4 rpy_to_quat(const S& rpy) {
  *
  * @see rpy_to_quat
  *
- * @tparam B Type of rpy, initializer list by default.
+ * @tparam B Type of rpy, Matrix by default.
  * @tparam std::enable_if_t<> Constrains B to be 2 dimensional.
  *
  * @param rpy The Euler angle vectors, shape (N, 3).  Can accept initializer lists.
@@ -1308,8 +1295,7 @@ Vector4 rpy_to_quat(const S& rpy) {
  */
 template <typename B = Matrix, IfTensorOfDim<B, 2>* = nullptr>
 Matrix rpy_to_quat(const B& rpy) {
-	auto rpy_mat   = to_matrix(rpy);
-	const size_t N = rpy_mat.shape()[0];
+	const size_t N = rpy.shape()[0];
 
 	// allocate return Matrix
 	Matrix quats = empty(N, 4);
@@ -1317,12 +1303,12 @@ Matrix rpy_to_quat(const B& rpy) {
 	Scalar cr, cp, cy, sr, sp, sy;
 
 	for (size_t i = 0; i < N; i++) {
-		cr = cos(rpy_mat(i, 0) / 2);
-		cp = cos(rpy_mat(i, 1) / 2);
-		cy = cos(rpy_mat(i, 2) / 2);
-		sr = sin(rpy_mat(i, 0) / 2);
-		sp = sin(rpy_mat(i, 1) / 2);
-		sy = sin(rpy_mat(i, 2) / 2);
+		cr = cos(rpy(i, 0) / 2);
+		cp = cos(rpy(i, 1) / 2);
+		cy = cos(rpy(i, 2) / 2);
+		sr = sin(rpy(i, 0) / 2);
+		sp = sin(rpy(i, 1) / 2);
+		sy = sin(rpy(i, 2) / 2);
 
 		quats(i, 0) = cr * cp * cy + sr * sp * sy;
 		quats(i, 1) = sr * cp * cy - cr * sp * sy;
@@ -1583,7 +1569,7 @@ Matrix3 C_ecef_to_e();
  * @see [Coordinate Frames](../tutorial/coordinate_frames.html) for more details on the
  * rotation vector and DCM representations of attitude.
  *
- * @tparam S Type of phi, initializer list by default.
+ * @tparam S Type of phi, Vector by default.
  * @tparam std::enable_if_t<> Constrains S to be 1 dimensional.
  *
  * @param phi A rotation vector such that rotating the `A` frame about \p phi yields the `B` frame,
@@ -1605,11 +1591,9 @@ Matrix3 rot_vec_to_dcm(const S& phi) {
 	 auto phi_cross = skew(phi);
 	 return eye(3) + term1 * phi_cross + term2 * dot(phi_cross, phi_cross);
 	 */
-	auto phi_vec = to_vec(phi);
-
-	auto p0         = phi_vec(0);
-	auto p1         = phi_vec(1);
-	auto p2         = phi_vec(2);
+	auto p0         = phi(0);
+	auto p1         = phi(1);
+	auto p2         = phi(2);
 	double phi_mag  = sqrt(p0 * p0 + p1 * p1 + p2 * p2);
 	double phi_mag2 = phi_mag * phi_mag;
 	double phi_mag4 = phi_mag2 * phi_mag2;
@@ -1630,7 +1614,7 @@ Matrix3 rot_vec_to_dcm(const S& phi) {
  * @see [Coordinate Frames](../tutorial/coordinate_frames.html) for more details on the
  * rotation vector and DCM representations of attitude.
  *
- * @tparam B Type of input, initializer list by default.
+ * @tparam B Type of input, Matrix by default.
  * @tparam std::enable_if_t<> Constrains B to be 2 dimensional.
  *
  * @param phi Rotation vectors such that rotating the `A` frame about \p phi yields the `B` frame,
@@ -1641,17 +1625,16 @@ Matrix3 rot_vec_to_dcm(const S& phi) {
  */
 template <typename B = Matrix, IfTensorOfDim<B, 2>* = nullptr>
 Tensor<3> rot_vec_to_dcm(const B& phi) {
-	auto phi_mat   = to_matrix(phi);
-	const size_t N = phi_mat.shape()[0];
+	const size_t N = phi.shape()[0];
 
 	Tensor<3> dcms = empty(N, 3, 3);
 
 	Scalar p0, p1, p2, phi_mag, phi_mag2, phi_mag4, t1, t2;
 
 	for (size_t i = 0; i < N; i++) {
-		p0       = phi_mat(i, 0);
-		p1       = phi_mat(i, 1);
-		p2       = phi_mat(i, 2);
+		p0       = phi(i, 0);
+		p1       = phi(i, 1);
+		p2       = phi(i, 2);
 		phi_mag  = sqrt(p0 * p0 + p1 * p1 + p2 * p2);
 		phi_mag2 = phi_mag * phi_mag;
 		phi_mag4 = phi_mag2 * phi_mag2;
