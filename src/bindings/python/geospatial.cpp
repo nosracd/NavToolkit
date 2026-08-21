@@ -5,7 +5,6 @@
 #include <pybind11/stl.h>
 
 #include <navtk/aspn.hpp>
-#include <navtk/geospatial/ElevationInterpolator.hpp>
 #include <navtk/geospatial/providers/SimpleElevationProvider.hpp>
 #include <navtk/geospatial/providers/SimpleProvider.hpp>
 #include <navtk/geospatial/providers/SpatialMapDataProvider.hpp>
@@ -31,7 +30,6 @@
 namespace geo = navtk::geospatial;
 using namespace pybind11::literals;
 
-using geo::ElevationInterpolator;
 using geo::ElevationSource;
 using geo::GeoidUndulationSource;
 using geo::SimpleElevationProvider;
@@ -90,15 +88,6 @@ public:
 
 void add_geospatial_functions(pybind11::module& m) {
 	m.doc() = "Classes and utilties for reading geographic spatial map data.";
-
-	CLASS(ElevationInterpolator)
-	CTOR(ElevationInterpolator,
-	     PARAMS(double, double, double, double),
-	     "top_left"_a,
-	     "top_right"_a,
-	     "bottom_left"_a,
-	     "bottom_right"_a)
-	METHOD(ElevationInterpolator, interpolate, "fractions"_a) CDOC(ElevationInterpolator);
 
 	CLASS(SpatialMapDataSource, PySpatialMapDataSource<>)
 	CTOR_NODOC_DEFAULT
@@ -172,6 +161,10 @@ void add_geospatial_functions(pybind11::module& m) {
 					 "undulation_path"_a = "WW15MGH.GRD"
 					 )
 	METHOD_OVERLOAD_CONST(GdalSource, lookup_datum, PARAMS(double, double), , "latitude"_a, "longitude"_a)
+	METHOD_OVERLOAD_CONST(GdalSource, lookup_data, PARAMS(const Vector&, const Vector&), , "latitudes"_a, "longitudes"_a)
+	METHOD_OVERLOAD_CONST(GdalSource, is_stored, PARAMS(const std::string &), , "filename"_a)
+	METHOD_OVERLOAD_CONST_VOID(GdalSource, get_size, )
+	METHOD_OVERLOAD_CONST_VOID(GdalSource, get_cached_num, )
 	CDOC(GdalSource);
 	// clang-format on
 

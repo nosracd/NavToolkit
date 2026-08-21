@@ -127,17 +127,41 @@ Y linear_interpolate(const aspn_xtensor::TypeTimestamp& x0,
 }
 
 /**
+ * Perform bilinear interpolation between 4-corners.
+ *
+ * @param top_left Top-left corner(s).
+ * @param top_right Top-right corner(s).
+ * @param bottom_left Bottom-left corner(s).
+ * @param bottom_right Bottom-right corner(s).
+ * @param x_frac Offset(s) from the top left corner in the x-direction as a percentage of the
+ * distance between top left and top right corners.
+ * @param y_frac Offset(s) from the top left corner in the x-direction as a percentage of the
+ * distance between top left and bottom left corners.
+ * @return Interpolated value(s).
+ */
+template <typename Y>
+Y bilinear_interpolate(const Y& top_left,
+                       const Y& top_right,
+                       const Y& bottom_left,
+                       const Y& bottom_right,
+                       const Y& x_frac,
+                       const Y& y_frac) {
+	return (((top_left * (1 - x_frac)) + (top_right * x_frac)) * (1 - y_frac)) +
+	       (((bottom_left * (1 - x_frac)) + (bottom_right * x_frac)) * y_frac);
+}
+
+/**
  * Performs linear interpolation between two MeasurementPositionVelocityAttitude records.
  *
  * @param pva1 First record.
  * @param pva2 Second record.
  * @param t Time between pva1 and pva2 to interpolate to.
  *
- * @return Approximate pva at time `t`. If `pva1` and `pva2` have the same `time_validity`, a copy
- * of `pva2` is returned. If `t` is outside of the range between `pva1` and `pva2` the return value
- * will be a copy of the nearest of the inputs (constant endpoint extrapolation) with a warning.
- * When interpolation is performed the covariance matrix is not interpolated, but copied directly
- * from the pva input with the latest time.
+ * @return Approximate pva at time `t`. If `pva1` and `pva2` have the same `time_validity`, a
+ * copy of `pva2` is returned. If `t` is outside of the range between `pva1` and `pva2` the
+ * return value will be a copy of the nearest of the inputs (constant endpoint extrapolation)
+ * with a warning. When interpolation is performed the covariance matrix is not interpolated,
+ * but copied directly from the pva input with the latest time.
  */
 aspn_xtensor::MeasurementPositionVelocityAttitude linear_interp_pva(
     const aspn_xtensor::MeasurementPositionVelocityAttitude& pva1,

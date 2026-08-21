@@ -79,6 +79,27 @@ TEST_F(TileTest, contains) {
 	ASSERT_TRUE(tile->contains(coord_true));
 }
 
+TEST_F(TileTest, contains_batch) {
+
+	Coordinates coord_none = {{0.0, 0.0, 1000000.0, 1000000.0}, {0.0, 1000000.0, 0.0, 1000000.0}};
+	Coordinates coord_some = {{0.0, 456080.000, 1000000.0, 1000000.0},
+	                          {0.0, 84640.000, 0.0, 1000000.0}};
+	Coordinates coord_all  = {{456080.000, 456081.000, 456082.000, 456083.000},
+	                          {84640.000, 84641.000, 84642.000, 84643.000}};
+
+	std::vector<size_t> expected_none = {};
+	std::vector<size_t> expected_some = {1};
+	std::vector<size_t> expected_all  = {0, 1, 2, 3};
+
+	auto contains_none = tile->contains(coord_none);
+	auto contains_some = tile->contains(coord_some);
+	auto contains_all  = tile->contains(coord_all);
+
+	ASSERT_EQ(contains_none, expected_none);
+	ASSERT_EQ(contains_some, expected_some);
+	ASSERT_EQ(contains_all, expected_all);
+}
+
 TEST_F(TileTest, contains_edge) {
 	const double EPSILON = 1e-6;
 
@@ -125,6 +146,19 @@ TEST_F(TileTest, lookup_edge) {
 	// the value of the lookup on the 1/2 pixel width board, should be the value interpolated
 	// between the two nearest pixels at the edge
 	ASSERT_EQ(tile->lookup_datum(boarder_of_tile), tile->lookup_datum(boarder_of_pixels));
+
+	// test batch edges
+	auto corner_batch = Coordinates{
+	    {top_left_corner.x, top_right_corner.x, bottom_left_corner.x, bottom_right_corner.x},
+	    {top_left_corner.y, top_right_corner.y, bottom_left_corner.y, bottom_right_corner.y}};
+	auto pixel_batch = Coordinates{
+	    {top_left_pixel.x, top_right_pixel.x, bottom_left_pixel.x, bottom_right_pixel.x},
+	    {top_left_pixel.y, top_right_pixel.y, bottom_left_pixel.y, bottom_right_pixel.y}};
+	std::vector<size_t> expect_all = {0, 1, 2, 3};
+	ASSERT_EQ(tile->contains(corner_batch), expect_all);
+	ASSERT_EQ(tile->contains(pixel_batch), expect_all);
+
+	ASSERT_ALLCLOSE(tile->lookup_data(corner_batch), tile->lookup_data(pixel_batch));
 }
 
 TEST_F(TileTest, scan_and_unload) {
@@ -175,6 +209,16 @@ TEST_F(TileTest, lookup_datum) {
 
 	elevation_result = tile->lookup_datum(on_edge);
 	ASSERT_NEAR(elevation_result, elevation_expected, 1e-6);
+}
+
+TEST_F(TileTest, lookup_datum_batch) {
+	Coordinates coord_batch = {{456080.000, 441290.000, 471440.000, 452738.000},
+	                           {84640.000, 98830.000, 69280.000, 100000.000}};
+	// output recieved when looking up the previously specified map coordinates
+	Vector elevation_test = {143.75, 148.0, 148.0, 237.0};
+
+	auto elevation_batch = tile->lookup_data(coord_batch);
+	ASSERT_ALLCLOSE(elevation_test, elevation_batch);
 }
 
 }  // namespace geospatial

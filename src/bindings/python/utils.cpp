@@ -37,6 +37,7 @@ using navtk::Vector3;
 using navtk::filtering::NavSolution;
 using navtk::inertial::InertialPosVelAtt;
 using navtk::inertial::StandardPosVelAtt;
+using navtk::utils::bilinear_interpolate;
 using navtk::utils::condition_source_data;
 using navtk::utils::cubic_spline_interpolate;
 using navtk::utils::CubicSplineModel;
@@ -233,6 +234,36 @@ void add_utils_functions(pybind11::module& m) {
 	              "pva2"_a,
 	              "t"_a)
 	NAMESPACE_FUNCTION(linear_interp_rpy, su, "t1"_a, "rpy1"_a, "t2"_a, "rpy2"_a, "t"_a)
+	FUNCTIONT_CAST(bilinear_interpolate,
+	               double,
+	               PARAMS(const double&,
+	                      const double&,
+	                      const double&,
+	                      const double&,
+	                      const double&,
+	                      const double&),
+	               ,
+	               "top_left"_a,
+	               "top_right"_a,
+	               "bottom_left"_a,
+	               "bottom_right"_a,
+	               "x_frac"_a,
+	               "y_frac"_a)
+	FUNCTIONT_CAST(bilinear_interpolate,
+	               Vector3,
+	               PARAMS(const Vector&,
+	                      const Vector&,
+	                      const Vector&,
+	                      const Vector&,
+	                      const Vector&,
+	                      const Vector&),
+	               ,
+	               "top_left"_a,
+	               "top_right"_a,
+	               "bottom_left"_a,
+	               "bottom_right"_a,
+	               "x_frac"_a,
+	               "y_frac"_a)
 
 	FUNCTIONT(normalize, PARAMS(double), "orig"_a, "min_val"_a)
 	FUNCTIONT(diff, PARAMS(double), "data"_a)

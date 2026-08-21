@@ -21,6 +21,7 @@ using navtk::Vector3;
 using navtk::Vector4;
 using navtk::navutils::PI;
 using navtk::navutils::rpy_to_quat;
+using navtk::utils::bilinear_interpolate;
 using navtk::utils::cubic_spline_interpolate;
 using navtk::utils::linear_extrapolate_pva;
 using navtk::utils::linear_extrapolate_rpy;
@@ -515,6 +516,70 @@ TEST_F(InterpolationTests, LinearExtrap) { test_no_extrap(linear_fun_ptr); }
 TEST_F(InterpolationTests, QuadExtrap) { test_no_extrap(quadratic_spline_interpolate); }
 
 TEST_F(InterpolationTests, CubicExtrap) { test_no_extrap(cubic_spline_interpolate); }
+
+TEST_F(InterpolationTests, BilinearInterpolateTopLeft) {
+	EXPECT_NEAR(10, bilinear_interpolate(10., 100., 200., 500., 0., 0.), 0.1);
+}
+
+TEST_F(InterpolationTests, BilinearInterpolateTopRight) {
+	EXPECT_NEAR(100, bilinear_interpolate(10, 100, 200, 500, 1, 0), 0.1);
+}
+
+TEST_F(InterpolationTests, BilinearInterpolateBottomLeft) {
+	EXPECT_NEAR(200, bilinear_interpolate(10, 100, 200, 500, 0, 1), 0.1);
+}
+
+TEST_F(InterpolationTests, BilinearInterpolateBottomRight) {
+	EXPECT_NEAR(500, bilinear_interpolate(10, 100, 200, 500, 1, 1), 0.1);
+}
+
+TEST_F(InterpolationTests, BilinearInterpolateCloseTopLeft) {
+	EXPECT_NEAR(40.1, bilinear_interpolate(10.0, 100.0, 200.0, 500.0, 0.1, 0.1), 0.1);
+}
+
+TEST_F(InterpolationTests, BilinearInterpolateSomewhere) {
+	EXPECT_NEAR(265.258, bilinear_interpolate(10.0, 100.0, 200.0, 500.0, 0.3876, 0.812), 0.1);
+}
+
+TEST_F(InterpolationTests, BilinearInterpolateNotANumber) {
+	// ensure that if one of the points has a NAN value, the output will be NAN, even if the input
+	// interpolation is all the way on the farthest corner from the NAN value
+	EXPECT_TRUE(std::isnan(bilinear_interpolate((double)NAN, 10.0, 10.0, 10.0, 1.0, 1.0)));
+}
+
+TEST_F(InterpolationTests, BilinearInterpolateBatch) {
+	navtk::Vector top_left     = {1, 2, 3, 4, 5, 6};
+	navtk::Vector top_right    = {7, 8, 9, 10, 11, 12};
+	navtk::Vector bottom_left  = {13, 14, 15, 16, 17, 18};
+	navtk::Vector bottom_right = {19, 20, 21, 22, 23, 24};
+
+	navtk::Vector frac_x = {0, 1, 0, 1, 0.1, 0.3876};
+	navtk::Vector frac_y = {0, 0, 1, 1, 0.1, 0.812};
+
+	navtk::Vector expected_output = {1, 2, 15, 22, 6.8, 17.0696};
+
+	auto actual_output =
+	    bilinear_interpolate(top_left, top_right, bottom_left, bottom_right, frac_x, frac_y);
+
+	ASSERT_ALLCLOSE_EX(expected_output, actual_output, 1.0, 0.1);
+}
+
+TEST_F(InterpolationTests, BilinearInterpolateBatchNotANumber) {
+	navtk::Vector top_left     = {NAN, 10, 10, 10};
+	navtk::Vector top_right    = {10, NAN, 10, 10};
+	navtk::Vector bottom_left  = {10, 10, NAN, 10};
+	navtk::Vector bottom_right = {10, 10, 10, NAN};
+
+	navtk::Vector frac_x = {1.0, 1.0, 1.0, 1.0};
+	navtk::Vector frac_y = {1.0, 1.0, 1.0, 1.0};
+
+	auto output =
+	    bilinear_interpolate(top_left, top_right, bottom_left, bottom_right, frac_x, frac_y);
+
+	for (size_t i = 0; i < 4; i++) {
+		ASSERT_TRUE(std::isnan(output(i)));
+	}
+}
 
 TEST_F(InterpolationTests, LinearInterpolateRpy) {
 	test_rpy(Vector3{PI / 2, 0.0, 0.0}, Vector3{0.1, 0.0, 0.0});

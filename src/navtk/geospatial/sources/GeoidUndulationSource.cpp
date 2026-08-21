@@ -7,10 +7,10 @@
 #include <stdexcept>
 
 #include <navtk/errors.hpp>
-#include <navtk/geospatial/ElevationInterpolator.hpp>
 #include <navtk/navutils/math.hpp>
 #include <navtk/utils/ValidationContext.hpp>
 #include <navtk/utils/data.hpp>
+#include <navtk/utils/interpolation.hpp>
 
 namespace {
 constexpr navtk::Size VALUES_PER_RECORD = 1440;
@@ -109,12 +109,14 @@ std::pair<bool, double> GeoidUndulationSource::lookup_datum(double latitude,
 	double bottom_left_elevation  = get_value(bottom_lat, left_lon);
 	double bottom_right_elevation = get_value(bottom_lat, right_lon);
 
-	ElevationInterpolator interpolator{
-	    top_left_elevation, top_right_elevation, bottom_left_elevation, bottom_right_elevation};
 	double lon_fraction = (longitude - left_lon) / lon_step;
 	double lat_fraction = (top_lat - latitude) / lat_step;
-
-	double elevation = interpolator.interpolate({lon_fraction, lat_fraction});
+	double elevation    = utils::bilinear_interpolate(top_left_elevation,
+	                                                  top_right_elevation,
+	                                                  bottom_left_elevation,
+	                                                  bottom_right_elevation,
+	                                                  lon_fraction,
+	                                                  lat_fraction);
 
 	return {true, elevation};
 }

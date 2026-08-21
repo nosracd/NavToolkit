@@ -68,6 +68,14 @@ public:
 	double lookup_datum(const Coordinate& map_coords) const;
 
 	/**
+	 * Gets the elevations from a GDAL tile.
+	 *
+	 * @param map_coords batch of coordinates in map space.
+	 * @return A vector of elevations.
+	 */
+	Vector lookup_data(const Coordinates& map_coords) const;
+
+	/**
 	 * Check if the given coordinates are in the bounds of this tile
 	 *
 	 * @param map_coords coordinates in map space
@@ -75,6 +83,21 @@ public:
 	 * @return `true` if the given coordinates are in the tile.
 	 */
 	bool contains(const Coordinate& map_coords) const;
+
+	/**
+	 * Check if the given set of coordinates are in the bounds of this tile
+	 *
+	 * @param map_coords batch of N coordinates in map space.
+	 * @param search_mask optional mask of length N, where indices of coordinates to look for are
+	 * true. If an index is false, `contains` will ignore that index, even if it is contained in
+	 * the tile. This parameter exists to improve performance by avoiding unnecessary checks when a
+	 * coordinate may have already been found in another Tile. This is faster than passing in only
+	 * the set of Coordinates to search for, which would require substantial memory re-allocation.
+	 *
+	 * @return indices of coordinates in \p map_coords contained in tile.
+	 */
+	std::vector<size_t> contains(const Coordinates& map_coords,
+	                             const std::vector<bool>& search_mask = {}) const;
 
 	/**
 	 * Remove the tile data from memory, if cached
@@ -127,12 +150,28 @@ public:
 	Coordinate map_to_pixel(const Coordinate& map_coords) const;
 
 	/**
+	 * Transform a batch of coordinates in map space into the pixel space of this particular tile.
+	 *
+	 * @param map_coords a batch of coordinates in map space
+	 * @return the projected batch of pixel coordinates for this tile
+	 */
+	Coordinates map_to_pixel(const Coordinates& map_coords) const;
+
+	/**
 	 * Transform coordinates in the pixel space of this particular tile into map space.
 	 *
 	 * @param pixel_coords coordinates in the pixel space of this tile
 	 * @return the projected map coordinates
 	 */
 	Coordinate pixel_to_map(const Coordinate& pixel_coords) const;
+
+	/**
+	 * Transform a batch of coordinates in the pixel space of this particular tile into map space.
+	 *
+	 * @param pixel_coords a batch of coordinates in the pixel space of this tile
+	 * @return the projected batch of map coordinates
+	 */
+	Coordinates pixel_to_map(const Coordinates& pixel_coords) const;
 
 	/**
 	 * Overload insertion operator to print the tile's data
@@ -177,6 +216,7 @@ private:
 	double column_rotation;
 
 	double read_pixel(const Pixel& idx) const;
+	Vector read_pixels(const Pixels& idx) const;
 };
 }  // namespace geospatial
 }  // namespace navtk

@@ -1,5 +1,6 @@
 #include <navtk/geospatial/sources/GdalSource.hpp>
 
+#include <algorithm>
 #include <cmath>
 #include <memory>
 #include <stdexcept>
@@ -220,14 +221,79 @@ std::pair<bool, double> GdalSource::lookup_datum(double latitude, double longitu
 	return {false, NAN};
 }
 
-Coordinate GdalSource::wgs84_to_map(double latitude_rad, double longitude_rad) const {
+Vector GdalSource::lookup_data(const Vector& latitudes, const Vector& longitudes) const {
+
+	const size_t N = latitudes.size();
+
+	size_t total_found = 0;
+	size_t num_found_in_tile;
+	size_t num_to_lookup;
+	size_t tile_idx;
+
+	std::vector<bool> not_found_mask(N, true);
+	Vector elevations_in_tile;
+
+	Vector elevations = xt::full_like(latitudes, NAN);
+
+	auto map_coords = wgs84_to_map(latitudes, longitudes);
+
+	for (auto iter = search_order.begin(); iter != search_order.end(); iter++) {
+		tile_idx        = *iter;
+		auto coord_idxs = tiles[tile_idx].contains(map_coords, not_found_mask);
+
+		if (coord_idxs.size() == 0) continue;
+
+		mark_tile_as_cached(iter);
+
+		num_to_lookup = coord_idxs.size();
+
+		Coordinates coords_in_tile{xt::view(map_coords.x, xt::keep(coord_idxs)),
+		                           xt::view(map_coords.y, xt::keep(coord_idxs))};
+		elevations_in_tile = tiles[tile_idx].lookup_data(coords_in_tile);
+
+		num_found_in_tile = num_to_lookup;
+		for (size_t i = 0; i < num_to_lookup; i++) {
+			if (!std::isnan(elevations_in_tile[i])) {
+				elevations[coord_idxs[i]]     = elevations_in_tile[i];
+				not_found_mask[coord_idxs[i]] = false;
+			} else {
+				num_found_in_tile--;
+			}
+		}
+
+		total_found += num_found_in_tile;
+
+		if (total_found == N) break;
+	}
+
+	return elevations;
+}
+
+Coordinate GdalSource::wgs84_to_map(double latitude, double longitude) const {
 
 	if (wgs84_to_map_transform) {
-		double x_geo = longitude_rad * RAD2DEG;
-		double y_geo = latitude_rad * RAD2DEG;
+		double x_geo = longitude * RAD2DEG;
+		double y_geo = latitude * RAD2DEG;
 		if (need_transform) wgs84_to_map_transform->Transform(1, &x_geo, &y_geo);
 
 		return {x_geo, y_geo};
+	} else {
+		throw std::runtime_error(
+		    "Cannot convert to map space if no tiles have been added to storage!");
+	}
+}
+
+Coordinates GdalSource::wgs84_to_map(const Vector& latitudes, const Vector& longitudes_rad) const {
+
+	if (wgs84_to_map_transform) {
+		Coordinates map_coords = {longitudes_rad * RAD2DEG, latitudes * RAD2DEG};
+
+		const size_t N = map_coords.x.size();
+
+		if (need_transform)
+			wgs84_to_map_transform->Transform(N, map_coords.x.data(), map_coords.y.data());
+
+		return map_coords;
 	} else {
 		throw std::runtime_error(
 		    "Cannot convert to map space if no tiles have been added to storage!");

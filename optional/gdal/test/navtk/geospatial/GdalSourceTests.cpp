@@ -61,7 +61,12 @@ public:
 			resulting_elevations(ii) = elevation.second;
 		}
 
-		ASSERT_ALLCLOSE_EX(resulting_elevations, expected_elevations, 0.5, 0.0);
+		auto batch_elevations =
+		    source->lookup_data(xt::view(valid_coordinates, xt::all(), 0) * DEG2RAD,
+		                        xt::view(valid_coordinates, xt::all(), 1) * DEG2RAD);
+
+		ASSERT_ALLCLOSE_EX(expected_elevations, resulting_elevations, 0.05, 0.0);
+		ASSERT_ALLCLOSE_EX(expected_elevations, batch_elevations, 0.05, 0.0);
 	}
 
 	void test_invalid_queries(GdalSource::MapType map_type, const Matrix& invalid_coordinates) {
@@ -73,6 +78,12 @@ public:
 			                 "not in known tiles");
 			EXPECT_FALSE(elevation.first);
 		}
+
+		auto batch_elevations =
+		    source->lookup_data(xt::view(invalid_coordinates, xt::all(), 0) * DEG2RAD,
+		                        xt::view(invalid_coordinates, xt::all(), 1) * DEG2RAD);
+
+		ASSERT_TRUE(xt::all(xt::isnan(batch_elevations)));
 	}
 };
 

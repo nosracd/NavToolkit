@@ -65,6 +65,15 @@ public:
 	std::pair<bool, double> lookup_datum(double latitude, double longitude) const override;
 
 	/**
+	 * Gets the elevations at a batch of latitudes and longitudes.
+	 *
+	 * @param latitudes latitude values in radians
+	 * @param longitudes longitude values in radians
+	 * @return A of found elevations, with NaN values for the points that could not be located.
+	 */
+	Vector lookup_data(const Vector& latitudes, const Vector& longitudes) const;
+
+	/**
 	 * @param new_ref the output vertical reference frame to change to. If `new_ref` is
 	 * `ASPN_MEASUREMENT_ALTITUDE_REFERENCE_AGL`, then this function will do nothing.`
 	 */
@@ -74,11 +83,21 @@ public:
 	 * Transform input lat/lon cooridnate into map space, using the coordinate transform common to
 	 * all the tiles added to this store.
 	 *
-	 * @param latitude_rad latitude in radians
-	 * @param longitude_rad longitude in radians
+	 * @param latitude latitude in radians
+	 * @param longitude longitude in radians
 	 * @return coordinate in map space, stored as {x_map, y_map}
 	 */
-	Coordinate wgs84_to_map(double latitude_rad, double longitude_rad) const;
+	Coordinate wgs84_to_map(double latitude, double longitude) const;
+
+	/**
+	 * Transform input lat/lon values into map space, using the coordinate transform common to all
+	 * the tiles added to this store.
+	 *
+	 * @param latitudes vector of latitudes in radians
+	 * @param longitudes_rad vector of longitudes in radians
+	 * @return batch of coordinates in map space, stored as {x_map, y_map}
+	 */
+	Coordinates wgs84_to_map(const Vector& latitudes, const Vector& longitudes_rad) const;
 
 	/**
 	 * Checks to see if a tile with the given filename
