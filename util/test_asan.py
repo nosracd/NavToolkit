@@ -5,15 +5,15 @@ various address sanitizer features are supported on your platform/compiler.
 """
 
 import argparse
-from glob import glob
-from os import environ, makedirs
-from os.path import dirname, abspath, join, relpath, basename
 import re
 import subprocess
 import sys
+from glob import glob
+from os import environ, makedirs
+from os.path import abspath, basename, dirname, join, relpath
 
-from buildkit.system import outcome, env
 from buildkit.console import ViewFrame
+from buildkit.system import env, outcome
 
 SOURCE_DIR = join(dirname(abspath(__file__)), 'asan_tests')
 
@@ -25,26 +25,26 @@ DEFAULT_COMPILER = (
 
 
 def asan_source_path(name):
-    '''
+    """
     Given a name, return the absolute path to an asan test with that name.
-    '''
+    """
     return join(SOURCE_DIR, name + TEST_PROGRAM_EXTENSION)
 
 
 def asan_binary_path(name):
-    '''
+    """
     Given a name, return the absolute path to the binary that will be
     compiled for the asan test with that name.
-    '''
+    """
     return join(SOURCE_DIR, 'bin', name)
 
 
 def infer_flags(exe_wrapper):
-    '''
+    """
     Given an exe wrapper argv, check whether compiling for the wrapper's
     emulated platform is likely to require additional libraries. Return
     a list of flags to be injected to a compiler's argv.
-    '''
+    """
     flags = []
     if exe_wrapper and '-L' in exe_wrapper:
         last_was_dashl = False
@@ -58,10 +58,10 @@ def infer_flags(exe_wrapper):
 
 
 def infer_env(name):
-    '''
+    """
     Given the name of an asan test, return a dict of environment variables
     that should be set while running that test.
-    '''
+    """
     out = {'ASAN_OPTIONS': ''}
     with open(asan_source_path(name)) as source_code:
         for num, line in enumerate(source_code):
@@ -74,28 +74,26 @@ def infer_env(name):
 
 
 def list_sanitizer_tests():
-    '''
-    Return a list of all the available test program names
-    '''
+    """Return a list of all the available test program names."""
     return [
         basename(it)[: -len(TEST_PROGRAM_EXTENSION)]
-        for it in glob(join(SOURCE_DIR, "*" + TEST_PROGRAM_EXTENSION))
+        for it in glob(join(SOURCE_DIR, '*' + TEST_PROGRAM_EXTENSION))
     ]
 
 
 class AsanTester:
-    '''
+    """
     A utility that compiles test programs to verify various address
     sanitizer features work on your platform.
-    '''
+    """
 
     silence = False
 
     @classmethod
     def from_args(cls, args):
-        '''
-        Use an argparse output object to construct an instance of AsanTester
-        '''
+        """
+        Use an argparse output object to construct an instance of AsanTester.
+        """
         return cls(args.compiler, args.exe_wrapper)
 
     def __init__(self, compiler=DEFAULT_COMPILER, exe_wrapper=()):
@@ -107,9 +105,7 @@ class AsanTester:
             outcome_context.fail(message)
 
     def compile_asan_program(self, name):
-        '''
-        Compile an asan tester program
-        '''
+        """Compile an asan tester program."""
         source = asan_source_path(name)
         binary = asan_binary_path(name)
         makedirs(dirname(binary), exist_ok=True)
@@ -133,10 +129,10 @@ class AsanTester:
         return True
 
     def run_asan_program(self, name):
-        '''
+        """
         Invoke an asan tester program and verify that its output matches
         the error message we expect.
-        '''
+        """
         binary = asan_binary_path(name)
         argv = self.exe_wrapper + [relpath(binary, SOURCE_DIR)]
         inferences = infer_env(name)
@@ -147,7 +143,7 @@ class AsanTester:
             show_output_on_error=not self.silence,
         ) as run:
             if not run.result.returncode:
-                return self._fail(run, f"`{binary}` did not throw error")
+                return self._fail(run, f'`{binary}` did not throw error')
             esc = re.escape(inferences.get('looking_for', name))
             pat = re.compile(r'Sanitizer:(?!.*not supported)[\w -]+%s' % esc)
             if not pat.findall(run.result.stdout.decode('ascii', 'ignore')):
@@ -156,9 +152,7 @@ class AsanTester:
         return True
 
     def check_sanitizer(self, name, **kw):
-        '''
-        Test a specific asan feature
-        '''
+        """Test a specific asan feature."""
         with ViewFrame(
             action=name,
             catch=subprocess.CalledProcessError,
@@ -170,9 +164,9 @@ class AsanTester:
         return False
 
     def test_asan(self, hide_inner=True):
-        '''
+        """
         Run the full suite of asan tests and return true if they're all OK
-        '''
+        """
         asan_ok = True
         action = f'Test address sanitizer on `{basename(self.compiler)}`'
         with ViewFrame(action=action) as frame:
@@ -184,9 +178,9 @@ class AsanTester:
 
 
 def add_asan_tester_arguments(parser):
-    '''
+    """
     Add arguments to the given parser for configuring an AsanTester instance.
-    '''
+    """
     parser.add_argument(
         '--compiler',
         nargs='?',
@@ -202,7 +196,7 @@ def add_asan_tester_arguments(parser):
 
 
 def main():
-    '''Parse command line arguments and run an AsanTester instance'''
+    """Parse command line arguments and run an AsanTester instance."""
     parser = argparse.ArgumentParser(description=__doc__)
     add_asan_tester_arguments(parser)
     args = parser.parse_args()

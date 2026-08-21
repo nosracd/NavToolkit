@@ -1,6 +1,6 @@
-from navtk.filtering import StateBlock, StandardDynamicsModel
-
 from aspn23_xtensor import to_seconds
+
+from navtk.filtering import StandardDynamicsModel, StateBlock
 
 
 class BiasBlock(StateBlock):

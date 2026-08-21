@@ -1,14 +1,15 @@
 #!/usr/bin/env python3
 
+import os
+import unittest
+from threading import RLock, Thread
+
 from navtk import (
-    set_global_error_mode,
-    get_global_error_mode,
     ErrorMode,
     ErrorModeLock,
+    get_global_error_mode,
+    set_global_error_mode,
 )
-import unittest
-import os
-from threading import Thread, RLock
 
 os.environ['TERM'] = 'dumb'  # prevent spdlog from trying to be colorful
 
@@ -54,12 +55,12 @@ class ErrorModeTests(unittest.TestCase):
             # the ErrorModeLock to release.
             bg.join(0.1)
             self.assertTrue(
-                bg.is_alive(), "Background thread should not have completed."
+                bg.is_alive(), 'Background thread should not have completed.'
             )
             self.assertEqual(
                 ErrorMode.DIE,
                 get_global_error_mode(),
-                "ErrorMode set by ErrorModeLock not preserved",
+                'ErrorMode set by ErrorModeLock not preserved',
             )
         bg.join(0.1)
         self.assertFalse(
@@ -68,7 +69,7 @@ class ErrorModeTests(unittest.TestCase):
         self.assertEqual(
             ErrorMode.LOG,
             get_global_error_mode(),
-            "Background thread did not set error mode.",
+            'Background thread did not set error mode.',
         )
 
     def test_error_mode_lock_context_manager_reenter(self):
@@ -80,12 +81,12 @@ class ErrorModeTests(unittest.TestCase):
                 self.assertEqual(
                     ErrorMode.DIE,
                     get_global_error_mode(),
-                    "ErrorMode not set by ErrorModeLock, run=%d" % run,
+                    'ErrorMode not set by ErrorModeLock, run=%d' % run,
                 )
             self.assertEqual(
                 expected_restore,
                 get_global_error_mode(),
-                "ErrorMode not restored by ErrorModeLock, run=%d" % run,
+                'ErrorMode not restored by ErrorModeLock, run=%d' % run,
             )
             expected_restore = ErrorMode.OFF
             set_global_error_mode(expected_restore)

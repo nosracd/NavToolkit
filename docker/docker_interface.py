@@ -21,21 +21,21 @@ If you do not want this behavior, comment out the appropriate section in
 the docker_run() function.
 """
 
+import argparse
 import sys
 from os import (
+    chown,
+    cpu_count,
     environ,
     getcwd,
-    path,
-    makedirs,
-    cpu_count,
     getuid,
+    makedirs,
     mkdir,
-    chown,
+    path,
     stat,
 )
 from shlex import quote
-from subprocess import check_call, CalledProcessError
-import argparse
+from subprocess import CalledProcessError, check_call
 
 # This script has different behavior for CI and normal users
 CI_USER = environ.get('CI') == 'true'
@@ -89,7 +89,7 @@ class Platform(object):
     @property
     def build_directory(self):
         """Returns a relative location to the build folder"""
-        return path.join(BUILD_PATH, self.platform_name.replace("-", "_"))
+        return path.join(BUILD_PATH, self.platform_name.replace('-', '_'))
 
     @property
     def iid_file(self):
@@ -109,7 +109,7 @@ PLATFORMS = {
     it.platform_name: it
     for it in [
         # -Db_sanitize=address,undefined: Build with ASAN and UBSAN
-        # --buildtype=release: Make a release build instead of default debug build
+        # --buildtype=release: Make a release build, not a default debug build
         Platform(
             DEFAULT_PLATFORM_NAME,
             'Dockerfile.ubuntu',
@@ -121,8 +121,8 @@ PLATFORMS = {
         ),
         Platform('ubuntu-noble-debug', 'Dockerfile.ubuntu', 'ubuntu:24.04'),
         # ASAN is buggy on this cross-compiler
-        # --cross-file=cross/armhf-linux.cross: Tell Meson to use specific tools
-        # --buildtype=release: Make a release build instead of default debug build
+        # --cross-file=cross/armhf-linux.cross: Tell Meson to use certain tools
+        # --buildtype=release: Make a release build, not a default debug build
         Platform(
             'cross-armv7',
             'Dockerfile.ubuntu-cross',
@@ -132,12 +132,13 @@ PLATFORMS = {
                 '-Dbuildtype=release',
             ],
         ),
-        # ASAN_OPTIONS=detect_leaks=false: The memory leak detector is unsupported
-        #   for ARM64
+        # ASAN_OPTIONS=detect_leaks=false: The memory leak detector is
+        #   unsupported for ARM64
         # -Db_sanitize=address,undefined: Build with ASAN and UBSAN
-        # --cross-file=cross/arm64-linux.cross: Tell Meson to use specific tools
-        # -Dtest_timeout=1200: Increase the test timeout limit (emulator slowdown)
-        # --buildtype=release: Make a release build instead of default debug build
+        # --cross-file=cross/arm64-linux.cross: Tell Meson to use certain tools
+        # -Dtest_timeout=1200: Increase the test timeout limit
+        #   (emulator slowdown)
+        # --buildtype=release: Make a release build, not a default debug build
         Platform(
             'cross-arm64',
             'Dockerfile.ubuntu-cross',
@@ -151,7 +152,7 @@ PLATFORMS = {
             ],
         ),
         # -Db_sanitize=address,undefined: Build with ASAN and UBSAN
-        # --buildtype=release: Make a release build instead of default debug build
+        # --buildtype=release: Make a release build, not a default debug build
         Platform(
             'fedora-gcc',
             'Dockerfile.fedora',
@@ -165,7 +166,7 @@ PLATFORMS = {
         # -Db_lundef=false: Work around shared object problems when using ASAN
         #   with Clang (see https://github.com/mesonbuild/meson/issues/764)
         # -Db_sanitize=address,undefined: Build with ASAN and UBSAN
-        # --buildtype=release: Make a release build instead of default debug build
+        # --buildtype=release: Make a release build, not a default debug build
         Platform(
             'fedora-clang',
             'Dockerfile.fedora',
@@ -183,7 +184,7 @@ PLATFORMS = {
             ],
         ),
         # -Db_sanitize=address,undefined: Build with ASAN and UBSAN
-        # --buildtype=release: Make a release build instead of default debug build
+        # --buildtype=release: Make a release build, not a default debug build
         Platform(
             'ubuntu-jammy',
             'Dockerfile.ubuntu',
@@ -198,9 +199,9 @@ PLATFORMS = {
 
 
 def call(command):
-    '''
+    """
     Prints out `command`, then sends it to be executed by the system shell.
-    '''
+    """
     print_command = command.copy()
     for ii, arg in enumerate(print_command):
         if ' ' in arg:
@@ -212,7 +213,7 @@ def call(command):
 
 
 def safe_add_volume(outside_path, inside_path, flags=''):
-    '''
+    """
     Return a tuple containing a volume flag and its argument to be used
     as part of an argv, after verifying that the outside_path is something
     that is safe to map and won't result in docker's implicit path creation
@@ -222,15 +223,15 @@ def safe_add_volume(outside_path, inside_path, flags=''):
     to create it, warn that it could not be mapped and return an empty tuple
     instead rather than letting a potentially-rootful docker create it as
     root-owned.
-    '''
+    """
     if not path.exists(outside_path):
         try:
             makedirs(outside_path)
         except OSError:
             print(
-                "WARNING: could not map folders; outside path does not exist\n"
-                f"    outside_path: {outside_path!r}\n"
-                f"    inside_path: {inside_path!r}\n",
+                'WARNING: could not map folders; outside path does not exist\n'
+                f'    outside_path: {outside_path!r}\n'
+                f'    inside_path: {inside_path!r}\n',
                 file=sys.stderr,
                 flush=True,
             )
@@ -238,11 +239,11 @@ def safe_add_volume(outside_path, inside_path, flags=''):
     terms = [outside_path, inside_path]
     if flags:
         terms.append(flags)
-    return "--volume", ":".join(terms)
+    return '--volume', ':'.join(terms)
 
 
 def docker_run(args, task=None):
-    '''
+    """
     Run the supplied `task` in a Docker container for supplied platform.
 
     WARNING: The Docker container will be created based on an image that
@@ -254,7 +255,7 @@ def docker_run(args, task=None):
     `task` should be a string consisting of the command to run inside a docker
     container that will be generated for the given `platform`, or a None
     object which will cause the script to open a shell for interactive use.
-    '''
+    """
     # CI pre-builds the docker image so it can be cached with a GitHub action.
     if not CI_USER:
         verify_docker_build(args)
@@ -317,17 +318,17 @@ def docker_run(args, task=None):
 
 
 def platforms(args):
-    '''
+    """
     Called when `docker_interface.py platforms` is executed.
     Prints the name of every platform stored in the PLATFORMS map.  These
     names can be used in other `docker_interface.py` actions.
-    '''
+    """
     for i in PLATFORMS:
         print(i)
 
 
 def docker_build(args):
-    '''
+    """
     Called when `docker_interface.py docker_build [platform]` is executed.
     Pulls the image base from Docker Hub and then builds the [platform]-
     specific image on top of that base.  The image will then be in the local
@@ -337,7 +338,7 @@ def docker_build(args):
     Note that this function will call `docker pull`, and that Docker Hub has
     a rate limit: <https://docs.docker.com/docker-hub/download-rate-limit/>.
     The Docker client will warn if the rate limit has been exceeded.
-    '''
+    """
     platform = PLATFORMS[args.platform_name]
     docker_pull_cmd = ['docker', 'pull', platform.base]
     if CI_USER:
@@ -371,10 +372,10 @@ def docker_build(args):
 
 
 def verify_docker_build(args):
-    '''
+    """
     Check to see if a Docker image for this platform exists in local cache.
     Call "docker_build" if it does not.
-    '''
+    """
 
     # We can check if the Docker image that we want is in local cache by
     # checking the contents of the iid_file for this platform, and then
@@ -408,11 +409,11 @@ def verify_docker_build(args):
 
 
 def setup(args):
-    '''
+    """
     Called when `docker_interface.py setup [platform]` is executed.
     Remove any existing build directory for the specified platform.
     Then set up a new one using Meson.
-    '''
+    """
     platform = PLATFORMS[args.platform_name]
 
     docker_run(args, 'rm -rf ' + platform.build_directory)
@@ -427,11 +428,11 @@ def setup(args):
 
 
 def run_with_build_dir(args, task=None):
-    '''
+    """
     Check to see if the build directory exists for this platform.  If it does
     not, call "setup" for this platform.  In either event, forward the `task`
     argument to the "docker_run" function.
-    '''
+    """
     platform = PLATFORMS[args.platform_name]
     if not path.isdir(platform.build_directory):
         setup(args)
@@ -440,30 +441,30 @@ def run_with_build_dir(args, task=None):
 
 
 def build(args):
-    '''
+    """
     Called when `docker_interface.py build [platform]` is executed.
     Build the project for [platform] using an appropriate docker container.
-    '''
+    """
     platform = PLATFORMS[args.platform_name]
     command = 'ninja -C {} -j {}'.format(platform.build_directory, args.j)
     run_with_build_dir(args, command)
 
 
 def test(args):
-    '''
+    """
     Called when `docker_interface.py test [platform]` is executed.
     Run tests on specified [platform], building it first if necessary.
-    '''
+    """
     platform = PLATFORMS[args.platform_name]
     command = 'ninja -C {} -j {} test'.format(platform.build_directory, args.j)
     run_with_build_dir(args, command)
 
 
 def test_all(args):
-    '''
+    """
     Called when `docker_interface.py test_all` is executed.
     Run "test" for each supported platform.
-    '''
+    """
     for platform_name in PLATFORMS:
         args.platform_name = platform_name
         test(args)
@@ -487,7 +488,7 @@ def format(args):
 
 def ruff_check(args):
     """
-    Called when `docker_interface.py ruff_check` is executed. Runs ruff to check
+    Called when `docker_interface.py ruff_check` is executed. Ruff checks
     for compliance against PEP8. The command will be run on the default
     platform.
     """
@@ -498,28 +499,28 @@ def ruff_check(args):
 
 
 def check_documentation(args):
-    '''
+    """
     Called when `docker_interface.py check_documentation` is executed.
     Check the documentation for warnings.
-    '''
+    """
     platform = PLATFORMS[DEFAULT_PLATFORM_NAME]
     args.platform_name = platform.platform_name
     run_with_build_dir(args, 'docs/check_documentation.py')
 
 
 def debug(args):
-    '''
+    """
     Called when `docker_interface.py debug [platform] [command]` is executed.
     Run [command] within the docker container specified by [platform].
     If no [command] is provided, open a shell inside the container.
-    '''
+    """
     docker_run(args, args.command)
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description='''Creates Docker containers for specific platforms, and
-                       uses those containers to build and test NavToolkit.'''
+        description="""Creates Docker containers for specific platforms, and
+                       uses those containers to build and test NavToolkit."""
     )
 
     parser.add_argument(
@@ -530,21 +531,21 @@ def main():
     )
 
     actions = {
-        'platforms': 'List available platforms',
+        'platforms': 'List available platforms.',
         'docker_build': 'Constructs a docker image for one platform.',
-        'setup': '''Removes any existing build folder, and configures Meson so
+        'setup': """Removes any existing build folder, and configures Meson so
                     that NavToolkit is ready to build on one platform. Will
-                    run "docker_build".''',
-        'build': '''Builds NavToolkit on one platform, will run "setup" if
-                    needed''',
-        'test': '''Execute tests for NavToolkit on one platform, will run
-                   "build" if needed''',
-        'test_all': 'Run "test" on all platforms',
-        'format': 'Format C++ and Python source code',
-        'ruff_check': 'Run ruff check --fix on Python source code',
-        'check_documentation': 'Run Doxygen and check for warnings',
-        'debug': '''Runs [arguments] as a command in the docker container.
-                    Defaults to opening a shell in the container.''',
+                    run "docker_build".""",
+        'build': """Builds NavToolkit on one platform, will run "setup" if
+                    needed.""",
+        'test': """Execute tests for NavToolkit on one platform, will run
+                   "build" if needed.""",
+        'test_all': 'Run "test" on all platforms.',
+        'format': 'Format C++ and Python source code.',
+        'ruff_check': 'Run ruff check --fix on Python source code.',
+        'check_documentation': 'Run Doxygen and check for warnings.',
+        'debug': """Runs [arguments] as a command in the docker container.
+                    Defaults to opening a shell in the container.""",
     }
 
     can_specify_platform = {'docker_build', 'setup', 'build', 'test', 'debug'}

@@ -1,18 +1,24 @@
 #!/usr/bin/env python3
 
 import unittest
-from numpy import zeros
-from numpy.testing import assert_allclose
-from navtk.inertial import BufferedImu, ImuErrors
-from navtk.navutils import rpy_to_quat
+
 from aspn23_xtensor import (
+    AspnMeasurementPositionVelocityAttitudeErrorModel as ErrorModel,
+)
+from aspn23_xtensor import (
+    AspnMeasurementPositionVelocityAttitudeReferenceFrame as Frame,
+)
+from aspn23_xtensor import (
+    AspnMessageType,
     MeasurementPositionVelocityAttitude,
     TypeHeader,
     TypeTimestamp,
-    AspnMessageType,
-    AspnMeasurementPositionVelocityAttitudeReferenceFrame as Frame,
-    AspnMeasurementPositionVelocityAttitudeErrorModel as ErrorModel,
 )
+from numpy import zeros
+from numpy.testing import assert_allclose
+
+from navtk.inertial import BufferedImu, ImuErrors
+from navtk.navutils import rpy_to_quat
 
 # Alias enum values to fit within formatting constraints.
 GEODETIC = (

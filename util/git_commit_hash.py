@@ -11,7 +11,6 @@ If git is not found, print the string 'unknown'.
 """
 
 import subprocess
-
 from os.path import abspath, dirname, exists, join
 
 
@@ -19,7 +18,7 @@ def retrieve_hash():
 
     # We may not be able retrieve commit hash, for example if run from an
     # unzipped source package
-    if not exists(join(dirname(abspath(__file__)), "..", ".git")):
+    if not exists(join(dirname(abspath(__file__)), '..', '.git')):
         return 'unknown'
 
     try:

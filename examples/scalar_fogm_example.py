@@ -1,25 +1,24 @@
 #!/usr/bin/env python3
 
-from numpy import array, zeros, sqrt, remainder
+from aspn23_xtensor import to_type_timestamp
 from matplotlib.pyplot import (
-    plot,
     figure,
+    grid,
+    legend,
+    plot,
+    show,
     title,
     xlabel,
     ylabel,
-    show,
-    legend,
-    grid,
 )
+from numpy import array, remainder, sqrt, zeros
 
 from navtk.filtering import (
-    FogmBlock,
-    StandardFusionEngine,
     DirectMeasurementProcessor,
+    FogmBlock,
     GaussianVectorData,
+    StandardFusionEngine,
 )
-
-from aspn23_xtensor import to_type_timestamp
 
 
 def scalar_fogm_example():
@@ -83,5 +82,5 @@ def scalar_fogm_example():
     show()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     scalar_fogm_example()

@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
 import unittest
+
 from navtk.filtering import (
-    StateBlock,
-    MeasurementProcessor,
-    FogmBlock,
     DirectMeasurementProcessor,
+    FogmBlock,
+    MeasurementProcessor,
+    StateBlock,
 )
 
 

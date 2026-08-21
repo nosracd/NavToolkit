@@ -1,22 +1,24 @@
 #!/usr/bin/env python3
 
 import unittest
+
+from aspn23_xtensor import TypeTimestamp
 from numpy import transpose, zeros
 from numpy.testing import assert_allclose
-from navtk.navutils import GravModels, rpy_to_dcm
+
 from navtk.inertial import (
-    Inertial,
-    mechanization_wander,
-    mechanization_standard,
-    StandardPosVelAtt,
-    MechanizationOptions,
-    EarthModels,
     DcmIntegrationMethods,
-    IntegrationMethods,
+    EarthModels,
+    Inertial,
     InertialPosVelAtt,
+    IntegrationMethods,
+    MechanizationOptions,
     MechanizationStandard,
+    StandardPosVelAtt,
+    mechanization_standard,
+    mechanization_wander,
 )
-from aspn23_xtensor import TypeTimestamp
+from navtk.navutils import GravModels, rpy_to_dcm
 
 
 class DummyPosVelAtt(InertialPosVelAtt):

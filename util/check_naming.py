@@ -1,68 +1,66 @@
 #!/usr/bin/env python3
 
-from glob import glob
-from os.path import join
 import re
 import sys
+from glob import glob
+from os.path import join
+from typing import Any, NamedTuple
 
-from typing import NamedTuple, Any
-from inflection import camelize, underscore
-
-from cxxheaderparser.visitor import CxxVisitor
-from cxxheaderparser.errors import CxxParseError
 from cxxheaderparser import parser
+from cxxheaderparser.errors import CxxParseError
 from cxxheaderparser.parserstate import (
-    State,
     ClassBlockState,
     NamespaceBlockState,
     NonClassBlockState,
+    State,
 )
 from cxxheaderparser.types import (
-    DecltypeSpecifier,
     AnonymousName,
-    Type,
     Array,
-    Pointer,
-    Function,
-    Parameter,
-    Field,
-    Variable,
+    DecltypeSpecifier,
     EnumDecl,
-    Typedef,
+    Field,
+    Function,
     Method,
+    Parameter,
+    Pointer,
+    Type,
+    Typedef,
+    Variable,
 )
-
+from cxxheaderparser.visitor import CxxVisitor
+from inflection import camelize, underscore
 
 NAMING_PATTERNS = {
-    "lowercase": re.compile(r"^[a-z][a-z0-9]*$"),
-    "UPPERCASE": re.compile(r"^[A-Z][A-Z0-9]*$"),
-    "camelCase": re.compile(r"^[a-z][a-zA-Z0-9]*$"),
-    "PascalCase": re.compile(r"\b[A-Z]\b|^[A-Z](?=.*[a-z])[a-zA-Z0-9]*$"),
-    "snake_case": re.compile(r"^[a-z][a-z0-9_]*$"),
-    "LOUD_SNAKE_CASE": re.compile(r"^[A-Z][A-Z0-9_]*$"),
+    'lowercase': re.compile(r'^[a-z][a-z0-9]*$'),
+    'UPPERCASE': re.compile(r'^[A-Z][A-Z0-9]*$'),
+    'camelCase': re.compile(r'^[a-z][a-zA-Z0-9]*$'),
+    'PascalCase': re.compile(r'\b[A-Z]\b|^[A-Z](?=.*[a-z])[a-zA-Z0-9]*$'),
+    'snake_case': re.compile(r'^[a-z][a-z0-9_]*$'),
+    'LOUD_SNAKE_CASE': re.compile(r'^[A-Z][A-Z0-9_]*$'),
 }
 
 
 def snake_case_but_allow_capital_C(word):
     # This is based on underscore from the inflection library.
     # MIT Licensed, (c) 2012-2015 Janne Vanhala
-    word = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", word)
-    word = re.sub(r"([a-z\d])([A-Z])", r"\1_\2", word)
-    word = word.replace("-", "_")
+    word = re.sub(r'([A-Z]+)([A-Z][a-z])', r'\1_\2', word)
+    word = re.sub(r'([a-z\d])([A-Z])', r'\1_\2', word)
+    word = word.replace('-', '_')
     return re.sub(
-        r"[^C]|(?<!_)C(?!_)|(?<=_)C(?!$)(?!_)|(?<!_)(?<!^)C(?=_)",
+        r'[^C]|(?<!_)C(?!_)|(?<=_)C(?!$)(?!_)|(?<!_)(?<!^)C(?=_)',
         lambda m: m.group(0).lower(),
         word,
     )
 
 
 RENAMERS = {
-    "lowercase": lambda x: x.replace("_", "").lower(),
-    "UPPERCASE": lambda x: x.replace("_", "").upper(),
-    "camelCase": lambda x: camelize(x, False),
-    "PascalCase": lambda x: camelize(x, True),
-    "snake_case": snake_case_but_allow_capital_C,
-    "LOUD_SNAKE_CASE": lambda x: underscore(x).upper(),
+    'lowercase': lambda x: x.replace('_', '').lower(),
+    'UPPERCASE': lambda x: x.replace('_', '').upper(),
+    'camelCase': lambda x: camelize(x, False),
+    'PascalCase': lambda x: camelize(x, True),
+    'snake_case': snake_case_but_allow_capital_C,
+    'LOUD_SNAKE_CASE': lambda x: underscore(x).upper(),
 }
 
 
@@ -76,41 +74,41 @@ MATH_BLACKLIST = set(
 
 # Names of things marked const or constexpr that are specifically allowed to
 # not be LOUD_SNAKE_CASE
-CONST_BLACKLIST = {"forwarded_declval", "value"}
+CONST_BLACKLIST = {'forwarded_declval', 'value'}
 
 # Matrix type variables have different naming rules
 MATRIX_TYPES = {
-    "Vector",
-    "Matrix",
-    "eig",
-    "auto",
-    "size_t",
-    "Matrix3",
-    "Vector3",
+    'Vector',
+    'Matrix',
+    'eig',
+    'auto',
+    'size_t',
+    'Matrix3',
+    'Vector3',
 }
 
 
 # What the state is and what typing pattern it should use
 NAMING_RULE = {
-    "FUNCTION_DECL": "snake_case",
-    "CXX_METHOD": "snake_case",
-    "NAMESPACE": "snake_case",
-    "CLASS_FIELD": "snake_case",
-    "FMT_FORMATTER": "snake_case",
-    "VAR_DECL": "snake_case",
-    "PARAMETER": "snake_case",
-    "CLASS_DECL": "PascalCase",
-    "TYPEDEF_DECL": "PascalCase",
-    "ENUM": "PascalCase",
-    "CONSTRUCTOR": "PascalCase",
-    "FORWARD_DECL": "PascalCase",
-    "DESTRUCTOR": "PascalCase",
-    "ENUM_VALUE": "LOUD_SNAKE_CASE",
-    "CONSTEXPR": "LOUD_SNAKE_CASE",
-    "CONST_VAR": "LOUD_SNAKE_CASE",
-    "EXTERN_NAMESPACE": "LOUD_SNAKE_CASE",
-    "STATIC_NAMESPACE": "LOUD_SNAKE_CASE",
-    "STATIC_CONST_CLASS": "LOUD_SNAKE_CASE",
+    'FUNCTION_DECL': 'snake_case',
+    'CXX_METHOD': 'snake_case',
+    'NAMESPACE': 'snake_case',
+    'CLASS_FIELD': 'snake_case',
+    'FMT_FORMATTER': 'snake_case',
+    'VAR_DECL': 'snake_case',
+    'PARAMETER': 'snake_case',
+    'CLASS_DECL': 'PascalCase',
+    'TYPEDEF_DECL': 'PascalCase',
+    'ENUM': 'PascalCase',
+    'CONSTRUCTOR': 'PascalCase',
+    'FORWARD_DECL': 'PascalCase',
+    'DESTRUCTOR': 'PascalCase',
+    'ENUM_VALUE': 'LOUD_SNAKE_CASE',
+    'CONSTEXPR': 'LOUD_SNAKE_CASE',
+    'CONST_VAR': 'LOUD_SNAKE_CASE',
+    'EXTERN_NAMESPACE': 'LOUD_SNAKE_CASE',
+    'STATIC_NAMESPACE': 'LOUD_SNAKE_CASE',
+    'STATIC_CONST_CLASS': 'LOUD_SNAKE_CASE',
 }
 
 assert set(NAMING_RULE.values()) <= set(RENAMERS)
@@ -151,9 +149,9 @@ class LineNumberVisitor(CxxVisitor):
         return any(not ns_name for ns_name in self._ns_stack)
 
     def check_naming(
-        self, state_type: str, name: str, location: str, format_str: str = ""
+        self, state_type: str, name: str, location: str, format_str: str = ''
     ) -> None:
-        if name.startswith("operator") or name == "not_null":
+        if name.startswith('operator') or name == 'not_null':
             return
         if (
             self.in_namespace_scope or state_type in CHECK_MATH_STATES
@@ -166,24 +164,24 @@ class LineNumberVisitor(CxxVisitor):
         # normal snake case is allowed to allow for file-level global types
         if (
             self.in_anonymous_namespace_scope
-            and rule == "snake_case"
-            and name == RENAMERS["LOUD_SNAKE_CASE"](name)
+            and rule == 'snake_case'
+            and name == RENAMERS['LOUD_SNAKE_CASE'](name)
         ):
             return
         # Allow UPPERCASE for Enum values
-        if state_type == "ENUM_VALUE" and name == RENAMERS["UPPERCASE"](name):
+        if state_type == 'ENUM_VALUE' and name == RENAMERS['UPPERCASE'](name):
             return
 
         # There's an issue when renaming from LOUD_SNAKE_CASE to PascalCase it
         # becomes LOUDSNAKECASE instead of LoudSnakeCase, fix it here by
         # first converting to snake_case then camelizing or Pascalizing
-        if name == RENAMERS["LOUD_SNAKE_CASE"](name) and name != RENAMERS[
-            "UPPERCASE"
+        if name == RENAMERS['LOUD_SNAKE_CASE'](name) and name != RENAMERS[
+            'UPPERCASE'
         ](name):
             snakey = snake_case_but_allow_capital_C(name)
-            if rule == "PascalCase":
+            if rule == 'PascalCase':
                 new_name = camelize(snakey, True)
-            if rule == "camelCase":
+            if rule == 'camelCase':
                 new_name = camelize(snakey, False)
 
         # Store the old and revised version of name if
@@ -199,18 +197,18 @@ class LineNumberVisitor(CxxVisitor):
 
     # Return the file and line number of a state
     def loc(self, state: State) -> str:
-        return f"{self.file_name}:{state.location.lineno}"
+        return f'{self.file_name}:{state.location.lineno}'
 
     # Don't worry about naming for things that are mathy
     def looks_like_math(self, name: str, format_str: str) -> bool:
-        tokens: list[str] = re.findall(r"[a-zA-Z0-9:_]+", format_str)
+        tokens: list[str] = re.findall(r'[a-zA-Z0-9:_]+', format_str)
         # Filter using Matrix types and the xt:: prefix
         types: set = {
-            t for t in tokens if t in MATRIX_TYPES or t.startswith("xt::")
+            t for t in tokens if t in MATRIX_TYPES or t.startswith('xt::')
         }
         if types and len(name) < 5:
             return True
-        return name in MATH_BLACKLIST or name.startswith("C_") or "_C_" in name
+        return name in MATH_BLACKLIST or name.startswith('C_') or '_C_' in name
 
     # Pointers are structured differently, check if it is one and
     # return the "Type" for all cases.
@@ -223,12 +221,12 @@ class LineNumberVisitor(CxxVisitor):
             return input_type.array_of
         else:
             print(
-                "Unexpected input_type in check_if_pointer: "
-                f"{type(input_type).__name__}"
+                'Unexpected input_type in check_if_pointer: '
+                f'{type(input_type).__name__}'
             )
             raise TypeError(
-                "Unexpected input_type in check_if_pointer: "
-                f"{type(input_type).__name__}"
+                'Unexpected input_type in check_if_pointer: '
+                f'{type(input_type).__name__}'
             )
 
     # AnonymousName and DecltypeSpecifier can be returned by seg[-1]
@@ -242,10 +240,10 @@ class LineNumberVisitor(CxxVisitor):
     # each one and make sure their naming is correct.
 
     def on_namespace_start(self, state: NamespaceBlockState) -> None:
-        ns_name: str = "::".join(state.namespace.names or ())
+        ns_name: str = '::'.join(state.namespace.names or ())
         self._ns_stack.append(ns_name)
         if ns_name:
-            self.check_naming("NAMESPACE", ns_name, self.loc(state))
+            self.check_naming('NAMESPACE', ns_name, self.loc(state))
 
     def on_namespace_end(self, state: NamespaceBlockState) -> None:
         self._ns_stack.pop()
@@ -258,12 +256,12 @@ class LineNumberVisitor(CxxVisitor):
             if not self.is_anonymous_name_or_decltype(
                 fn.return_type.typename.segments[-1]
             ):
-                if fn.return_type.typename.segments[-1].name == "OPERATOR":
+                if fn.return_type.typename.segments[-1].name == 'OPERATOR':
                     return
         name: str = fn.name.segments[-1].name
         location: str = self.loc(state)
         self.process_parameters(fn.parameters, location)
-        self.check_naming("FUNCTION_DECL", name, location)
+        self.check_naming('FUNCTION_DECL', name, location)
 
     def on_variable(self, state: State, v: Variable) -> None:
         if self.is_anonymous_name_or_decltype(v.name.segments[-1]):
@@ -275,7 +273,7 @@ class LineNumberVisitor(CxxVisitor):
             ):
                 const: bool = v.type.const
                 function_name: str = v.type.typename.segments[0].name
-                if "TEST" in function_name:
+                if 'TEST' in function_name:
                     return
         elif isinstance(v.type, Array):
             if not isinstance(v.type.array_of, Array):
@@ -289,28 +287,28 @@ class LineNumberVisitor(CxxVisitor):
         format_str: str = var_type.format()
 
         if constexpr and name not in CONST_BLACKLIST:
-            self.check_naming("CONSTEXPR", name, location, format_str)
+            self.check_naming('CONSTEXPR', name, location, format_str)
         elif const and name not in CONST_BLACKLIST:
-            self.check_naming("CONST_VAR", name, location, format_str)
+            self.check_naming('CONST_VAR', name, location, format_str)
         elif extern and self.in_namespace_scope:
-            self.check_naming("EXTERN_NAMESPACE", name, location, format_str)
+            self.check_naming('EXTERN_NAMESPACE', name, location, format_str)
         elif static and self.in_namespace_scope:
-            self.check_naming("STATIC_NAMESPACE", name, location, format_str)
+            self.check_naming('STATIC_NAMESPACE', name, location, format_str)
         else:
-            self.check_naming("VAR_DECL", name, location, format_str)
+            self.check_naming('VAR_DECL', name, location, format_str)
 
     def on_typedef(self, state: State, typedef: Typedef) -> None:
         name: str = typedef.name
         location: str = self.loc(state)
-        self.check_naming("TYPEDEF_DECL", name, location)
+        self.check_naming('TYPEDEF_DECL', name, location)
 
     def on_enum(self, state: State, enum: EnumDecl) -> None:
         segs: list = enum.typename.segments
         name: str = segs[-1].name
         location: str = self.loc(state)
         for v in enum.values:
-            self.check_naming("ENUM_VALUE", v.name, location)
-        self.check_naming("ENUM", name, location)
+            self.check_naming('ENUM_VALUE', v.name, location)
+        self.check_naming('ENUM', name, location)
 
     def on_class_start(self, state: ClassBlockState) -> None:
         segs: list = state.class_decl.typename.segments
@@ -319,10 +317,10 @@ class LineNumberVisitor(CxxVisitor):
         location: str = self.loc(state)
 
         # Special exception of normal naming rules
-        if scope == "fmt" and name == "formatter":
-            self.check_naming("FMT_FORMATTER", name, location)
+        if scope == 'fmt' and name == 'formatter':
+            self.check_naming('FMT_FORMATTER', name, location)
         else:
-            self.check_naming("CLASS_DECL", name, location)
+            self.check_naming('CLASS_DECL', name, location)
 
     def on_class_method(self, state: ClassBlockState, method: Method) -> None:
         if self.is_anonymous_name_or_decltype(method.name.segments[-1]):
@@ -337,11 +335,11 @@ class LineNumberVisitor(CxxVisitor):
         if override:
             return
         elif constructor:
-            self.check_naming("CONSTRUCTOR", name, location)
+            self.check_naming('CONSTRUCTOR', name, location)
         elif destructor:
-            self.check_naming("DESTRUCTOR", name, location)
+            self.check_naming('DESTRUCTOR', name, location)
         else:
-            self.check_naming("CXX_METHOD", name, location)
+            self.check_naming('CXX_METHOD', name, location)
 
     def on_class_field(self, state: ClassBlockState, f: Field) -> None:
         field_type: Type = self.check_if_pointer(f.type)
@@ -353,20 +351,20 @@ class LineNumberVisitor(CxxVisitor):
         format_str: str = field_type.format()
 
         if (constexpr or const) and static and name not in CONST_BLACKLIST:
-            self.check_naming("STATIC_CONST_CLASS", name, location, format_str)
+            self.check_naming('STATIC_CONST_CLASS', name, location, format_str)
         else:
-            self.check_naming("CLASS_FIELD", name, location, format_str)
+            self.check_naming('CLASS_FIELD', name, location, format_str)
 
     def on_forward_decl(self, state, fdecl):
         name: str = fdecl.typename.segments[0].name
         location: str = self.loc(state)
-        self.check_naming("FORWARD_DECL", name, location)
+        self.check_naming('FORWARD_DECL', name, location)
 
     def process_parameters(self, parameters: list[Parameter], location: str):
         for param in parameters:
             if param.name:
                 self.check_naming(
-                    "PARAMETER", param.name, location, param.format()
+                    'PARAMETER', param.name, location, param.format()
                 )
 
 
@@ -378,17 +376,17 @@ def parse_defines(filename: str) -> dict[str, list[NameCorrection]]:
         for line_number, line in enumerate(f, start=1):
             # Not robust enough comment check but should handle
             # anything following code formatting standards in this project
-            if "#define" in line and not line.startswith("//"):
+            if '#define' in line and not line.startswith('//'):
                 define: str = line.split()[1]
                 # Can also have functions in #define statements, do this to
                 # just get the name of the function
-                if "(" in define:
-                    define = define.split("(", 1)[0]
-                if define != RENAMERS["LOUD_SNAKE_CASE"](define):
-                    issues.setdefault(filename + f":{line_number}", []).append(
+                if '(' in define:
+                    define = define.split('(', 1)[0]
+                if define != RENAMERS['LOUD_SNAKE_CASE'](define):
+                    issues.setdefault(filename + f':{line_number}', []).append(
                         NameCorrection(
                             original_name=define,
-                            corrected_name=RENAMERS["LOUD_SNAKE_CASE"](define),
+                            corrected_name=RENAMERS['LOUD_SNAKE_CASE'](define),
                         )
                     )
     return issues
@@ -415,20 +413,20 @@ def comment_out_defines(code: str) -> str:
     Comments out all #define statements in a C++ code string,
     including multi-line defines that use backslashes
     """
-    pattern = re.compile(r"[ \t]*#define(?:[^\n]*\\[ \t]*\n)*[^\n]+")
+    pattern = re.compile(r'[ \t]*#define(?:[^\n]*\\[ \t]*\n)*[^\n]+')
 
     def add_comments(match: re.Match) -> str:
         block = match.group(0)
         # Prefix every line in the block with //
-        return re.sub(r"^", "//", block, flags=re.MULTILINE)
+        return re.sub(r'^', '//', block, flags=re.MULTILINE)
 
     return pattern.sub(add_comments, code)
 
 
 # Matches the opening of any #if block: #ifdef, #ifndef, #if
-IFDEF_RE = re.compile(r"[ \t]*#[ \t]*(?:ifdef|ifndef|if)\b")
+IFDEF_RE = re.compile(r'[ \t]*#[ \t]*(?:ifdef|ifndef|if)\b')
 # Matches #endif
-ENDIF_RE = re.compile(r"[ \t]*#[ \t]*endif\b")
+ENDIF_RE = re.compile(r'[ \t]*#[ \t]*endif\b')
 
 
 def comment_out_ifdefs(code: str) -> str:
@@ -447,19 +445,19 @@ def comment_out_ifdefs(code: str) -> str:
             depth += 1
 
         if depth > 0:
-            nl = "\n" if line.endswith("\n") else ""
-            result.append("//" + line.rstrip("\n") + nl)
+            nl = '\n' if line.endswith('\n') else ''
+            result.append('//' + line.rstrip('\n') + nl)
         else:
             result.append(line)
 
         if is_close:
             depth -= 1
 
-    return "".join(result)
+    return ''.join(result)
 
 
-CXX_OFF_RE = re.compile(r"[ \t]*//[ \t]*cxxheaderparser off")
-CXX_ON_RE = re.compile(r"[ \t]*//[ \t]*cxxheaderparser on")
+CXX_OFF_RE = re.compile(r'[ \t]*//[ \t]*cxxheaderparser off')
+CXX_ON_RE = re.compile(r'[ \t]*//[ \t]*cxxheaderparser on')
 
 
 def comment_out_cxx_header_parser_off_sections(code: str) -> str:
@@ -481,11 +479,11 @@ def comment_out_cxx_header_parser_off_sections(code: str) -> str:
             inside = False
             result.append(line)
         elif inside:
-            result.append("//" + line)
+            result.append('//' + line)
         else:
             result.append(line)
 
-    return "".join(result)
+    return ''.join(result)
 
 
 def fix_gtests(input: str) -> str:
@@ -499,27 +497,27 @@ def fix_gtests(input: str) -> str:
     # First fix tests that end in , ) which can't be parsed
     # ie: INSTANTIATE_TYPED_TEST_SUITE_P(EwC_SLOW,
     # FusionStrategyTests, FusionStrategyTestsTypes, );
-    input = input.replace(", );", ");")
+    input = input.replace(', );', ');')
 
     TEST_MACRO_MAP = {
-        "TEST": ";void test",
-        "TEST_F": ";void test_f",
-        "TEST_P": ";void test_p",
-        "TYPED_TEST": ";void typed_test",
-        "TYPED_TEST_SUITE": ";void typed_test_suite",
-        "TYPED_TEST_P": ";void typed_test_p",
-        "TYPED_TEST_SUITE_P": ";void typed_test_suite_p",
-        "REGISTER_TYPED_TEST_SUITE_P": ";void register_typed_test_suite_p",
-        "INSTANTIATE_TYPED_TEST_SUITE_P": ";void "
-        "instantiate_typed_test_suite_p",
-        "INSTANTIATE_TEST_SUITE_P": ";instantiate_test_suite_p",
-        "ERROR_MODE_SENSITIVE_TEST": ";void error_mode_sensitive_test",
+        'TEST': ';void test',
+        'TEST_F': ';void test_f',
+        'TEST_P': ';void test_p',
+        'TYPED_TEST': ';void typed_test',
+        'TYPED_TEST_SUITE': ';void typed_test_suite',
+        'TYPED_TEST_P': ';void typed_test_p',
+        'TYPED_TEST_SUITE_P': ';void typed_test_suite_p',
+        'REGISTER_TYPED_TEST_SUITE_P': ';void register_typed_test_suite_p',
+        'INSTANTIATE_TYPED_TEST_SUITE_P': ';void '
+        'instantiate_typed_test_suite_p',
+        'INSTANTIATE_TEST_SUITE_P': ';instantiate_test_suite_p',
+        'ERROR_MODE_SENSITIVE_TEST': ';void error_mode_sensitive_test',
     }
-    pattern = rf"\b({'|'.join(re.escape(k) for k in TEST_MACRO_MAP.keys())})\("
+    pattern = rf'\b({"|".join(re.escape(k) for k in TEST_MACRO_MAP.keys())})\('
 
     def replace_match(match):
         macro_name = match.group(1)
-        return f"{TEST_MACRO_MAP[macro_name]}("
+        return f'{TEST_MACRO_MAP[macro_name]}('
 
     # Run the substitution in a single pass
     return re.sub(pattern, replace_match, input)
@@ -531,7 +529,7 @@ def preprocess_file(input: str) -> str:
     """
     # SFINAE have too many irregularities, comment them out
     input = re.sub(
-        r"^(.*?\b\w*SFINAE\w*\b\s*\(.*)$", r"// \1", input, flags=re.MULTILINE
+        r'^(.*?\b\w*SFINAE\w*\b\s*\(.*)$', r'// \1', input, flags=re.MULTILINE
     )
     # Replace TEST in files using gtest with a void method
     input = fix_gtests(input)
@@ -551,9 +549,9 @@ def build_filenames() -> list[str]:
     """
     filenames: list[str] = [
         path
-        for srcdir in ("test", "src/navtk", "examples")
-        for ext in ("*.cpp", "*.hpp")
-        for path in glob(join(srcdir, "**", ext), recursive=True)
+        for srcdir in ('test', 'src/navtk', 'examples')
+        for ext in ('*.cpp', '*.hpp')
+        for path in glob(join(srcdir, '**', ext), recursive=True)
     ]
     return filenames
 
@@ -576,19 +574,19 @@ def main():
         # enum values with incorrect naming rules
         for names in old_and_fixed_names:
             print(
-                f"At {location}, {names.original_name}"
-                f" should be {names.corrected_name}"
+                f'At {location}, {names.original_name}'
+                f' should be {names.corrected_name}'
             )
     if corrections:
-        print("Naming issues detected; check failed.")
+        print('Naming issues detected; check failed.')
         sys.exit(1)
     elif failed_a_parse:
-        print("Parse error detected; check failed.")
+        print('Parse error detected; check failed.')
         sys.exit(1)
     else:
-        print("No naming issues detected; check successful.")
+        print('No naming issues detected; check successful.')
         sys.exit(0)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

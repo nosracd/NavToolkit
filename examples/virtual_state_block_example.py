@@ -3,12 +3,12 @@
 from numpy import array
 
 from navtk.filtering import (
-    FogmBlock,
-    StandardFusionEngine,
-    VirtualStateBlock,
-    ScaleVirtualStateBlock,
     ChainedVirtualStateBlock,
     FirstOrderVirtualStateBlock,
+    FogmBlock,
+    ScaleVirtualStateBlock,
+    StandardFusionEngine,
+    VirtualStateBlock,
 )
 
 
@@ -139,5 +139,5 @@ def map_jac(x):
     return array([[3.0, 0, 0], [0.0, 4.0, 0.0], [0.0, 0.0, 5.0]])
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     virtual_state_block_example()

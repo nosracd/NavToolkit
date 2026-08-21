@@ -1,22 +1,20 @@
-'''
-Utility/helper functions for parsing code.
-'''
+"""Utility/helper functions for parsing code."""
 
 
 def indent_of(code):
-    r'''
+    r"""
     Return a string that matches the leading indentation of a given
     piece of code, defined as the leading whitespace common to all
     lines in the code.
 
     >>> indent_of('\tif (x) {\n\t\treturn;\n\t}')
     '\t'
-    '''
+    """
     shortest = None
-    for line in code.split("\n"):
+    for line in code.split('\n'):
         indent = ''
         for char in line:
-            if char in "\t ":
+            if char in '\t ':
                 indent += char
             elif shortest is None or len(indent) < len(shortest):
                 shortest = indent
@@ -25,7 +23,7 @@ def indent_of(code):
 
 
 def escaped_chars(text):
-    r'''
+    r"""
     Yield each character in the given text, one at a time, except treat
     escape sequences as a single character.
 
@@ -43,7 +41,7 @@ def escaped_chars(text):
     '\n'
     >>> ''.join(itr)
     'b\nc'
-    '''
+    """
 
     char_escaped = False
     for char in text:
@@ -58,11 +56,11 @@ def escaped_chars(text):
         yield '\\'
 
 
-BALANCE = dict(["{}", "()", "[]", '""', "''"])
+BALANCE = dict(['{}', '()', '[]', '""', "''"])
 
 
 def advance_to(text, token):
-    '''
+    """
     Iterate through the given sequence of characters looking for the given
     token, yielding each character up to and including the token. Use the
     global BALANCE dict to do paren-balancing, and only stop when the token
@@ -73,7 +71,7 @@ def advance_to(text, token):
 
     This function is implemented as a lazy generator. If the text passed
     in is an iterator, it will be consumed one character at a time.
-    '''
+    """
 
     stack = [token]
     for tok in escaped_chars(text):
@@ -88,7 +86,7 @@ def advance_to(text, token):
 
 
 def split_carefully(text, separators):
-    '''
+    """
     Yield (substring, separator) for substrings of the given text, delimited
     by any character in the list of possible separators, but treating
     expressions in parens, brackets, braces or quotes as atomic. Each
@@ -102,7 +100,7 @@ def split_carefully(text, separators):
 
     This function is implemented as a lazy generator. If the text passed in
     is an iterator it will be consumed one character at a time.
-    '''
+    """
     buf = []
     itr = iter(escaped_chars(text))
     for char in itr:
@@ -118,15 +116,15 @@ def split_carefully(text, separators):
 
 
 def is_number(text):
-    '''
+    """
     Return True iff the given text looks like it's a number. This function
     predicts whether `float(text.strip())` will return an error.
-    '''
-    return not set(text.strip()) - set("-0987654321.eE")
+    """
+    return not set(text.strip()) - set('-0987654321.eE')
 
 
 def decimal_places(text):
-    '''
+    """
     If the given value looks like a number, return the count of characters
     after the decimal point. Otherwise return 0.
 
@@ -138,15 +136,15 @@ def decimal_places(text):
     3
     >>> decimal_places('foo.bar')
     0
-    '''
+    """
     text = str(text).strip()
-    if is_number(text) and "." in text:
-        return len(text.split(".")[-1])
+    if is_number(text) and '.' in text:
+        return len(text.split('.')[-1])
     return 0
 
 
 def left_of_decimal(text):
-    '''
+    """
     If the given value looks like a number, return the count of characters
     before the decimal point. Otherwise return 0.
 
@@ -158,8 +156,8 @@ def left_of_decimal(text):
     2
     >>> left_of_decimal('foo.bar')
     0
-    '''
+    """
     text = str(text).strip()
     if is_number(text):
-        return len(text.rsplit(".", 1)[0])
+        return len(text.rsplit('.', 1)[0])
     return 0

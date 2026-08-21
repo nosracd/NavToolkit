@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 
 import os
-from glob import glob
-import sys
 import re
-from typing import List, Dict
+import sys
+from glob import glob
+from typing import Dict, List
 
 import cxxheaderparser.simple as parser
 
-PREFACE = '''\
+PREFACE = """\
 #pragma once
 /*
   This file contains docstrings for use in the Python bindings.
@@ -37,39 +37,39 @@ PREFACE = '''\
 #   pragma GCC diagnostic ignored "-Wunused-variable"
 #endif
 
-'''  # noqa: E501
+"""  # noqa: E501
 
-POSTFACE = '''\
+POSTFACE = """\
 #ifdef __clang__
 #   pragma clang diagnostic pop
 #elif defined(__GNUG__)
 #   pragma GCC diagnostic pop
 #endif
-'''
+"""
 
 
 DOCSTRINGS: Dict[str, str] = {}
-'''
+"""
 A mapping of the eventual header variable name of the docstring to its actual
 value.
-'''
+"""
 
 CHILD_CLASSES: Dict[str, str] = {}
-'''
+"""
 A mapping of a child class name to its parent class.
-'''
+"""
 
 MISSING_METHOD_DOCSTRINGS: Dict[str, List[str]] = {}
-'''
+"""
 A mapping of a class name to the docstring names it is missing.
-'''
+"""
 
 
 def increment_string(string: str) -> str:
-    '''
+    """
     Converts the suffix to an int, increments it, converts it back to a string,
     and returns the original string with the incremented final character.
-    '''
+    """
     pieces = string.split('_')
     if pieces[-1].isdigit():
         pieces[-1] = str(int(pieces[-1]) + 1)
@@ -78,11 +78,11 @@ def increment_string(string: str) -> str:
 
 
 def disambiguate_names(name: str, names: List[str]) -> str:
-    '''
+    """
     If name is in names, then either append _2 to name or, if name already has
     a number appended, increment that number. Do this recursively until name is
     not an element of names.
-    '''
+    """
     # Check if name is a duplicate
     if name in names:
         new_name = name
@@ -97,18 +97,18 @@ def disambiguate_names(name: str, names: List[str]) -> str:
 
 
 def format_docstring(docstring):
-    '''
+    """
     Removes doxygen-style prefixes and suffixes from extracted docstrings.
     Also strips trailing whitespace. Last, replaces doxygen-style directives a
     sphinx-style directives.
-    '''
+    """
     if docstring is None:
         return None
     # Remove doxygen-style comment markers
     docstring = docstring.strip('/**')
     docstring = docstring.strip('///')
     docstring = docstring.strip('*/')
-    docstring = re.sub(r"\n\* ?", "\n", docstring, flags=re.DOTALL)
+    docstring = re.sub(r'\n\* ?', '\n', docstring, flags=re.DOTALL)
     # Remove leading and trailing whitespace
     docstring = docstring.strip()
     # Replace tabs with spaces for better output in the terminal
@@ -126,9 +126,9 @@ def format_docstring(docstring):
 
 
 def process_class(input: parser.ClassScope):
-    '''
+    """
     Extract docstrings for a class, including any methods, fields, or enums.
-    '''
+    """
     docstring = format_docstring(input.class_decl.doxygen)
     name = input.class_decl.typename.segments[0].name
     if docstring is not None:
@@ -165,10 +165,10 @@ def process_class(input: parser.ClassScope):
 
 
 def process_enum(input: parser.EnumDecl, class_scope=None) -> None:
-    '''
+    """
     Extract docstrings from an enum, including any documentation of the enum
     values.
-    '''
+    """
     docstring = format_docstring(input.doxygen)
     if docstring is not None:
         name = input.typename.segments[0].name
@@ -182,9 +182,7 @@ def process_enum(input: parser.EnumDecl, class_scope=None) -> None:
 
 
 def process_function(input: parser.Function):
-    '''
-    Extract the docstring of a function.
-    '''
+    """Extract the docstring of a function."""
     docstring = format_docstring(input.doxygen)
     if docstring is not None:
         name = disambiguate_names(input.name.segments[0].name, DOCSTRINGS)
@@ -194,9 +192,7 @@ def process_function(input: parser.Function):
 
 
 def process_variables(input: parser.Variable):
-    '''
-    Extract the docstring for a variable.
-    '''
+    """Extract the docstring for a variable."""
     docstring = format_docstring(input.doxygen)
     if docstring is not None:
         name = input.name.segments[0].name
@@ -204,10 +200,10 @@ def process_variables(input: parser.Variable):
 
 
 def process_namespace(namespace: parser.NamespaceScope):
-    '''
+    """
     Extract all classes, enums, functions, and variables from a namespace,
     recursively.
-    '''
+    """
     for input in namespace.classes:
         process_class(input)
     for input in namespace.enums:
@@ -233,11 +229,11 @@ FILE_BLACKLIST = [
 
 
 def process_inheritance() -> None:
-    '''
+    """
     Cross references the known inheritance relationships with the missing
     docstrings, filling in missing docstrings with those from the parent
     class.
-    '''
+    """
     for child in CHILD_CLASSES:
         if child not in MISSING_METHOD_DOCSTRINGS:
             continue
@@ -250,9 +246,7 @@ def process_inheritance() -> None:
 
 
 def expand_lineage() -> None:
-    '''
-    Adds grandparents to child-parent mapping, recursively.
-    '''
+    """Adds grandparents to child-parent mapping, recursively."""
     added_grandparent = False
     for child in CHILD_CLASSES:
         for parent in CHILD_CLASSES[child]:
@@ -271,30 +265,30 @@ def preprocess_file(input: str) -> str:
     # Remove NEED_DOXYGEN_EXHALE_WORKAROUND directives, but leave
     # their wrapped contents.
     input = re.sub(
-        r"#ifndef NEED_DOXYGEN_EXHALE_WORKAROUND(.*?)#endif",
-        r"\1",
+        r'#ifndef NEED_DOXYGEN_EXHALE_WORKAROUND(.*?)#endif',
+        r'\1',
         input,
         flags=re.DOTALL,
     )
     # Remove other compiler directives, including their wrapped
     # contents.
-    input = re.sub(r"#\s*ifndef.*?#\s*endif", "", input, flags=re.DOTALL)
-    input = re.sub(r"#\s*ifdef.*?#\s*endif", "", input, flags=re.DOTALL)
-    input = re.sub(r"#define.*?\n", "", input, flags=re.DOTALL)
+    input = re.sub(r'#\s*ifndef.*?#\s*endif', '', input, flags=re.DOTALL)
+    input = re.sub(r'#\s*ifdef.*?#\s*endif', '', input, flags=re.DOTALL)
+    input = re.sub(r'#define.*?\n', '', input, flags=re.DOTALL)
     # Replace doxygen-style math directives with plain LaTeX-style.
     input = input.replace('\\f$', '$')
     return input
 
 
 def main() -> None:
-    '''
+    """
     Extract docstrings from headers. Makes the following assumptions:
 
     - Build directory location is `build/src/bindings/python`, or is passed in
       as the first argument.
     - Current working directory is root project directory, or root project
       directory is passed in as the second argument.
-    '''
+    """
     build_directory = 'build/src/bindings/python'
     project_directory = os.getcwd()
 
@@ -316,7 +310,7 @@ def main() -> None:
         basename = os.path.basename(file)
         if basename in FILE_BLACKLIST:
             continue
-        with open(file, "r", encoding="utf-8") as f_handle:
+        with open(file, 'r', encoding='utf-8') as f_handle:
             f_string = f_handle.read()
 
             # Remove #ifdef's, since cxxheaderparser is not a preprocessor.

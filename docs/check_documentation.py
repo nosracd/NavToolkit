@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
-from subprocess import check_output, STDOUT
-from re import split
 from os.path import isfile
+from re import split
+from subprocess import STDOUT, check_output
 
 if not isfile('docs/Doxyfile'):
     raise Exception('Cannot find the Doxygen config file, Doxyfile')
@@ -17,7 +17,7 @@ def get_line_by_number(path, line):
         for no, text in enumerate(fd, start=1):
             if no == line:
                 return text
-    return ""
+    return ''
 
 
 warnings_detected = [

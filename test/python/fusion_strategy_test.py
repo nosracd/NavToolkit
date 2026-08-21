@@ -1,20 +1,21 @@
 #!/usr/bin/env python3
 
 import unittest
-from numpy import dot, transpose, eye
+
+from aspn23_xtensor import TypeTimestamp
+from numpy import dot, eye, transpose
 from numpy.linalg import inv
 from numpy.testing import assert_allclose
 
 from navtk.filtering import (
-    StandardModelStrategy,
+    EkfStrategy,
     LinearizedStrategyBase,
     StandardDynamicsModel,
-    StandardMeasurementModel,
-    EkfStrategy,
     StandardFusionEngine,
+    StandardMeasurementModel,
+    StandardModelStrategy,
     StateBlock,
 )
-from aspn23_xtensor import TypeTimestamp
 
 
 class PyEkfStrategy(StandardModelStrategy, LinearizedStrategyBase):
@@ -121,7 +122,7 @@ class FusionStrategy(unittest.TestCase):
         strategy = EkfStrategySubclass()
         self.assertEqual(strategy.last_event, '__init__')
         engine = StandardFusionEngine(TypeTimestamp(0), strategy)
-        block = StateBlock(1, "block")
+        block = StateBlock(1, 'block')
         engine.add_state_block(block)
         self.assertEqual(strategy.last_event, 'stateblock add')
 

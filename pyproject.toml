@@ -12,18 +12,18 @@ build-backend = 'mesonpy'
 
 [tool.ruff]
 line-length=79
-required-version = ">=0.15.16"
-
+required-version = '>=0.15.16'
 
 [tool.ruff.lint]
 preview = true
-select = ['E', 'F', 'W']
+select = ['E', 'F', 'I', 'W']
 ignore = [
-    "E741",  # Ignores error from math-variables, like "I".
+    'E741',  # Ignores error from math-variables, like 'I'.
 ]
+isort.split-on-trailing-comma=false
 
 [tool.ruff.format]
-quote-style="preserve"
+quote-style='single'
 skip-magic-trailing-comma = true
 
 [tool.meson-python.args]
@@ -65,5 +65,5 @@ norecursedirs = ["subprojects"]
 
 [dependency-groups]
 dev = [
-    "ruff>=0.15.16",
+    'ruff>=0.15.16',
 ]

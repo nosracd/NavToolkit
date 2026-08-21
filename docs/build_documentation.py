@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-r'''
+r"""
 The documentation generation pipeline for this project is a bit complicated.
 
  /─────────\  ┌───────┐  ┌───────┐  ┌──────┐    ┌──────┐
@@ -66,14 +66,14 @@ anything which loads assets from 3rd-party domains.  This is both a good
 security practice, and required for the docs to render correctly when viewed on
 a local machine (`file://` protocol in the browser) as opposed to being hosted
 on a server.
-'''
+"""
 
-import sys
-import subprocess
 import json
-from glob import glob
 import os
-from os.path import abspath, join, dirname
+import subprocess
+import sys
+from glob import glob
+from os.path import abspath, dirname, join
 
 HERE = dirname(abspath(__file__))
 
@@ -84,11 +84,11 @@ def fgrep(text, path):
 
 
 def build_documentation(build_directory, display_sphinx_warnings=False):
-    '''
+    """
     First generates an API by running Doxygen then runs Sphinx, which uses
     breath/exhale extensions to convert the Doxygen-generated API into a
     ReadTheDocs theme alongside the tutorial docs.
-    '''
+    """
     docs_dir = join(build_directory, 'docs')
     print('Clearing any previously generated documentation files...')
     sphinx_warnings_file_name = join(
@@ -109,17 +109,17 @@ def build_documentation(build_directory, display_sphinx_warnings=False):
     projectinfo = json.loads(
         subprocess.check_output(
             [
-                "meson",
-                "introspect",
-                "--projectinfo",
+                'meson',
+                'introspect',
+                '--projectinfo',
                 join(dirname(HERE), 'meson.build'),
             ]
         )
     )
     __version__ = projectinfo['version']
     env = os.environ.copy()
-    env["NAVTK_DOXYGEN_PROJECT_NUMBER"] = __version__
-    subprocess.check_call("doxygen", cwd=HERE, env=env)
+    env['NAVTK_DOXYGEN_PROJECT_NUMBER'] = __version__
+    subprocess.check_call('doxygen', cwd=HERE, env=env)
     print('Running Sphinx...')
     if display_sphinx_warnings:
         sphinx_build = subprocess.run(
@@ -174,15 +174,15 @@ def build_documentation(build_directory, display_sphinx_warnings=False):
 
 
 def main():
-    '''
+    """
     Parses system arguments and passes them to helper functions which set up
     the documentation dependencies and build the documentation.
-    '''
+    """
     arguments = sys.argv[1:]
     if len(arguments) < 2:
         print(
-            "Warning: build_documentation.py needs two arguments. Unable ",
-            "to build the documentation.",
+            'Warning: build_documentation.py needs two arguments. Unable ',
+            'to build the documentation.',
         )
     build_documentation(arguments[1], '--show-warnings' in arguments)
 

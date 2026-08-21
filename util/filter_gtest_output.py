@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-'''
+"""
 Google Test output minifier.
 
 Usage: filter_gtest_output.py <test_binary> [args...]
@@ -12,15 +12,15 @@ Usage: filter_gtest_output.py <test_binary> [args...]
 This program runs your test binary in a virtual TTY and displays a subset of
 its output, only showing you the output from tests that failed or that wrote
 something to standard out.
-'''
+"""
 
 import re
 import sys
-from subprocess import Popen, PIPE, STDOUT
+from subprocess import PIPE, STDOUT, Popen
 
 
 def gtest_leader(line):
-    esc = "\x1b"
+    esc = '\x1b'
     m = re.search(r'\A(?:%s.*?m)*\[([=-]{10}| +\w+ +)\] ' % esc, line)
     if m is not None:
         return m.group(1).strip()
@@ -100,7 +100,7 @@ def call_popen(argv):
         return Popen(['unbuffer'] + argv, stderr=STDOUT, stdout=PIPE)
     except FileNotFoundError:
         print(
-            "To enable spdlog color-coded output, install `unbuffer`, which"
+            'To enable spdlog color-coded output, install `unbuffer`, which'
             " is usually included in your OS's `expect` package."
         )
         return Popen(argv, stderr=STDOUT, stdout=PIPE)

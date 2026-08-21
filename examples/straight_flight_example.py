@@ -1,50 +1,49 @@
 #!/usr/bin/env python3
 
-from numpy import (
-    zeros,
-    ones,
-    eye,
-    array,
-    arange,
-    random,
-    sqrt,
-    linalg,
-    diag,
-    concatenate,
-)
+from aspn23_xtensor import TypeTimestamp, to_type_timestamp
 from matplotlib.pyplot import (
-    plot,
     figure,
+    grid,
+    legend,
+    plot,
+    show,
+    subplot,
+    suptitle,
     xlabel,
     ylabel,
-    legend,
-    show,
-    suptitle,
-    subplot,
-    grid,
+)
+from navtk.exampleutils import (
+    constant_vel_pva,
+    noisy_alt_meas,
+    noisy_pos_meas,
+    noisy_vel_meas,
+)
+from numpy import (
+    arange,
+    array,
+    concatenate,
+    diag,
+    eye,
+    linalg,
+    ones,
+    random,
+    sqrt,
+    zeros,
 )
 
 from navtk.filtering import (  # noqa
+    DirectMeasurementProcessor,
+    GaussianVectorData,
+    ImuModel,
     NavSolution,
+    Pinson15NedBlock,
     StandardFusionEngine,
+    apply_error_states,
     hg1700_model,
     hg9900_model,
-    ImuModel,
-    Pinson15NedBlock,
-    GaussianVectorData,
-    DirectMeasurementProcessor,
-    apply_error_states,
 )
 from navtk.navutils import delta_lat_to_north, delta_lon_to_east
-from navtk.exampleutils import (
-    constant_vel_pva,
-    noisy_pos_meas,
-    noisy_alt_meas,
-    noisy_vel_meas,
-)
 from navtk.utils import to_inertial_aux
-
-from aspn23_xtensor import TypeTimestamp, to_type_timestamp
 
 # Some convenient constants (in seconds)
 MINUTE = 60.0
@@ -133,13 +132,13 @@ def straight_flight_example():
     """
 
     # Create our desired state block and add to the engine/filter
-    block = Pinson15NedBlock("pinson15", model)
+    block = Pinson15NedBlock('pinson15', model)
     engine.add_state_block(block)
     engine.get_state_block_names_list()
 
     # An identical state block to model the true errors for comparison against
     # the filter
-    true_error_block = Pinson15NedBlock("trueError", model)
+    true_error_block = Pinson15NedBlock('trueError', model)
 
     # Initialize filter uncertainty
     # Units are m, m/s, rad, m/s^2, and rad/s
@@ -164,26 +163,26 @@ def straight_flight_example():
     )
 
     P0 = diag(s0**2)
-    engine.set_state_block_covariance("pinson15", P0)
+    engine.set_state_block_covariance('pinson15', P0)
 
     # Create MeasurementProcessors and add to the engine/filter
     # TODO: Re-enable these when aliased versions exist
     hAlt = zeros((1, 15))
     hAlt[0, 2] = 1.0
     engine.add_measurement_processor(
-        DirectMeasurementProcessor("altimeter", "pinson15", hAlt)
+        DirectMeasurementProcessor('altimeter', 'pinson15', hAlt)
     )
 
     hPos = zeros((3, 15))
     hPos[0:3, 0:3] = eye(3)
     engine.add_measurement_processor(
-        DirectMeasurementProcessor("gps++", "pinson15", hPos)
+        DirectMeasurementProcessor('gps++', 'pinson15', hPos)
     )
 
     hVel = zeros((3, 15))
     hVel[0:3, 3:6] = eye(3)
     engine.add_measurement_processor(
-        DirectMeasurementProcessor("odometer", "pinson15", hVel)
+        DirectMeasurementProcessor('odometer', 'pinson15', hVel)
     )
 
     # Setup our simulation runtime and output variables for plotting
@@ -248,7 +247,7 @@ def straight_flight_example():
                 measurement_covariance = [[BARO_SIGMA * BARO_SIGMA]]
 
                 engine.update(
-                    "altimeter",
+                    'altimeter',
                     GaussianVectorData(
                         time_validity, measurement_data, measurement_covariance
                     ),
@@ -269,7 +268,7 @@ def straight_flight_example():
                 measurement_covariance = eye(3) * POS_SIGMA * POS_SIGMA
 
                 engine.update(
-                    "gps++",
+                    'gps++',
                     GaussianVectorData(
                         time_validity, measurement_data, measurement_covariance
                     ),
@@ -281,7 +280,7 @@ def straight_flight_example():
                 measurement_covariance = eye(3) * VELO_SIGMA * VELO_SIGMA
 
                 engine.update(
-                    "odometer",
+                    'odometer',
                     GaussianVectorData(
                         time_validity, measurement_data, measurement_covariance
                     ),
@@ -290,30 +289,30 @@ def straight_flight_example():
             if FEEDBACK_ENABLED and abs(time % FEEDBACK_INTERVAL) < 0.0001:
                 true_errors[0:15, i] = (
                     true_errors[0:15, i].reshape(15)
-                    - engine.get_state_block_estimate("pinson15")
+                    - engine.get_state_block_estimate('pinson15')
                 ).reshape(15)
 
-                engine.set_state_block_estimate("pinson15", zeros((15,)))
+                engine.set_state_block_estimate('pinson15', zeros((15,)))
 
         # Save output after updating
         out_cov[:, i] = engine.get_state_block_covariance(
-            "pinson15"
+            'pinson15'
         ).diagonal()
-        out_states[:, i] = engine.get_state_block_estimate("pinson15").reshape(
+        out_states[:, i] = engine.get_state_block_estimate('pinson15').reshape(
             15
         )
 
     # Plot results
     state_names = [
-        "North Pos Error",
-        "East Pos Error",
-        "Down Pos Error",
-        "North Vel Error",
-        "East Vel Error",
-        "Down Vel Error",
+        'North Pos Error',
+        'East Pos Error',
+        'Down Pos Error',
+        'North Vel Error',
+        'East Vel Error',
+        'Down Vel Error',
     ]
-    title_names = ["Position Error", "Velocity Error"]
-    state_y_labels = ["meters", "meters", "meters", "m/s", "m/s", "m/s"]
+    title_names = ['Position Error', 'Velocity Error']
+    state_y_labels = ['meters', 'meters', 'meters', 'm/s', 'm/s', 'm/s']
 
     for p_idx in range(0, 6):
         if p_idx % 3 == 0:
@@ -321,25 +320,25 @@ def straight_flight_example():
             suptitle(title_names[int(p_idx / 3)])
         subplot(3, 1, p_idx % 3 + 1)
         if p_idx % 3 == 2:
-            xlabel("Time (s)")
+            xlabel('Time (s)')
         plot(
             times,
             out_states[p_idx, 0:N] - true_errors[p_idx, 0:N],
             label=state_names[p_idx],
-            color="k",
+            color='k',
         )
         plot(
             times,
             sqrt(out_cov[p_idx, 0:N]),
-            label="Filter-Computed 1-Sigma",
-            color="b",
+            label='Filter-Computed 1-Sigma',
+            color='b',
         )
-        plot(times, -sqrt(out_cov[p_idx, 0:N]), color="b")
+        plot(times, -sqrt(out_cov[p_idx, 0:N]), color='b')
         ylabel(state_y_labels[p_idx])
         legend()
         grid()
     show()
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     straight_flight_example()

@@ -386,5 +386,5 @@ class BatchOperationsTests(unittest.TestCase):
             assert np.allclose(offset_single, offset_batch[idx])
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     unittest.main()

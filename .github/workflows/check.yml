@@ -28,7 +28,7 @@ jobs:
         - name: Run flake8
           run: |
             set -xe
-            docker/docker_interface.py debug ubuntu-noble "ruff check src test util docs examples optional"
+            docker/docker_interface.py debug ubuntu-noble "ruff check"
             docker/docker_interface.py debug ubuntu-noble "ruff format --diff"
 
     copyright-year:

@@ -9,45 +9,45 @@ parameters may negatively impact filter performance.
 """
 
 import os
-import sys
 import random
+import sys
+
+import matplotlib.pyplot as plt
+from aspn23_xtensor import to_type_timestamp
+from matplotlib.animation import FFMpegWriter
+from matplotlib.pyplot import axis, close, legend, plot, title, xlabel, ylabel
 from numpy import (
+    arange,
+    arctan2,
+    array,
+    ceil,
+    cos,
+    diag,
+    dot,
+    eye,
+    linalg,
+    linspace,
+    mean,
+    meshgrid,
+    pi,
+    sin,
+    sqrt,
     zeros,
     zeros_like,
-    eye,
-    arange,
-    linspace,
-    sqrt,
-    diag,
-    array,
-    sin,
-    cos,
-    pi,
-    meshgrid,
-    arctan2,
-    mean,
-    ceil,
-    linalg,
-    dot,
 )
-import matplotlib.pyplot as plt
-from matplotlib.pyplot import plot, axis, close, title, xlabel, ylabel, legend
-from matplotlib.animation import FFMpegWriter
 
+from navtk.experimental import s_rand
 from navtk.filtering import (
-    StandardFusionEngine,
-    StateBlock,
     GaussianVectorData,
-    StandardDynamicsModel,
-    first_order_discretization_strategy,
-    StandardMeasurementModel,
     MeasurementProcessor,
+    StandardDynamicsModel,
+    StandardFusionEngine,
+    StandardMeasurementModel,
+    StateBlock,
+    first_order_discretization_strategy,
 )
 from navtk.filtering.experimental import RbpfStrategy
 from navtk.geospatial import SpatialMapDataSource
-from navtk.experimental import s_rand
-
-from aspn23_xtensor import to_type_timestamp
 
 ANIMATION_AVAILABLE = FFMpegWriter.isAvailable()
 
@@ -161,9 +161,9 @@ def particle_filter_example(run_time):
         rmse,
     ) = run_monte_carlo_simulation(location_2d, topology_source, run_time)
 
-    state_naming = ["East Position", "North Position"]
+    state_naming = ['East Position', 'North Position']
 
-    state_y_labels = ["m", "m"]
+    state_y_labels = ['m', 'm']
 
     # Get elevation at each grid point on the map for contour plotting
     map_bounds = [-PLOT_BOUND, PLOT_BOUND, -PLOT_BOUND, PLOT_BOUND]
@@ -382,7 +382,7 @@ def make_animation(
 
     os.makedirs(MOVIE_OUTPUT_PATH, exist_ok=True)
 
-    print("Rendering movie...")
+    print('Rendering movie...')
 
     metadata = dict(
         title='Movie ' + 'particle_filter',
@@ -407,7 +407,7 @@ def make_animation(
             contour.levels = [NumberFormat(val) for val in contour.levels]
 
             # Label levels with specially formatted floats
-            if plt.rcParams["text.usetex"]:
+            if plt.rcParams['text.usetex']:
                 fmt = r'%r '
             else:
                 fmt = '%r '
@@ -418,14 +418,14 @@ def make_animation(
             plot(
                 state_truth[:cur_time, 0],
                 state_truth[:cur_time, 1],
-                label="True State",
-                color="k",
+                label='True State',
+                color='k',
             )
 
             particles_east_loc = state_particles_history[cur_time, 0, :]
             particles_north_loc = state_particles_history[cur_time, 1, :]
             plt.scatter(
-                particles_east_loc, particles_north_loc, marker=".", color='y'
+                particles_east_loc, particles_north_loc, marker='.', color='y'
             )
 
             # compute error ellipse parameters
@@ -472,14 +472,14 @@ def make_plots(
     state_naming,
 ):
 
-    print("Generating plots...")
+    print('Generating plots...')
     for state_idx in range(NUM_STATES):
         # make one plot with the state of each filter overlayed with true state
         fig, ax = plt.subplots(2, sharex=True)
         fig.suptitle(state_naming[state_idx])
-        ax[0].plot(state_truth[:, state_idx], label="True State", color="k")
+        ax[0].plot(state_truth[:, state_idx], label='True State', color='k')
         ax[0].set_ylabel(state_y_labels[state_idx])
-        xlabel("Time (s)")
+        xlabel('Time (s)')
 
         state = state_results[:, state_idx]
         label = f'RMSE = {rmse[state_idx]}'
@@ -509,7 +509,7 @@ def generate_contour_map(grid_locs_3d, state_truth, run_time):
     contour.levels = [NumberFormat(val) for val in contour.levels]
 
     # Label levels with specially formatted floats
-    if plt.rcParams["text.usetex"]:
+    if plt.rcParams['text.usetex']:
         fmt = r'%r '
     else:
         fmt = '%r '
@@ -519,8 +519,8 @@ def generate_contour_map(grid_locs_3d, state_truth, run_time):
     plot(
         state_truth[0:run_time, 0],
         state_truth[0:run_time, 1],
-        label="True State",
-        color="k",
+        label='True State',
+        color='k',
     )
 
     return fig
@@ -557,14 +557,14 @@ def make_particle_trajectory_plot(
     for cur_time in arange(0, run_time, PARTICLE_LAPSE_TIME):
         p_east = state_particles_history[cur_time, 0, :]
         p_north = state_particles_history[cur_time, 1, :]
-        p_label = "Time %d" % cur_time
-        plt.scatter(p_east, p_north, label=p_label, marker=".")
+        p_label = 'Time %d' % cur_time
+        plt.scatter(p_east, p_north, label=p_label, marker='.')
     # show particles at end
     p_east = state_particles_history[run_time - 1, 0, :]
     p_north = state_particles_history[run_time - 1, 1, :]
-    p_label = "Time %d" % (run_time - 1)
+    p_label = 'Time %d' % (run_time - 1)
 
-    plt.scatter(p_east, p_north, label=p_label, marker=".")
+    plt.scatter(p_east, p_north, label=p_label, marker='.')
     xlabel('East Position (m)')
     ylabel('North Position (m)')
     legend()
@@ -740,9 +740,9 @@ class NumberFormat(float):
         return f'{self:.0f}' if num[-1] == '0' else num
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     if len(sys.argv) > 2:
-        sys.exit("Usage: particle_filter_example.py [run_time]")
+        sys.exit('Usage: particle_filter_example.py [run_time]')
     elif len(sys.argv) == 2:
         run_time = min(int(sys.argv[1]), RUN_TIME)
     else:

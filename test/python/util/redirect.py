@@ -1,8 +1,8 @@
-from tempfile import TemporaryFile
 from contextlib import contextmanager
-from os import fdopen, dup, dup2
-from sys import stdout, stderr
 from locale import getpreferredencoding
+from os import dup, dup2, fdopen
+from sys import stderr, stdout
+from tempfile import TemporaryFile
 
 try:
     from ctypes import cdll

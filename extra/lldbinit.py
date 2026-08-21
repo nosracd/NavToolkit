@@ -1,6 +1,7 @@
-import lldb
 import os
 import struct
+
+import lldb
 
 err = lldb.SBError()
 ELE_SIZE = 8
@@ -35,7 +36,7 @@ def get_shape(valobj):
 
 
 def get_row_dynamic_tensor(process, dataPtr, cols):
-    out = ""
+    out = ''
     for c in range(cols):
         out += str(
             struct.unpack('d', process.ReadMemory(dataPtr + (c * 8), 8, err))[
@@ -43,12 +44,12 @@ def get_row_dynamic_tensor(process, dataPtr, cols):
             ]
         )
         if c != cols - 1:
-            out += ", "
+            out += ', '
     return out
 
 
 def get_row_fixed_tensor(obj, row, cols):
-    out = ""
+    out = ''
     for c in range(cols):
         out += str(obj.GetChildAtIndex(c + row * cols).GetValue())
         if c < cols - 1:
@@ -64,7 +65,7 @@ def MatrixSummary(valobj, stuff):
     (rows, cols) = shape
 
     if rows * cols > MAX_SUMMARY_SIZE:
-        return "Matrix ({}x{})".format(str(rows), str(cols))
+        return 'Matrix ({}x{})'.format(str(rows), str(cols))
 
     pointer_object = valobj.GetChildMemberWithName(
         'm_storage'
@@ -74,30 +75,30 @@ def MatrixSummary(valobj, stuff):
 
         if dataPtr == 0:
             return '<null buffer>'
-        out = "[["
+        out = '[['
         for r in range(rows):
             offset = cols * ELE_SIZE * r
             out += get_row_dynamic_tensor(process, dataPtr + offset, cols)
             if r != rows - 1:
-                out += "], ["
-        return out + "]]"
+                out += '], ['
+        return out + ']]'
     else:
         array = (
             valobj.GetChildMemberWithName('m_storage')
             .GetChildAtIndex(0)
             .GetChildAtIndex(0)
         )
-        out = "[["
+        out = '[['
         for r in range(rows):
             out += get_row_fixed_tensor(array, r, cols)
             if r < rows - 1:
-                out += "], ["
-        return out + "]]"
+                out += '], ['
+        return out + ']]'
 
 
 class MatrixSyntheticChildrenProvider:
     valobj = None
-    builtins = ["m_shape", "m_storage", "m_begin", "p_begin"]
+    builtins = ['m_shape', 'm_storage', 'm_begin', 'p_begin']
 
     def __init__(self, valobj, internal_dict):
         self.valobj = valobj
@@ -132,7 +133,7 @@ class MatrixSyntheticChildrenProvider:
                     self.valobj.process, dataPtr + offset, cols
                 )
                 return self.valobj.CreateValueFromExpression(
-                    "Row " + str(index - len(self.builtins)),
+                    'Row ' + str(index - len(self.builtins)),
                     '(const char*)"' + row + '"',
                 )
             else:
@@ -144,7 +145,7 @@ class MatrixSyntheticChildrenProvider:
                 row_num = index - len(self.builtins)
                 row = get_row_fixed_tensor(array, row_num, cols)
                 return self.valobj.CreateValueFromExpression(
-                    "Row " + str(row_num), '(const char*)"' + row + '"'
+                    'Row ' + str(row_num), '(const char*)"' + row + '"'
                 )
 
     def update(self):
@@ -156,20 +157,21 @@ class MatrixSyntheticChildrenProvider:
 
 def __lldb_init_module(debugger, internal_dict):
     matrix_types = [
-        "xt::xtensor",
-        "xt::xtensor_fixed",
-        "navtk::Vector",
-        "navtk::Vector3",
-        "navtk::Vector4",
-        "navtk::Matrix",
-        "navtk::Matrix3",
+        'xt::xtensor',
+        'xt::xtensor_fixed',
+        'navtk::Vector',
+        'navtk::Vector3',
+        'navtk::Vector4',
+        'navtk::Matrix',
+        'navtk::Matrix3',
     ]
     for matrix_type in matrix_types:
         debugger.HandleCommand(
-            "type summary add %s -F %s.MatrixSummary"
+            'type summary add %s -F %s.MatrixSummary'
             % (matrix_type, os.path.splitext(os.path.basename(__file__))[0])
         )
         debugger.HandleCommand(
-            "type synthetic add %s --python-class %s.MatrixSyntheticChildrenProvider"
+            'type synthetic add %s --python-class'
+            ' %s.MatrixSyntheticChildrenProvider'
             % (matrix_type, os.path.splitext(os.path.basename(__file__))[0])
         )

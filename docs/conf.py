@@ -14,9 +14,9 @@
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
 
+import json
 import os
 import subprocess
-import json
 
 # -- Project information -----------------------------------------------------
 
@@ -27,7 +27,7 @@ author = 'IS4S'
 # The full version, including alpha/beta/rc tags
 projectinfo = json.loads(
     subprocess.check_output(
-        ["meson", "introspect", "--projectinfo", "../meson.build"]
+        ['meson', 'introspect', '--projectinfo', '../meson.build']
     )
 )
 __version__ = projectinfo['version']
@@ -61,18 +61,18 @@ mathjax3_config = {
 }
 
 
-breathe_projects = {"navtk": "doxygen_output/xml"}
+breathe_projects = {'navtk': 'doxygen_output/xml'}
 
-breathe_default_project = "navtk"
+breathe_default_project = 'navtk'
 
 exhale_args = {
     # These arguments are required
-    "containmentFolder": "./api-exhale",
-    "rootFileName": "library_root.rst",
-    "rootFileTitle": "NavToolkit API",
-    "doxygenStripFromPath": "..",
+    'containmentFolder': './api-exhale',
+    'rootFileName': 'library_root.rst',
+    'rootFileTitle': 'NavToolkit API',
+    'doxygenStripFromPath': '..',
     # Suggested optional arguments
-    "createTreeView": True,
+    'createTreeView': True,
 }
 
 # Tell sphinx what the primary language being documented is.
@@ -95,7 +95,7 @@ exclude_patterns = ['Thumbs.db', '.DS_Store', 'resources']
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = "sphinx_rtd_theme"
+html_theme = 'sphinx_rtd_theme'
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,

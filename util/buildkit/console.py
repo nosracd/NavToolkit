@@ -1,13 +1,13 @@
-'''
+"""
 Routines and classes for interacting with the user from our Python scripts.
-'''
+"""
 
 # pylint: disable=too-few-public-methods,unused-argument,no-self-use
 
-import sys
-from os import environ, fstat
 import re
 import stat
+import sys
+from os import environ, fstat
 from shutil import get_terminal_size
 
 # Detects whether we're running from within a meson subprocess based on whether
@@ -47,12 +47,12 @@ MESSAGE_TYPE_COLORS = {
 
 
 def _b(target, text):
-    '''
+    """
     Convert the given text to/from bytes to match the type of the target.
 
     Used below to match unicode vs bytes on a lot of string manipulation
     routines.
-    '''
+    """
     if isinstance(text, int):
         text = chr(text)
     if isinstance(target, bytes):
@@ -72,11 +72,11 @@ def _compose_ansi_color(color, base=FOREGROUND_COLOR_BASE):
 def compose_ansi(
     foreground=None, bold=False, background=None, title=None, underline=False
 ):
-    '''
+    """
     Return an ANSI escape sequence corresponding to the requested formatting.
 
     Called with no arguments, return the ANSI reset escape sequence.
-    '''
+    """
 
     terms = []
     if foreground is not None:
@@ -96,7 +96,7 @@ def compose_ansi(
 
 
 class ConsoleOutput:
-    '''
+    """
     Wrapper for a python output stream, such as sys.stderr or sys.stdout,
     that provides special features like ANSI colors, folding, auto-indent,
     and word wrap.
@@ -106,7 +106,7 @@ class ConsoleOutput:
 
     This class works by sending all incoming calls to `write` to a series
     of filters (self.filters) which are defined as separate classes.
-    '''
+    """
 
     column_count = 0
     visible = False
@@ -131,7 +131,7 @@ class ConsoleOutput:
         ]
 
     def write(self, *data, **kw):
-        '''
+        """
         Run the given data through the view filters, then write the
         modified result to the underlying stream.
 
@@ -140,7 +140,7 @@ class ConsoleOutput:
         options (such as `{'bold': True}`) which will be converted into
         ANSI format codes. See the various filter classes (defined below)
         for examples of the kinds of things you can write.
-        '''
+        """
         for console_filter in self.filters:
             data = console_filter.filter(self, data, kw)
         data = list(data)
@@ -150,9 +150,7 @@ class ConsoleOutput:
         self.stream.flush()
 
     def write_status(self, text, status=None):
-        '''
-        Write a standard status line
-        '''
+        """Write a standard status line."""
         if IN_MESON:
             return
         self.clearline()
@@ -182,9 +180,9 @@ class ConsoleOutput:
         self.write(*writing, constrain=not status)
 
     def message(self, kind, text, **kw):
-        '''
+        """
         Write a message using a colorful redhat-style [ ok ] status field.
-        '''
+        """
         foreground_color = kw.pop(
             'foreground', MESSAGE_TYPE_COLORS.get(kind.lower(), 'red')
         )
@@ -197,25 +195,25 @@ class ConsoleOutput:
         self.write(f'{text!s}\n', foreground=foreground_color)
 
     def clearline(self):
-        '''
+        """
         If this is a visible terminal, use whitespace and \r to clear the
         current output line. Otherwise, write a \n.
-        '''
+        """
         self.write(f'\r{" " * 1000}\r')
 
 
 class AtomicFilter:
-    '''
+    """
     Base class for output filters that can process ConsoleOutput#write
     arguments one-at-a-time, rather than needing to handle the entire
     write call at once.
-    '''
+    """
 
     def filter(self, console, data, options):
-        '''
+        """
         Modifies the incoming stream by passing each of its elements to
         either filter_format or filter_text based on its type.
-        '''
+        """
         for datum in data:
             # pylint: disable=assignment-from-no-return
             if isinstance(datum, dict):
@@ -225,27 +223,27 @@ class AtomicFilter:
             yield from stream or [datum]
 
     def filter_format(self, console, datum, options):
-        '''Transform a single formatting dict in a write call.'''
+        """Transform a single formatting dict in a write call."""
 
     def filter_text(self, console, datum, options):
-        '''Transform a single piece of text in a write call.'''
+        """Transform a single piece of text in a write call."""
 
 
 class CRColumnLimiter(AtomicFilter):
-    r'''
+    r"""
     ConsoleOutput filter that prevents any `\r`-terminated message from
     exceeding the width of the console, to prevent line wrapping from
     resulting in duplicate/broken `\r` replacements.
-    '''
+    """
 
     column_count = 0
     column_limit = get_terminal_size().columns - 1
 
     def filter_text(self, console, datum, options):
-        r'''
+        r"""
         Maintain a running column count and prevent any line ending with `\r`
         from exceeding the width of the terminal.
-        '''
+        """
         if not console.visible:
             if datum.strip(_b(datum, '\r ')):
                 datum = re.sub(_b(datum, r'\r\s*'), '...\n', datum)
@@ -268,7 +266,7 @@ class CRColumnLimiter(AtomicFilter):
             if limiting and new_count > self.column_limit:
                 split = self.column_limit - self.column_count - 2
                 line = line[:split] + _b(
-                    line, " »" if line[split:].strip() else ''
+                    line, ' »' if line[split:].strip() else ''
                 )
                 new_count = self.column_count + len(line)
             if limiting and new_count > self.column_limit:
@@ -282,21 +280,21 @@ class CRColumnLimiter(AtomicFilter):
 
 
 class Indenter(AtomicFilter):
-    '''
+    """
     ConsoleOutput filter that adds space after all incoming newlines,
     allowing you to automatically indent the information you're writing.
-    '''
+    """
 
     indent = 0
 
     def filter_format(self, console, datum, options):
-        '''Consume the 'indent' format parameter.'''
+        """Consume the 'indent' format parameter."""
         self.indent += datum.pop('indent', 0)
 
     def filter_text(self, console, datum, options):
-        '''
+        """
         Append whitespace after newlines, corresponding to the indent level.
-        '''
+        """
         indent = self.indent + options.get('indent', 0)
         if not IN_MESON:
             for char in '\r\n':
@@ -307,17 +305,17 @@ class Indenter(AtomicFilter):
 
 
 class OptionsAsFormat:
-    '''
+    """
     ConsoleOutput filter that converts dicts describing formatting to
     ANSI color codes, for example UI.write({'bold': True}) will, if the
     output is a TTY, write the ASCII color code for bold.
 
     Allowable keys to the dicts correspond to keyword arguments for the
     compose_ansi function.
-    '''
+    """
 
     def filter(self, console, data, options):
-        '''Modify the data stream, converting dicts to ansi format codes'''
+        """Modify the data stream, converting dicts to ansi format codes"""
         format_keys = {
             'foreground',
             'background',
@@ -341,19 +339,19 @@ class OptionsAsFormat:
 
 
 class FoldingFilter:
-    '''
+    """
     ConsoleOutput filter that listens for a `fold` keyword argument.
 
         UI.write(fold='push') suppresses any further output until...
         UI.write(fold='pop') dumps all the output that was hidden or...
         UI.write(fold='drop') deletes the cache.
-    '''
+    """
 
     def __init__(self):
         self.buf = []
 
     def filter(self, console, data, options):
-        '''Modify the data stream, possibly hiding its content.'''
+        """Modify the data stream, possibly hiding its content."""
         action = options.get('fold', '')
         if not data and {'title'} == set(options):
             yield from data
@@ -373,7 +371,7 @@ class FoldingFilter:
 
 
 class ListExpander:
-    '''
+    """
     ConsoleOutput filter that flattens lists, such that
 
         UI.write(['a', 'b'], 'c')
@@ -381,10 +379,10 @@ class ListExpander:
     is equivalent to
 
         UI.write('a', 'b', 'c')
-    '''
+    """
 
     def filter(self, console, data, options):
-        '''Modify the data stream, flattening lists.'''
+        """Modify the data stream, flattening lists."""
         for item in data:
             if isinstance(item, (list, tuple)):
                 yield from item
@@ -396,12 +394,12 @@ UI = ConsoleOutput(sys.stderr)
 
 
 def write_title(frame):
-    '''
+    """
     Update the ANSI console title to a |-separated list of ViewFrames,
     starting with the given frame and including all the containing frames.
 
     If frame is null, clear the ANSI console title.
-    '''
+    """
     title = []
     while frame is not None:
         if frame.hide_inner:
@@ -413,10 +411,10 @@ def write_title(frame):
 
 
 class ViewFrame:
-    '''
+    """
     A context manager that writes its status to the console using
     redhat-style [ ok ] / [fail] markers and ANSI colors.
-    '''
+    """
 
     current = None
     parent = None
@@ -473,30 +471,30 @@ class ViewFrame:
         return True if self.catch is True else isinstance(value, self.catch)
 
     def unhide_immediately(self, unhide_action=None):
-        '''
+        """
         If this ViewFrame is suppressing console output, immediately stop
         doing that. Called automatically by __exit__.
-        '''
+        """
         if self._unhide:
             UI.write(fold=unhide_action or self._unhide)
             self._unhide = False
 
 
 def warn(message, **kw):
-    '''
+    """
     Write a beautified version of the message to the console and mark
     the current ViewFrame (if any) as finish_status='warn'
-    '''
+    """
     if ViewFrame.current and ViewFrame.current.finish_status == 'ok':
         ViewFrame.current.finish_status = 'warn'
     return UI.message('warning', message, **kw)
 
 
 def error(message, **kw):
-    '''
+    """
     Write a beautified version of the message to the console and mark
     the current ViewFrame (if any) as finish_status='fail'
-    '''
+    """
     if ViewFrame.current and ViewFrame.current.finish_status != 'fail':
         ViewFrame.current.finish_status = 'fail'
     return UI.message('error', message, **kw)

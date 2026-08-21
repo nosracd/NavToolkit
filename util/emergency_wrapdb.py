@@ -25,11 +25,11 @@ If wrapdb is down and you are missing packages from wrapdb:
     meson setup build -Dwrap_mode=nodownload
 """
 
-import sys
 import configparser
+import sys
 from pathlib import Path
-from ghwt import run as ghwt
 
+from ghwt import run as ghwt
 
 # Future enhancement:  It might be possible to determine which branch to
 # use based on 'patch_url' in the .wrap file
