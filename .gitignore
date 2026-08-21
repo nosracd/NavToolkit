@@ -15,6 +15,7 @@ Thumbs.db
 # Ignore meson artifacts
 /build*/
 /subprojects/*/
+/subprojects/.wraplock
 !subprojects/packagefiles
 docker/build/
 
