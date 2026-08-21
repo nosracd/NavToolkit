@@ -13,12 +13,22 @@ fs = import('fs')
 # - If Meson cannot download packages from wrapdb, see util/emergency_wrapdb.py
 find_program('pkg-config', required: true)
 
+cpp_compiler = meson.get_compiler('cpp')
+cpp_is_msvc = cpp_compiler.get_argument_syntax() == 'msvc'
+
 if host_machine.cpu_family() == 'aarch64' or host_machine.cpu_family() == 'arm'
     add_project_arguments('-Wno-psabi', language: 'cpp')
 endif
 
 if (host_machine.system() == 'windows')
-    add_project_arguments(['-Wa,-mbig-obj', '-D_USE_MATH_DEFINES', '-Wno-attributes'], language : 'cpp')
+    if cpp_is_msvc
+        add_project_arguments(['/bigobj', '/Zc:preprocessor', '-D_USE_MATH_DEFINES', '-DNOMINMAX'], language : 'cpp')
+    else
+        add_project_arguments(['-Wa,-mbig-obj', '-D_USE_MATH_DEFINES', '-Wno-attributes'], language : 'cpp')
+    endif
+    if not meson.is_subproject()
+        add_global_arguments(cpp_is_msvc ? '/bigobj' : '-Wa,-mbig-obj', language : 'cpp')
+    endif
 endif
 
 if get_option('buildtype') == 'debug'
@@ -102,7 +112,7 @@ foreach fs_header : [['HAS', 'filesystem'],
         if cpp_compiler.compiles(fs_code,
                                  name: fs_using,
                                  dependencies: fs_dep,
-                                 args: ['-std=' + cpp_std])
+                                 args: [(cpp_is_msvc ? '/std:' : '-std=') + cpp_std])
             add_project_arguments([
                 '-DNAVTK_STD_FILESYSTEM_NAMESPACE=' + fs_namespace,
                 '-DNAVTK_STD_' + fs_header[0] + '_FILESYSTEM_HEADER=1'
