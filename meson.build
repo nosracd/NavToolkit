@@ -325,7 +325,7 @@ python_with_clang_format = import('python').find_installation('python3',
 if python_with_clang_format.found()
     run_target('format', command: [python_with_clang_format, '-c', 'from clang_format import clang_format; clang_format()', '-style=file', '--verbose', '-i'] + files_to_format)
 else
-    run_target('format', command: [python, '-c', 'import sys; print("`format` is disabled because clang-format does not appear to be installed.'])
+    run_target('format', command: [python, '-c', 'import sys; print("`format` is disabled because clang-format does not appear to be installed.")'])
 endif
 
 
