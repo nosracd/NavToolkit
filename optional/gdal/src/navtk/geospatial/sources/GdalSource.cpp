@@ -1,24 +1,14 @@
 #include <navtk/geospatial/sources/GdalSource.hpp>
 
-#include <iomanip>
-#include <sstream>
+#include <cmath>
+#include <memory>
 #include <stdexcept>
-
-#ifndef GDAL_INCLUDE_IN_SUBFOLDER
-#	include <gdal_priv.h>
-#	include <ogr_spatialref.h>
-#else
-#	include <gdal/gdal_priv.h>
-#	include <gdal/ogr_spatialref.h>
-#endif
 
 #include <navtk/errors.hpp>
 #include <navtk/fs/filesystem.hpp>
-#include <navtk/geospatial/GdalRaster.hpp>
 #include <navtk/geospatial/Tile.hpp>
 #include <navtk/navutils/math.hpp>
 #include <navtk/navutils/navigation.hpp>
-#include <navtk/tensors.hpp>
 
 namespace navtk {
 namespace geospatial {
@@ -31,19 +21,7 @@ GdalSource::GdalSource(const std::string& map_path,
                        AspnMeasurementAltitudeReference out_ref,
                        unsigned int num_tiles,
                        const std::string& undulation_path)
-    : storage(num_tiles), map_type(type), undulation_path(undulation_path) {
-
-	std::string extension;
-	switch (map_type) {
-	case MapType::GEOTIFF:
-		extension = ".tif";
-		break;
-	case MapType::DTED:
-		extension = ".dt";
-		break;
-	default:
-		log_or_throw<std::invalid_argument>("Invalid map type.");
-	}
+    : map_type(type), undulation_path(undulation_path) {
 
 	input_reference  = in_ref;
 	output_reference = out_ref;
@@ -54,6 +32,25 @@ GdalSource::GdalSource(const std::string& map_path,
 		    "reference to HAE.");
 		input_reference  = ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE;
 		output_reference = ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE;
+	}
+
+	max_size = num_tiles;
+
+	// find all tiles at the provided map path
+	find_tiles(map_path);
+}
+
+void GdalSource::find_tiles(const std::string& map_path) {
+	std::string extension;
+	switch (map_type) {
+	case MapType::GEOTIFF:
+		extension = ".tif";
+		break;
+	case MapType::DTED:
+		extension = ".dt";
+		break;
+	default:
+		log_or_throw<std::invalid_argument>("Invalid map type.");
 	}
 
 	auto absolute_map_path = fs::absolute(map_path);
@@ -81,24 +78,98 @@ GdalSource::GdalSource(const std::string& map_path,
 		if (filename.filename().string().at(0) != '.' &&
 		    filename.extension().string().find(extension) != std::string::npos) {
 
-			std::shared_ptr<GdalRaster> raster =
-			    std::make_shared<GdalRaster>(filename, undulation_path);
-			if (raster->is_valid()) known_tiles.push_back(std::make_shared<Tile>(raster));
+			add_tile(filename);
 		}
 	}
-	if (map_type == MapType::DTED) {
-		// sort so that '.dt5' files are found before '.dt0'
-		std::sort(known_tiles.begin(),
-		          known_tiles.end(),
-		          [](const std::shared_ptr<Tile> tile1, const std::shared_ptr<Tile> tile2) {
-			          return tile1->get_filename().back() > tile2->get_filename().back();
-		          });
-	}
 
-	if (known_tiles.empty()) {
+	if (get_size() == 0) {
 		log_or_throw("GdalSource: No elevation files found in path {}",
 		             fmt::streamed(absolute_map_path));
 	}
+
+	if (map_type == MapType::DTED) {
+		// sort so that '.dt5' files are found before '.dt0'
+		std::sort(search_order.begin(),
+		          search_order.end(),
+		          [this](const size_t idx_1, const size_t idx_2) {
+			          return tiles[idx_1].get_filename().back() >
+			                 tiles[idx_2].get_filename().back();
+		          });
+	}
+}
+
+void GdalSource::add_tile(const std::string& filename) {
+
+	if (is_stored(filename)) {
+		log_or_throw<std::invalid_argument>("{} is already stored in tile store.  Ignoring Tile.",
+		                                    filename);
+		return;
+	}
+
+	const auto idx = tiles.size();
+	search_order.push_back(idx);
+	tiles.emplace_back(filename);
+
+	if (!tiles[idx].is_valid()) {
+		search_order.pop_back();
+		tiles.pop_back();
+		log_or_throw<std::invalid_argument>("Could not find file {}.  Ignoring Tile.", filename);
+		return;
+	}
+
+	if (!is_valid_tile(tiles[idx])) {
+		search_order.pop_back();
+		tiles.pop_back();
+		log_or_throw<std::invalid_argument>(
+		    "Tile coordinate system doesn't match store.  Ignoring Tile.");
+		return;
+	}
+
+	// if no transform has yet been set for the source, use this tile's transformation
+	if (!wgs84_to_map_transform) {
+		wgs84_to_map_transform = tiles[idx].wgs84_to_map_transform();
+
+		if (wgs84_to_map_transform->GetSourceCS() == wgs84_to_map_transform->GetTargetCS())
+			need_transform = false;
+	}
+}
+
+bool GdalSource::is_valid_tile(const Tile& tile) const {
+	// currently, we don't support rotated tiles
+	if (tile.is_rotated()) {
+		return false;
+	}
+
+	auto tile_transform = tile.wgs84_to_map_transform();
+
+	if (!tile_transform) {
+		// if (for some reason), the tile returned a nullptr, it is automatically not valid
+		return false;
+	}
+
+	if (!wgs84_to_map_transform) {
+		// if no reference transform exists (i.e., no tiles have been added yet), than any transform
+		// is valid
+		return true;
+	}
+
+	auto src        = tile_transform->GetSourceCS();
+	auto target     = tile_transform->GetTargetCS();
+	auto ref_src    = wgs84_to_map_transform->GetSourceCS();
+	auto ref_target = wgs84_to_map_transform->GetTargetCS();
+
+	if (!src || !target || !ref_src || !ref_target) {
+		// if any of the coordinate systems are null, throw error
+		throw std::runtime_error("Found a coordinate transform with a null cooridnate system.");
+	}
+
+	if (src->IsSame(ref_src) == FALSE || target->IsSame(ref_target) == FALSE) {
+		// if the source or target coordinate systems don't match the reference, the transform
+		// is not valid
+		return false;
+	}
+
+	return true;
 }
 
 void GdalSource::set_output_vertical_reference_frame(AspnMeasurementAltitudeReference new_ref) {
@@ -111,37 +182,99 @@ void GdalSource::set_output_vertical_reference_frame(AspnMeasurementAltitudeRefe
 	}
 }
 
-std::pair<bool, double> GdalSource::lookup_datum(double latitude_rad, double longitude_rad) const {
-	double latitude_deg  = latitude_rad * RAD2DEG;
-	double longitude_deg = longitude_rad * RAD2DEG;
-	for (auto const& tile : known_tiles) {
-		if (tile->contains(latitude_deg, longitude_deg)) {
-			if (!storage.is_stored(tile->get_filename())) {
-				// will clear oldest tile from memory when new tile is added
-				storage.add_tile(tile);
+std::pair<bool, double> GdalSource::lookup_datum(double latitude, double longitude) const {
+
+	auto coordinate = wgs84_to_map(latitude, longitude);
+
+	size_t tile_idx;
+
+	for (auto tile_iter = search_order.begin(); tile_iter != search_order.end(); tile_iter++) {
+
+		tile_idx = *tile_iter;
+
+		if (tiles[tile_idx].contains(coordinate)) {
+			mark_tile_as_cached(tile_iter);
+			auto elevation = tiles[tile_idx].lookup_datum(coordinate);
+
+			if (std::isnan(elevation)) {
+				continue;
 			}
-			auto elevation = tile->lookup_datum(latitude_deg, longitude_deg);
-			if (elevation.first) {
-				// TODO (#733): ideally, this conversion won't need to occur here because it would
-				// happen at initialization
-				if (input_reference == ASPN_MEASUREMENT_ALTITUDE_REFERENCE_MSL &&
-				    output_reference == ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE) {
-					return navtk::navutils::msl_to_hae(
-					    elevation.second, latitude_rad, longitude_rad, undulation_path);
-				} else if (input_reference == ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE &&
-				           output_reference == ASPN_MEASUREMENT_ALTITUDE_REFERENCE_MSL) {
-					return navtk::navutils::hae_to_msl(
-					    elevation.second, latitude_rad, longitude_rad, undulation_path);
-				}
-				return elevation;
+
+			// TODO (#733): ideally, this conversion won't need to occur here because it would
+			// happen at initialization
+			if (input_reference == ASPN_MEASUREMENT_ALTITUDE_REFERENCE_MSL &&
+			    output_reference == ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE) {
+				return navtk::navutils::msl_to_hae(elevation, latitude, longitude, undulation_path);
+			} else if (input_reference == ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE &&
+			           output_reference == ASPN_MEASUREMENT_ALTITUDE_REFERENCE_MSL) {
+				return navtk::navutils::hae_to_msl(elevation, latitude, longitude, undulation_path);
 			}
+			return {true, elevation};
 		}
 	}
 
-	spdlog::debug(
-	    "GdalSource::lookup_datum failed!  {}/{} not in known tiles.", latitude_deg, longitude_deg);
+	spdlog::debug("GdalSource::lookup_datum failed!  {}/{} not in known tiles.",
+	              latitude * RAD2DEG,
+	              longitude * RAD2DEG);
 
-	return {false, 0.0};
+	return {false, NAN};
+}
+
+Coordinate GdalSource::wgs84_to_map(double latitude_rad, double longitude_rad) const {
+
+	if (wgs84_to_map_transform) {
+		double x_geo = longitude_rad * RAD2DEG;
+		double y_geo = latitude_rad * RAD2DEG;
+		if (need_transform) wgs84_to_map_transform->Transform(1, &x_geo, &y_geo);
+
+		return {x_geo, y_geo};
+	} else {
+		throw std::runtime_error(
+		    "Cannot convert to map space if no tiles have been added to storage!");
+	}
+}
+
+void GdalSource::mark_tile_as_cached(const std::vector<size_t>::iterator& iter) const {
+
+	if (iter == search_order.begin()) {
+		return;
+	}
+
+	// move the current tile to the front of the search_order
+	std::rotate(search_order.begin(), iter, iter + 1);
+
+	// if we have the specified number of cached tiles already, unload the least recently used one
+	if (tiles.size() > max_size && tiles[search_order[max_size]].is_cached()) {
+		tiles[search_order[max_size]].unload();
+	}
+
+	// NOTE: since a tile will automatically cache itself when read from, there is no need to
+	// manually cache it here.  The assumption is that if the user is about to read from the
+	// tile (hense the call to `cache_tile`), it will get cached posthaste.  But in the mean
+	// time, no need to cache it before it is used.
+}
+
+size_t GdalSource::get_size() const { return tiles.size(); }
+
+size_t GdalSource::get_cached_num() const {
+	size_t total_cached = 0;
+
+	for (size_t i = 0; i < tiles.size(); i++) {
+		if (tiles[i].is_cached()) {
+			total_cached++;
+		}
+	}
+
+	return total_cached;
+}
+
+bool GdalSource::is_stored(const std::string& filename) const {
+	for (size_t i = 0; i < tiles.size(); i++) {
+		if (tiles[i].get_filename() == filename) {
+			return true;
+		}
+	}
+	return false;
 }
 }  // namespace geospatial
 }  // namespace navtk

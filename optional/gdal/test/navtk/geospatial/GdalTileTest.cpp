@@ -1,13 +1,12 @@
-#include <gmock/gmock.h>
+#include <memory>
+#include <stdexcept>
+
 #include <gtest/gtest.h>
 
-#include <navtk/geospatial/MockRaster.hpp>
+#include <navtk/errors.hpp>
+#include <navtk/fs/filesystem.hpp>
 #include <navtk/geospatial/Tile.hpp>
-
-using testing::_;
-using testing::Return;
-using testing::SetArrayArgument;
-using testing::Throw;
+#include <navtk/tensor_assert.hpp>
 
 namespace navtk {
 namespace geospatial {
@@ -15,255 +14,168 @@ namespace geospatial {
 class TileTest : public testing::Test {
 protected:
 	void SetUp() override {
-		raster       = std::make_unique<MockRaster>();
-		raw_raster   = raster.get();
-		tile         = std::make_shared<Tile>(std::move(raster));
-		top_left     = raw_raster->no_data_value;
-		top_right    = raw_raster->no_data_value;
-		bottom_left  = raw_raster->no_data_value;
-		bottom_right = raw_raster->no_data_value;
-	}
 
-	static constexpr unsigned size        = 11;
-	std::array<double, 6> pixel_transform = {0, 1, 0, 0, 0, 1};
-	std::unique_ptr<MockRaster> raster;
-	MockRaster* raw_raster;
-	double top_left;
-	double top_right;
-	double bottom_left;
-	double bottom_right;
+		auto path = getenv("NAVTK_DATA_DIR");
+
+		if (path == NULL) {
+			log_or_throw("NAVTK_DATA_DIR is not set.  Cannot create GDAL tile.");
+		}
+
+		std::string file = "";
+		auto extension   = ".tif";
+
+		auto map_path = std::string(path);
+
+		auto absolute_map_path = fs::absolute(map_path);
+
+		if (!map_path.empty()) {
+
+			if (map_path[map_path.size() - 1] != fs::path::preferred_separator) {
+				absolute_map_path = fs::absolute(map_path + fs::path::preferred_separator);
+			}
+		}
+
+		// By default constructs an end iterator which will cause no paths to be searched
+		fs::recursive_directory_iterator file_search_iterator;
+
+		try {
+			file_search_iterator = fs::recursive_directory_iterator(
+			    absolute_map_path, fs::directory_options::follow_directory_symlink);
+		} catch (fs::filesystem_error& e) {
+			log_or_throw<std::invalid_argument>("{}", e.what());
+		}
+
+		for (const auto& entry : file_search_iterator) {
+			fs::path filename = fs::path(entry.path());
+			// Use `find` instead of `compare` to find extensions like `dt2`
+			if (filename.filename().string().at(0) != '.' &&
+			    filename.extension().string().find(extension) != std::string::npos) {
+
+				file = filename;
+			}
+		}
+
+		if (file == "") {
+			log_or_throw<std::runtime_error>("No test data file found.");
+		}
+
+		tile = std::make_shared<Tile>(file);
+	}
 	std::shared_ptr<Tile> tile;
 };
 
-TEST_F(TileTest, get_elevation_max_tile_all_zeros) {
-	const double longitude = -84;
-	const double latitude  = 45;
-	const int offset_x     = 10;
-	const int offset_y     = 10;
+TEST_F(TileTest, is_valid) { ASSERT_TRUE(tile->is_valid()); }
 
-	// NOTE: pixel and post are synonymous
-	EXPECT_CALL(*raw_raster, get_width()).WillRepeatedly(Return(size));
-	EXPECT_CALL(*raw_raster, get_height()).WillRepeatedly(Return(size));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x, offset_y)).WillOnce(Return(top_left));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x + 1, offset_y)).WillOnce(Return(top_right));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x, offset_y + 1)).WillOnce(Return(bottom_left));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x + 1, offset_y + 1)).WillOnce(Return(bottom_right));
-
-	auto elevation = tile->lookup_datum(latitude, longitude);
-
-	EXPECT_FALSE(elevation.first);
-	EXPECT_NEAR(0, elevation.second, 0.00001);
+TEST_F(TileTest, get_filename) {
+	auto filename = tile->get_filename();
+	ASSERT_TRUE(filename.substr(filename.length() - 10) == "bogota.tif");
 }
 
-TEST_F(TileTest, get_elevation_max_tile) {
-	const double longitude = -84;
-	const double latitude  = 45;
-	const int offset_x     = 10;
-	const int offset_y     = 10;
+TEST_F(TileTest, contains) {
+	Coordinate coord_false = {0.0, 0.0};
+	Coordinate coord_true  = {456080.000, 84640.000};
 
-	top_left = 10;  // other corners are `#no_data_value` because they are out of bounds of tile
-
-	EXPECT_CALL(*raw_raster, get_width()).WillRepeatedly(Return(size));
-	EXPECT_CALL(*raw_raster, get_height()).WillRepeatedly(Return(size));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x, offset_y)).WillOnce(Return(top_left));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x + 1, offset_y)).WillOnce(Return(top_right));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x, offset_y + 1)).WillOnce(Return(bottom_left));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x + 1, offset_y + 1)).WillOnce(Return(bottom_right));
-
-	auto elevation = tile->lookup_datum(latitude, longitude);
-
-	ASSERT_TRUE(elevation.first);
-	EXPECT_NEAR(10, elevation.second, 0.01);
+	ASSERT_FALSE(tile->contains(coord_false));
+	ASSERT_TRUE(tile->contains(coord_true));
 }
 
-TEST_F(TileTest, get_elevation_mixed_values) {
-	const double longitude = -84.25;
-	const double latitude  = 45.71;
-	const int offset_x     = 7;
-	const int offset_y     = 2;
+TEST_F(TileTest, contains_edge) {
+	const double EPSILON = 1e-6;
 
-	top_left     = 7;
-	top_right    = 8;
-	bottom_left  = 7;
-	bottom_right = 8;
+	Coordinate coord_edge      = {440720.000, 100000.000};
+	Coordinate coord_near_edge = {440720.000 + EPSILON, 100000.000 - EPSILON};
 
-	EXPECT_CALL(*raw_raster, get_width()).WillRepeatedly(Return(size));
-	EXPECT_CALL(*raw_raster, get_height()).WillRepeatedly(Return(size));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x, offset_y)).WillOnce(Return(top_left));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x + 1, offset_y)).WillOnce(Return(top_right));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x, offset_y + 1)).WillOnce(Return(bottom_left));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x + 1, offset_y + 1)).WillOnce(Return(bottom_right));
-
-	auto elevation = tile->lookup_datum(latitude, longitude);
-	// A longitude of -84.25 would be halfway between
-	// -84.3 and -84.2 (7 and 8 respectively)
-
-	ASSERT_TRUE(elevation.first);
-	EXPECT_NEAR(7.5, elevation.second, 0.01);
+	ASSERT_FALSE(tile->contains(coord_edge));
+	ASSERT_TRUE(tile->contains(coord_near_edge));
 }
 
-TEST_F(TileTest, get_elevation_mixed_values2) {
-	const double longitude = -84.38;
-	const double latitude  = 45.14;
-	const int offset_x     = 6;
-	const int offset_y     = 8;
+TEST_F(TileTest, lookup_edge) {
+	// test what happens when we perform a lookup within the 1/2 pixel width boarder of the tile
+	auto top_left_corner    = tile->pixel_to_map({0.25, 0.25});
+	auto top_right_corner   = tile->pixel_to_map({tile->get_width() - 0.25, 0.25});
+	auto bottom_left_corner = tile->pixel_to_map({0.25, tile->get_height() - 0.25});
+	auto bottom_right_corner =
+	    tile->pixel_to_map({tile->get_width() - 0.25, tile->get_height() - 0.25});
 
-	top_left     = 1;
-	top_right    = 34;
-	bottom_left  = 11;
-	bottom_right = 345;
-	// top row   = {25, 54, 71, 3, 2, 6, 1, 34, 8, 5, 19};
-	// bottom row = {2, 5, 7, 34, 12, 56, 11, 345, 86, 55, 198};
+	auto top_left_pixel    = tile->pixel_to_map({0.5, 0.5});
+	auto top_right_pixel   = tile->pixel_to_map({tile->get_width() - 0.5, 0.5});
+	auto bottom_left_pixel = tile->pixel_to_map({0.5, tile->get_height() - 0.5});
+	auto bottom_right_pixel =
+	    tile->pixel_to_map({tile->get_width() - 0.5, tile->get_height() - 0.5});
 
-	EXPECT_CALL(*raw_raster, get_width()).WillRepeatedly(Return(size));
-	EXPECT_CALL(*raw_raster, get_height()).WillRepeatedly(Return(size));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x, offset_y)).WillOnce(Return(top_left));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x + 1, offset_y)).WillOnce(Return(top_right));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x, offset_y + 1)).WillOnce(Return(bottom_left));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x + 1, offset_y + 1)).WillOnce(Return(bottom_right));
+	ASSERT_TRUE(tile->contains(top_left_corner));
+	ASSERT_TRUE(tile->contains(top_right_corner));
+	ASSERT_TRUE(tile->contains(bottom_left_corner));
+	ASSERT_TRUE(tile->contains(bottom_right_corner));
+	ASSERT_TRUE(tile->contains(top_left_pixel));
+	ASSERT_TRUE(tile->contains(top_right_pixel));
+	ASSERT_TRUE(tile->contains(bottom_left_pixel));
+	ASSERT_TRUE(tile->contains(bottom_right_pixel));
 
-	auto elevation = tile->lookup_datum(latitude, longitude);
+	// the value of the lookup between the corner pixel and the corner of the tile should be the
+	// value of the lookup right on the corner pixel
+	ASSERT_EQ(tile->lookup_datum(top_left_corner), tile->lookup_datum(top_left_pixel));
+	ASSERT_EQ(tile->lookup_datum(top_right_corner), tile->lookup_datum(top_right_pixel));
+	ASSERT_EQ(tile->lookup_datum(bottom_left_corner), tile->lookup_datum(bottom_left_pixel));
+	ASSERT_EQ(tile->lookup_datum(bottom_right_corner), tile->lookup_datum(bottom_right_pixel));
 
-	// between 11(45.1, -84.4) and 345(45.1, -84.3) on bottom, 1 (45.2, -84.4) and 34(45.2, -84.3)
-	// on top. Starting top left value is one, normalized slope is (34 - 1) = 33 Requested x
-	// coordinate is 0.02 deg east of left boundary, or 0.2 normalized Should be 1 + (34 - 1) * 0.2
-	// = 7.6 for top 11 + (345 - 11) * 0.2 = 77.8 for bottom Starting from top line, requested
-	// latitude is 0.06 deg south So we should have top + (bottom - top) * 0.6
-	ASSERT_TRUE(elevation.first);
-	EXPECT_NEAR(49.72, elevation.second, 1e-6);
+	auto boarder_of_tile   = tile->pixel_to_map({1.0, 0.25});
+	auto boarder_of_pixels = tile->pixel_to_map({1.0, 0.5});
+
+	// the value of the lookup on the 1/2 pixel width board, should be the value interpolated
+	// between the two nearest pixels at the edge
+	ASSERT_EQ(tile->lookup_datum(boarder_of_tile), tile->lookup_datum(boarder_of_pixels));
 }
 
-TEST_F(TileTest, read_pixel_no_elevation_top_row) {
-	const double longitude = -84.38;
-	const double latitude  = 45.14;
-	const int offset_x     = 6;
-	const int offset_y     = 8;
-
-	bottom_left  = 1;
-	bottom_right = 34;
-
-	EXPECT_CALL(*raw_raster, get_width()).WillRepeatedly(Return(size));
-	EXPECT_CALL(*raw_raster, get_height()).WillRepeatedly(Return(size));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x, offset_y)).WillOnce(Return(top_left));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x + 1, offset_y)).WillOnce(Return(top_right));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x, offset_y + 1)).WillOnce(Return(bottom_left));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x + 1, offset_y + 1)).WillOnce(Return(bottom_right));
-
-	auto elevation = tile->lookup_datum(latitude, longitude);
-	// No 'top row' available. Fall back to a 1D interp.
-	ASSERT_TRUE(elevation.first);
-	EXPECT_NEAR(7.6, elevation.second, 0.01);
+TEST_F(TileTest, scan_and_unload) {
+	// just calls the functions...since the internals are private, there's not much to test!
+	tile->scan_tile();
+	tile->unload();
 }
 
-TEST_F(TileTest, read_pixel_no_elevation_top_left) {
-	const double longitude = -84.38;
-	const double latitude  = 45.14;
-	const int offset_x     = 6;
-	const int offset_y     = 8;
+TEST_F(TileTest, dimension) {
+	const size_t width  = 512;
+	const size_t height = 512;
 
-	top_right    = 18;
-	bottom_left  = 1;
-	bottom_right = 34;
-
-	EXPECT_CALL(*raw_raster, get_width()).WillRepeatedly(Return(size));
-	EXPECT_CALL(*raw_raster, get_height()).WillRepeatedly(Return(size));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x, offset_y)).WillOnce(Return(top_left));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x + 1, offset_y)).WillOnce(Return(top_right));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x, offset_y + 1)).WillOnce(Return(bottom_left));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x + 1, offset_y + 1)).WillOnce(Return(bottom_right));
-
-	auto elevation = tile->lookup_datum(latitude, longitude);
-	// Filled with top right pixel, 18
-	ASSERT_TRUE(elevation.first);
-	EXPECT_NEAR(11.76, elevation.second, 0.01);
+	ASSERT_EQ(tile->get_width(), width);
+	ASSERT_EQ(tile->get_height(), height);
 }
 
-TEST_F(TileTest, read_pixel_no_elevation_top_right) {
-	const double longitude = -84.38;
-	const double latitude  = 45.14;
-	const int offset_x     = 6;
-	const int offset_y     = 8;
+TEST_F(TileTest, lookup_datum) {
+	double elevation_expected, elevation_result;
 
-	top_left     = 2;
-	bottom_left  = 1;
-	bottom_right = 34;
+	Coordinate center_coord = tile->pixel_to_map({256, 256});
+	// manually interpolated between the four pixel surrounding the center point
+	elevation_expected = 143.75;
 
-	EXPECT_CALL(*raw_raster, get_width()).WillRepeatedly(Return(size));
-	EXPECT_CALL(*raw_raster, get_height()).WillRepeatedly(Return(size));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x, offset_y)).WillOnce(Return(top_left));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x + 1, offset_y)).WillOnce(Return(top_right));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x, offset_y + 1)).WillOnce(Return(bottom_left));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x + 1, offset_y + 1)).WillOnce(Return(bottom_right));
+	elevation_result = tile->lookup_datum(center_coord);
+	ASSERT_NEAR(elevation_result, elevation_expected, 1e-6);
 
-	auto elevation = tile->lookup_datum(latitude, longitude);
-	// Missing value filled w/ top left pixel, 2
-	ASSERT_TRUE(elevation.first);
-	EXPECT_NEAR(5.36, elevation.second, 0.01);
+	// map coordinate that correponds precisely to the pixel indices (9, 19)
+	Coordinate point_on_pixel = tile->pixel_to_map({9.5, 19.5});
+	// manually queried value at that pixel
+	elevation_expected = 148.0;
+
+	elevation_result = tile->lookup_datum(point_on_pixel);
+	ASSERT_NEAR(elevation_result, elevation_expected, 1e-6);
+
+	Coordinate far_corner =
+	    tile->pixel_to_map({double(tile->get_width()), double(tile->get_height())});
+	// elevation manually queried at the farthest pixel, since that is the best guess available for
+	// the elevation at the farthest corner of the tile
+	elevation_expected = 148.0;
+
+	elevation_result = tile->lookup_datum(far_corner);
+	ASSERT_NEAR(elevation_result, elevation_expected, 1e-6);
+
+	// the two closest pixel indices to this point would be (199, 0) and (200, 0)
+	Coordinate on_edge = tile->pixel_to_map({200.3, 0.0});
+	// manually interpolated between the values at these two pixels
+	elevation_expected = 237.0;
+
+	elevation_result = tile->lookup_datum(on_edge);
+	ASSERT_NEAR(elevation_result, elevation_expected, 1e-6);
 }
 
-TEST_F(TileTest, read_pixel_no_elevation_bottom_left) {
-	const double longitude = -84.38;
-	const double latitude  = 45.14;
-	const int offset_x     = 6;
-	const int offset_y     = 8;
-
-	top_left     = 2;
-	top_right    = 25;
-	bottom_right = 34;
-
-	EXPECT_CALL(*raw_raster, get_width()).WillRepeatedly(Return(size));
-	EXPECT_CALL(*raw_raster, get_height()).WillRepeatedly(Return(size));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x, offset_y)).WillOnce(Return(top_left));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x + 1, offset_y)).WillOnce(Return(top_right));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x, offset_y + 1)).WillOnce(Return(bottom_left));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x + 1, offset_y + 1)).WillOnce(Return(bottom_right));
-
-	auto elevation = tile->lookup_datum(latitude, longitude);
-	// Filled with bottom right pixel, 34
-	ASSERT_TRUE(elevation.first);
-	EXPECT_NEAR(23.04, elevation.second, 0.01);
-}
-
-
-TEST_F(TileTest, read_pixel_no_elevation_bottom_right) {
-	const double longitude = -84.38;
-	const double latitude  = 45.14;
-	const int offset_x     = 6;
-	const int offset_y     = 8;
-
-	top_left    = 2;
-	top_right   = 25;
-	bottom_left = 8;
-
-	EXPECT_CALL(*raw_raster, get_width()).WillRepeatedly(Return(size));
-	EXPECT_CALL(*raw_raster, get_height()).WillRepeatedly(Return(size));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x, offset_y)).WillOnce(Return(top_left));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x + 1, offset_y)).WillOnce(Return(top_right));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x, offset_y + 1)).WillOnce(Return(bottom_left));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x + 1, offset_y + 1)).WillOnce(Return(bottom_right));
-
-	auto elevation = tile->lookup_datum(latitude, longitude);
-	// Takes bottom left pixel, 8
-	ASSERT_TRUE(elevation.first);
-	EXPECT_NEAR(7.44, elevation.second, 0.01);
-}
-
-TEST_F(TileTest, read_pixel_no_elevation_all) {
-	const double longitude = -84.38;
-	const double latitude  = 45.14;
-	const int offset_x     = 6;
-	const int offset_y     = 8;
-
-	EXPECT_CALL(*raw_raster, get_width()).WillRepeatedly(Return(size));
-	EXPECT_CALL(*raw_raster, get_height()).WillRepeatedly(Return(size));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x, offset_y)).WillOnce(Return(top_left));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x + 1, offset_y)).WillOnce(Return(top_right));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x, offset_y + 1)).WillOnce(Return(bottom_left));
-	EXPECT_CALL(*raw_raster, read_pixel(offset_x + 1, offset_y + 1)).WillOnce(Return(bottom_right));
-
-	auto elevation = tile->lookup_datum(latitude, longitude);
-
-	EXPECT_FALSE(elevation.first);
-}
 }  // namespace geospatial
 }  // namespace navtk

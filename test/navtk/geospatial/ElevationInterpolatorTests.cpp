@@ -1,4 +1,5 @@
 #include <gtest/gtest.h>
+#include <cmath>
 
 #include <navtk/geospatial/ElevationInterpolator.hpp>
 
@@ -45,6 +46,12 @@ TEST(ElevationInterpolator, Somewhere) {
 	            ElevationInterpolator(10, 100, 200, 500)
 	                .interpolate(std::pair<double, double>(0.3876, 0.812)),
 	            0.1);
+}
+
+TEST(ElevationInterpolator, NotANumber) {
+	// ensure that if one of the points has a NAN value, the output will be NAN, even if the input
+	// interpolation is all the way on the farthest corner from the NAN value
+	EXPECT_TRUE(std::isnan(ElevationInterpolator(NAN, 10, 10, 10).interpolate({1.0, 1.0})));
 }
 }  // namespace geospatial
 }  // namespace navtk

@@ -17,11 +17,6 @@
 #	include <navtk/geospatial/sources/GdalSource.hpp>
 #	include <navtk/geospatial/detail/custom_deleters.hpp>
 #	include <navtk/geospatial/detail/transformations.hpp>
-#	include <navtk/geospatial/Raster.hpp>
-#	include <navtk/geospatial/Post.hpp>
-#	include <navtk/geospatial/Tile.hpp>
-#	include <navtk/geospatial/TileStorage.hpp>
-#	include <navtk/geospatial/GdalRaster.hpp>
 #	ifndef GDAL_INCLUDE_IN_SUBFOLDER
 #		include <gdal_priv.h>
 #		include <ogr_spatialref.h>
@@ -46,43 +41,8 @@ using geo::SpatialMapDataSource;
 using navtk::not_null;
 
 #ifdef NAVTK_GDAL_ENABLED
-using geo::GdalRaster;
 using geo::GdalSource;
-using geo::Post;
-using geo::Raster;
-using geo::Tile;
-using geo::TileStorage;
-using geo::detail::DatasetDelete;
-using geo::detail::TransformDelete;
-
-template <class RasterBase = Raster>
-class PyRaster : public RasterBase, public py::trampoline_self_life_support {
-public:
-	using RasterBase::RasterBase;
-
-	int get_width() const override { PYBIND11_OVERRIDE_PURE(int, RasterBase, get_width, ); }
-
-	int get_height() const override { PYBIND11_OVERRIDE_PURE(int, RasterBase, get_height, ); }
-
-	std::pair<double, double> wgs84_to_pixel(double latitude, double longitude) const override {
-		PYBIND11_OVERRIDE_PURE(
-		    PARAMS(std::pair<double, double>), RasterBase, wgs84_to_pixel, latitude, longitude);
-	}
-
-	double read_pixel(size_t idx_x, size_t idx_y) override {
-		PYBIND11_OVERRIDE_PURE(double, RasterBase, read_pixel, idx_x, idx_y);
-	}
-
-	std::string get_name() const override {
-		PYBIND11_OVERRIDE_PURE(std::string, RasterBase, get_name, );
-	}
-
-	bool is_valid_data(double data) const override {
-		PYBIND11_OVERRIDE_PURE(bool, RasterBase, is_valid_data, data);
-	}
-
-	void unload() override { PYBIND11_OVERRIDE_PURE(void, RasterBase, unload, ); }
-};
+using navtk::Vector;
 #endif
 
 template <class SpatialMapDataProviderBase = SpatialMapDataProvider>
@@ -191,15 +151,6 @@ void add_geospatial_functions(pybind11::module& m) {
 
 #ifdef NAVTK_GDAL_ENABLED
 
-	// clang-format off
-	CLASS(TransformDelete)
-	.def("__call__", &TransformDelete::operator())
-	CDOC(TransformDelete);
-
-	CLASS(DatasetDelete)
-	.def("__call__", &DatasetDelete::operator())
-	CDOC(DatasetDelete);
-
 	auto gdal_source = CLASS(GdalSource, ElevationSource);
 	ENUM_SCOPED(MapType, GdalSource, gdal_source)
 	CHOICE_SCOPED(MapType, GdalSource, GEOTIFF)
@@ -220,50 +171,9 @@ void add_geospatial_functions(pybind11::module& m) {
 	                 "num_tiles"_a = 10,
 					 "undulation_path"_a = "WW15MGH.GRD"
 					 )
+	METHOD_OVERLOAD_CONST(GdalSource, lookup_datum, PARAMS(double, double), , "latitude"_a, "longitude"_a)
 	CDOC(GdalSource);
 	// clang-format on
 
-	CLASS(Raster, PyRaster<>)
-	CTOR_NODOC_DEFAULT
-	METHOD_VOID(Raster, get_width)
-	METHOD_VOID(Raster, get_height)
-	METHOD_VOID(Raster, get_name)
-	METHOD(Raster, is_valid_data, "data"_a)
-	METHOD(Raster, wgs84_to_pixel, "latitude"_a, "longitude"_a)
-	METHOD(Raster, read_pixel, "idx_x"_a, "idx_y"_a)
-	METHOD_VOID(Raster, unload)
-	CDOC(Raster);
-
-	CLASS(Tile)
-	CTOR(Tile, std::shared_ptr<Raster>, "raster"_a)
-	METHOD(Tile, lookup_datum, "latitude"_a, "longitude"_a)
-	METHOD_VOID(Tile, get_filename)
-	METHOD(Tile, contains, "latitude"_a, "longitude"_a)
-	METHOD_VOID(Tile, unload)
-	REPR(Tile)
-	CDOC(Tile);
-
-	CLASS(GdalRaster, Raster)
-	CTOR(GdalRaster,
-	     PARAMS(const std::string&, const std::string&),
-	     "filename"_a,
-	     "undulation_path"_a = "WW15MGH.GRD")
-	METHOD_VOID(GdalRaster, is_valid)
-	METHOD_VOID(GdalRaster, scan_tile)
-	CDOC(GdalRaster);
-
-	CLASS(Post)
-	CTOR_NODOC(PARAMS(int, int), "x"_a, "y"_a)
-	FIELD(Post, x)
-	FIELD(Post, y)
-	CDOC(Post);
-
-	CLASS(TileStorage)
-	CTOR(TileStorage, unsigned int, "max_size"_a)
-	METHOD(TileStorage, add_tile, "tile"_a)
-	METHOD_VOID(TileStorage, get_size)
-	METHOD(TileStorage, is_stored, "filename"_a)
-	METHOD(TileStorage, get_tile, "filename"_a)
-	CDOC(TileStorage);
 #endif
 }

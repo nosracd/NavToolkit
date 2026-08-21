@@ -9,6 +9,7 @@
 #include <navtk/geospatial/providers/SimpleElevationProvider.hpp>
 #include <navtk/geospatial/sources/GdalSource.hpp>
 #include <navtk/navutils/math.hpp>
+#include <navtk/navutils/navigation.hpp>
 #include <navtk/tensors.hpp>
 
 namespace navtk {
@@ -78,9 +79,9 @@ TEST_F(SimpleElevationProviderTest, compare_against_command_line_gdal) {
 	    std::make_shared<SimpleElevationProvider>(sources, ASPN_MEASUREMENT_ALTITUDE_REFERENCE_AGL);
 
 	// Series of arbitrary coordinates inside the GeoTIFF and DTED test tiles. Each row is
-	// {latitude, longitude} in degrees.
-	const Matrix QUERY_COORDINATES   = {{-3.597411, -78.89943}, {30.5, -82}};
-	const Vector EXPECTED_ELEVATIONS = {82, 30};
+	// {latitude, longitude} in degrees.  Coordinates and values queried manually.
+	const Matrix QUERY_COORDINATES   = {{-3.63817361, -78.90906349}, {30.1666772, -81.8866530}};
+	const Vector EXPECTED_ELEVATIONS = {33.0, 27.0};
 
 	test_valid_queries(provider_unsupported_ref, QUERY_COORDINATES, EXPECTED_ELEVATIONS);
 }
@@ -101,8 +102,9 @@ TEST_F(SimpleElevationProviderTest, get_elevation_hae_SLOW) {
 	std::shared_ptr<SimpleElevationProvider> provider_hae =
 	    std::make_shared<SimpleElevationProvider>(sources, ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE);
 
-	const Matrix QUERY_COORDINATES   = {{-3.597411, -78.89943}, {30.5, -82}};
-	const Vector EXPECTED_ELEVATIONS = {82, 0.9};
+	const Matrix QUERY_COORDINATES   = {{-3.63817361, -78.90906349}, {30.1666772, -81.8866530}};
+	const Vector EXPECTED_ELEVATIONS = {
+	    33.0, navutils::msl_to_hae(27.0, 30.1666772 * DEG2RAD, -81.8866530 * DEG2RAD).second};
 
 	test_valid_queries(provider_hae, QUERY_COORDINATES, EXPECTED_ELEVATIONS);
 }
@@ -113,8 +115,9 @@ TEST_F(SimpleElevationProviderTest, get_elevation_msl_SLOW) {
 	std::shared_ptr<SimpleElevationProvider> provider_msl =
 	    std::make_shared<SimpleElevationProvider>(sources, ASPN_MEASUREMENT_ALTITUDE_REFERENCE_MSL);
 
-	const Matrix QUERY_COORDINATES   = {{-3.597411, -78.89943}, {30.5, -82}};
-	const Vector EXPECTED_ELEVATIONS = {64, 30};
+	const Matrix QUERY_COORDINATES   = {{-3.63817361, -78.90906349}, {30.1666772, -81.8866530}};
+	const Vector EXPECTED_ELEVATIONS = {
+	    navutils::hae_to_msl(33.0, -3.63817361 * DEG2RAD, -78.90906349 * DEG2RAD).second, 27.0};
 
 	test_valid_queries(provider_msl, QUERY_COORDINATES, EXPECTED_ELEVATIONS);
 }
@@ -122,8 +125,8 @@ TEST_F(SimpleElevationProviderTest, get_elevation_msl_SLOW) {
 // Test different ways of constructing provider. Other tests check that the provider can be
 // constructed with a vector of sources, so that case is excluded from this test.
 TEST_F(SimpleElevationProviderTest, constructors) {
-	const Matrix QUERY_COORDINATES   = {{-3.597411, -78.89943}};
-	const Vector EXPECTED_ELEVATIONS = {82};
+	const Matrix QUERY_COORDINATES   = {{-3.63817361, -78.90906349}};
+	const Vector EXPECTED_ELEVATIONS = {33.0};
 
 	// Construct with no sources and add a source later.
 	std::shared_ptr<SimpleElevationProvider> provider = std::make_shared<SimpleElevationProvider>();

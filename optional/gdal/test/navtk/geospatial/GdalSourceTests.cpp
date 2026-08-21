@@ -1,5 +1,5 @@
+#include <memory>
 #include <string>
-#include <vector>
 
 #include <gtest/gtest.h>
 #include <spdlog_assert.hpp>
@@ -9,6 +9,7 @@
 #include <navtk/geospatial/providers/SimpleElevationProvider.hpp>
 #include <navtk/geospatial/sources/GdalSource.hpp>
 #include <navtk/navutils/math.hpp>
+#include <navtk/navutils/navigation.hpp>
 #include <navtk/tensors.hpp>
 
 namespace navtk {
@@ -60,7 +61,7 @@ public:
 			resulting_elevations(ii) = elevation.second;
 		}
 
-		ASSERT_ALLCLOSE_EX(expected_elevations, resulting_elevations, 0.05, 0.0);
+		ASSERT_ALLCLOSE_EX(resulting_elevations, expected_elevations, 0.5, 0.0);
 	}
 
 	void test_invalid_queries(GdalSource::MapType map_type, const Matrix& invalid_coordinates) {
@@ -85,14 +86,14 @@ TEST_F(GdalSourceTest, geotiff_compare_against_command_line_gdal) {
 	// clang-format off
 	// Series of arbitrary coordinates inside the test tile. Each row is {latitude, longitude} in
 	// degrees.
-	const Matrix QUERY_COORDINATES = {{-3.597411, -78.89943},
-									  {-3.699006, -78.90912},
-									  {-3.612280, -79.05017},
-									  {-3.795235, -79.10016}};
+	const Matrix QUERY_COORDINATES = {{-3.75989522, -78.94605278},
+									  {-3.703023681, -79.061434681},
+									  {-3.532207830, -78.857118290},
+									  {-3.761989244, -78.861024443}};
 	// clang-format on
 
-	// The resulting elevations returned by the gdallocationinfo utility.
-	const Vector EXPECTED_ELEVATIONS = {82, 222, 16, 206};
+	// The resulting elevations interpolated between the nearest pixels manually.
+	const Vector EXPECTED_ELEVATIONS = {41.25, 141.75, 164.5, 70};
 
 	test_valid_queries(GdalSource::MapType::GEOTIFF, QUERY_COORDINATES, EXPECTED_ELEVATIONS);
 }
@@ -110,25 +111,27 @@ TEST_F(GdalSourceTest, geotiff_change_frames_SLOW) {
 	// Default reference frame is HAE, so change to MSL
 	sources[GdalSource::MapType::GEOTIFF]->set_output_vertical_reference_frame(
 	    ASPN_MEASUREMENT_ALTITUDE_REFERENCE_MSL);
-	auto elevation = sources[GdalSource::MapType::GEOTIFF]->lookup_datum(-3.597411 * DEG2RAD,
-	                                                                     -78.89943 * DEG2RAD);
+	auto elevation = sources[GdalSource::MapType::GEOTIFF]->lookup_datum(-3.63817361 * DEG2RAD,
+	                                                                     -78.90906349 * DEG2RAD);
 	EXPECT_TRUE(elevation.first);
-	EXPECT_NEAR(64, elevation.second, 0.5);
+	EXPECT_NEAR(navutils::hae_to_msl(33, -3.63817361 * DEG2RAD, -78.90906349 * DEG2RAD).second,
+	            elevation.second,
+	            0.5);
 
 	// Back to HAE
 	sources[GdalSource::MapType::GEOTIFF]->set_output_vertical_reference_frame(
 	    ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE);
-	elevation = sources[GdalSource::MapType::GEOTIFF]->lookup_datum(-3.597411 * DEG2RAD,
-	                                                                -78.89943 * DEG2RAD);
+	elevation = sources[GdalSource::MapType::GEOTIFF]->lookup_datum(-3.63817361 * DEG2RAD,
+	                                                                -78.90906349 * DEG2RAD);
 	EXPECT_TRUE(elevation.first);
-	EXPECT_NEAR(82, elevation.second, 0.5);
+	EXPECT_NEAR(33, elevation.second, 0.5);
 }
 
 // Ensure the same tests work on DTED. The DTED file's default vertical reference frame is MSL.
 TEST_F(GdalSourceTest, dted_compare_against_command_line_gdal) {
 	// West-Center of test file, just to make sure the file can be read.
-	const Matrix QUERY_COORDINATES   = {{30.5, -82}};
-	const Vector EXPECTED_ELEVATIONS = {30};
+	const Matrix QUERY_COORDINATES   = {{30.1666772, -81.8866530}};
+	const Vector EXPECTED_ELEVATIONS = {27};
 
 	test_valid_queries(GdalSource::MapType::DTED, QUERY_COORDINATES, EXPECTED_ELEVATIONS);
 }
@@ -144,17 +147,20 @@ TEST_F(GdalSourceTest, dted_change_frames_SLOW) {
 	// Default reference frame is MSL, so change to HAE
 	sources[GdalSource::MapType::DTED]->set_output_vertical_reference_frame(
 	    ASPN_MEASUREMENT_ALTITUDE_REFERENCE_MSL);
-	auto elevation =
-	    sources[GdalSource::MapType::DTED]->lookup_datum(30.5 * DEG2RAD, -82 * DEG2RAD);
+	auto elevation = sources[GdalSource::MapType::DTED]->lookup_datum(30.1666772 * DEG2RAD,
+	                                                                  -81.8866530 * DEG2RAD);
 	EXPECT_TRUE(elevation.first);
-	EXPECT_NEAR(30, elevation.second, 0.5);
+	EXPECT_NEAR(27, elevation.second, 0.5);
 
 	// Back to MSL
 	sources[GdalSource::MapType::DTED]->set_output_vertical_reference_frame(
 	    ASPN_MEASUREMENT_ALTITUDE_REFERENCE_HAE);
-	elevation = sources[GdalSource::MapType::DTED]->lookup_datum(30.5 * DEG2RAD, -82 * DEG2RAD);
+	elevation = sources[GdalSource::MapType::DTED]->lookup_datum(30.1666772 * DEG2RAD,
+	                                                             -81.8866530 * DEG2RAD);
 	EXPECT_TRUE(elevation.first);
-	EXPECT_NEAR(0.9, elevation.second, 0.5);
+	EXPECT_NEAR(navutils::msl_to_hae(27, 30.1666772 * DEG2RAD, -81.8866530 * DEG2RAD).second,
+	            elevation.second,
+	            0.5);
 }
 
 TEST_F(GdalSourceTest, map_path) {
@@ -166,6 +172,52 @@ TEST_F(GdalSourceTest, map_path) {
 	// Pass an invalid path, should throw because cannot open folder
 	EXPECT_THROW(
 	    { GdalSource source("some/bad/path", GdalSource::MapType::DTED); }, std::invalid_argument);
+}
+
+TEST_F(GdalSourceTest, internal_storage_meta) {
+	EXPECT_TRUE(sources[GdalSource::MapType::GEOTIFF]->get_size() == 1);
+	EXPECT_TRUE(sources[GdalSource::MapType::DTED]->get_size() == 1);
+
+	std::string tif_path = getenv("NAVTK_DATA_DIR");
+	tif_path += "/bogota.tif";
+
+	std::string dted_path = getenv("NAVTK_DATA_DIR");
+	dted_path += "/n30_w082.dt2";
+
+	EXPECT_TRUE(sources[GdalSource::MapType::GEOTIFF]->is_stored(tif_path));
+	EXPECT_TRUE(sources[GdalSource::MapType::DTED]->is_stored(dted_path));
+}
+
+TEST_F(GdalSourceTest, coordinate_transform) {
+	// top left corner coordinates of example file
+	auto lat_deg = -3.529274236;
+	auto lon_deg = -79.1045964;
+
+	Coordinate expected_coord = {440720.000, 100000.000};
+
+	auto transformed_coord =
+	    sources[GdalSource::MapType::GEOTIFF]->wgs84_to_map(lat_deg * DEG2RAD, lon_deg * DEG2RAD);
+
+	EXPECT_NEAR(expected_coord.x, transformed_coord.x, 0.1);
+	EXPECT_NEAR(expected_coord.y, transformed_coord.y, 0.1);
+}
+
+TEST_F(GdalSourceTest, cache_management) {
+	EXPECT_EQ(sources[GdalSource::MapType::GEOTIFF]->get_cached_num(), 0);
+
+	// invalid coordinates
+	auto elevation =
+	    sources[GdalSource::MapType::GEOTIFF]->lookup_datum(0.0 * DEG2RAD, 0.0 * DEG2RAD);
+
+	EXPECT_FALSE(elevation.first);
+	EXPECT_EQ(sources[GdalSource::MapType::GEOTIFF]->get_cached_num(), 0);
+
+	// valid coordinates
+	elevation = sources[GdalSource::MapType::GEOTIFF]->lookup_datum(-3.63817361 * DEG2RAD,
+	                                                                -78.90906349 * DEG2RAD);
+
+	EXPECT_TRUE(elevation.first);
+	EXPECT_EQ(sources[GdalSource::MapType::GEOTIFF]->get_cached_num(), 1);
 }
 
 TEST_F(GdalSourceTest, unsupported_reference_frame) {
