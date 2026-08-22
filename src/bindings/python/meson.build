@@ -44,16 +44,26 @@ else
 
         aspn_install_dir_abs = meson.project_source_root() / aspn_install_dir
 
-        # Get path to ASPN-C headers vendored by ASPN-C++ Python module
-        aspn_include_dir = aspn_install_dir.replace('lib', 'include/site').replace('site-packages/', '')
+        # Get path to ASPN-C headers vendored by ASPN-C++ Python module by iterating over potential
+        # locations.
+        fs = import('fs')
+        possible_header_paths = [
+            aspn_install_dir.replace('lib', 'include/site').replace('site-packages/', ''),
+            aspn_install_dir.replace('lib', 'include').replace('site-packages/', ''),
+            aspn_install_dir.replace('lib', 'include').replace('site-packages/', '').replace('dist-packages/', '').replace('local/', ''),
+        ]
 
-        # Check if there is a virtual environment active
-        result = run_command(python_with_aspn_cpp, '-c', 'import os; print("VIRTUAL_ENV" in os.environ)', check: true)
-        in_venv = result.stdout().strip() == 'True'
+        aspn_include_dir = ''
+        foreach possible_path: possible_header_paths
+            if fs.is_dir(possible_path)
+                aspn_include_dir = possible_path
+                break
+            endif
+        endforeach
 
-        # If there is not a virtual environment active, the include path to the ASPN-C headers changes
-        if not in_venv
-            aspn_include_dir = aspn_include_dir.replace('include/site', 'include')
+        if aspn_include_dir == ''
+            # Must be an additional path that needs to be added to possible_header_paths.
+            error('Found ASPN-C++ installation, but could not locate the ASPN-C++ headers')
         endif
 
         aspn_xtensor_py_dep = declare_dependency(
