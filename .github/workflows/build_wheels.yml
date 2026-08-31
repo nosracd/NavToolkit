@@ -1,9 +1,7 @@
 name: Build wheels
 
 on:
-  push:
-    branches: [main, feature/windows_wheels]
-  workflow_dispatch:
+  [push, pull_request]
 
 jobs:
   source:
