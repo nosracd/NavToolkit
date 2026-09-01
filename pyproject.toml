@@ -48,6 +48,9 @@ license = 'Apache-2.0'
 license-files = ['LICENSE']
 readme = 'README_PYTHON_PACKAGE.md'
 
+[tool.cibuildwheel]
+environment = { PIP_INDEX_URL = "https://test.pypi.org/simple/", PIP_EXTRA_INDEX_URL = "https://pypi.org/simple/" }
+
 [tool.cibuildwheel.linux]
 before-all = "yum install openblas-devel -y"
 
