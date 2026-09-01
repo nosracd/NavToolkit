@@ -49,8 +49,10 @@ else
         fs = import('fs')
         possible_header_paths = [
             aspn_install_dir.replace('lib', 'include/site').replace('site-packages/', ''),
+            aspn_install_dir.replace('lib', 'include/site/python' + python_with_aspn_cpp.language_version()).replace('site-packages/', ''),
             aspn_install_dir.replace('lib', 'include').replace('site-packages/', ''),
             aspn_install_dir.replace('lib', 'include').replace('site-packages/', '').replace('dist-packages/', '').replace('local/', ''),
+            aspn_install_dir.replace('Lib', 'include/site/python' + python_with_aspn_cpp.language_version()).replace('site-packages/', ''),
         ]
 
         aspn_include_dir = ''
