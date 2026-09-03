@@ -38,11 +38,19 @@ else
     if python_with_aspn_cpp.found()
         aspn_xtensor_python_lib_location = ''
 
-        aspn_install_dir = run_command(
+        result = run_command(
             [python_with_aspn_cpp, '-c', 'import aspn23_xtensor; import os; print(os.path.relpath(os.path.dirname(aspn23_xtensor.__file__)))'],
+            check: false)
+
+        aspn_install_dir_abs = run_command(
+            [python_with_aspn_cpp, '-c', 'import aspn23_xtensor; import os; print(os.path.dirname(aspn23_xtensor.__file__))'],
             check: true).stdout().strip() / 'aspn23_xtensor'
 
-        aspn_install_dir_abs = meson.project_source_root() / aspn_install_dir
+        if result.returncode() == 0
+            aspn_install_dir = result.stdout().strip() / 'aspn23_xtensor'
+        else
+            aspn_install_dir = aspn_install_dir_abs
+        endif
 
         # Get path to ASPN-C headers vendored by ASPN-C++ Python module by iterating over potential
         # locations.
